@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Groupe {
+  id      Int      @id @default(autoincrement())
+  nom     String   @unique // TA1, TA2, TB1, TB2
+  users   User[]
+  devoirs Devoir[]
+  cours   Cours[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nom       String
+  email     String   @unique
+  password  String
+  role      String   @default("etudiant") // etudiant | delegue | admin
+  valide    Boolean  @default(false) // false = en attente de validation admin
+  createdAt DateTime @default(now())
+
+  groupe   Groupe @relation(fields: [groupeId], references: [id])
+  groupeId Int
+
+  notes         Note[]
+  devoirsCreees Devoir[] @relation("AuteurDevoir")
+}
+
+model Devoir {
+  id          Int      @id @default(autoincrement())
+  titre       String
+  matiere     String
+  description String?
+  dateLimite  DateTime
+  createdAt   DateTime @default(now())
+
+  groupe   Groupe @relation(fields: [groupeId], references: [id])
+  groupeId Int
+
+  auteur   User @relation("AuteurDevoir", fields: [auteurId], references: [id])
+  auteurId Int
+}
+
+model Note {
+  id          Int      @id @default(autoincrement())
+  matiere     String
+  valeur      Float
+  coefficient Float    @default(1)
+  createdAt   DateTime @default(now())
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model Cours {
+  id         Int    @id @default(autoincrement())
+  matiere    String
+  jour       String // Lundi, Mardi...
+  heureDebut String // ex: "08:00"
+  heureFin   String // ex: "10:00"
+  salle      String?
+  prof       String?
+
+  groupe   Groupe @relation(fields: [groupeId], references: [id])
+  groupeId Int
+}
