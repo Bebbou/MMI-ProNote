@@ -3,6 +3,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import authRoutes from "./routes/auth.js";
+import adminRoutes from "./routes/admin.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/admin", adminRoutes);
 
 // Connexion Socket.IO
 io.on("connection", (socket) => {
