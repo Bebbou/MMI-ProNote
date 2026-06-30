@@ -1,30 +1,47 @@
+import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
+import devoirsRoutes from "./routes/devoirs.js";
+import notesRoutes from "./routes/notes.js";
+import edtRoutes from "./routes/edt.js";
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: { origin: "http://localhost:5173" }, // port par défaut de Vite
+  cors: { origin: "http://localhost:5173" },
 });
 
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
-// Route de test
+// Rend io accessible dans toutes les routes via req.io
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
 app.get("/", (req, res) => {
   res.json({ message: "Serveur MMIvers en ligne !" });
 });
 
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
+app.use("/devoirs", devoirsRoutes);
+app.use("/notes", notesRoutes);
+app.use("/edt", edtRoutes);
 
-// Connexion Socket.IO
+// Connexion Socket.IO — chaque utilisateur rejoint la room de son groupe
 io.on("connection", (socket) => {
   console.log(`Utilisateur connecté : ${socket.id}`);
+
+  socket.on("rejoindreGroupe", (groupeId) => {
+    socket.join(`groupe-${groupeId}`);
+    console.log(`Socket ${socket.id} a rejoint groupe-${groupeId}`);
+  });
 
   socket.on("disconnect", () => {
     console.log(`Utilisateur déconnecté : ${socket.id}`);
