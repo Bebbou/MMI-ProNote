@@ -70,7 +70,10 @@ export default function Devoirs() {
             <input name="titre" placeholder="Titre" value={form.titre} onChange={handleChange} required />
             <input name="matiere" placeholder="Matière" value={form.matiere} onChange={handleChange} required />
             <input name="description" placeholder="Description (optionnel)" value={form.description} onChange={handleChange} />
-            <input name="dateLimite" type="datetime-local" value={form.dateLimite} onChange={handleChange} required />
+            <label className={styles.dateLabel}>
+              Date limite
+              <input name="dateLimite" type="datetime-local" value={form.dateLimite} onChange={handleChange} required />
+            </label>
             <button type="submit">Créer le devoir</button>
           </form>
         )}

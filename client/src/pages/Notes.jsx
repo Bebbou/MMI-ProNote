@@ -5,7 +5,7 @@ import styles from "./Notes.module.css";
 
 export default function Notes() {
   const [notes, setNotes] = useState([]);
-  const [form, setForm] = useState({ matiere: "", valeur: "", coefficient: "1" });
+  const [form, setForm] = useState({ matiere: "", valeur: "", coefficient: "" });
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function Notes() {
     e.preventDefault();
     const { data } = await api.post("/notes", form);
     setNotes([data, ...notes]);
-    setForm({ matiere: "", valeur: "", coefficient: "1" });
+    setForm({ matiere: "", valeur: "", coefficient: "" });
     setShowForm(false);
   }
 
