@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "prisma migrate deploy && node index.js",
+    "start": "prisma db push && node index.js",
     "build": "prisma generate"
   },
   "keywords": [],
