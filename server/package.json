@@ -20,6 +20,7 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^5.22.0",
+    "resend": "^6.16.0",
     "socket.io": "^4.7.5",
     "web-push": "^3.6.7"
   },

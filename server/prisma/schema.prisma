@@ -30,6 +30,7 @@ model User {
   notes              Note[]
   devoirsCreees      Devoir[]           @relation("AuteurDevoir")
   pushSubscriptions  PushSubscription[]
+  passwordResets     PasswordReset[]
 }
 
 model PushSubscription {
@@ -65,6 +66,16 @@ model Note {
   createdAt   DateTime @default(now())
 
   user   User @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 }
 

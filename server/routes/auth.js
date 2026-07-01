@@ -1,7 +1,11 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { Resend } from "resend";
 import prisma from "../db.js";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const router = Router();
 
@@ -57,6 +61,68 @@ router.post("/login", async (req, res) => {
     token,
     user: { id: user.id, nom: user.nom, role: user.role, groupe: user.groupe.nom },
   });
+});
+
+// POST /auth/forgot-password — envoie un email de réinitialisation
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email requis." });
+
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  // On répond toujours OK pour ne pas révéler si l'email existe
+  if (!user) return res.json({ message: "Si cet email existe, un lien a été envoyé." });
+
+  // Invalide les anciens tokens
+  await prisma.passwordReset.updateMany({
+    where: { userId: user.id, used: false },
+    data: { used: true },
+  });
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1h
+
+  await prisma.passwordReset.create({ data: { token, expiresAt, userId: user.id } });
+
+  const resetUrl = `${process.env.CLIENT_ORIGIN}/reset-password?token=${token}`;
+
+  await resend.emails.send({
+    from: "Pronote-MMI <onboarding@resend.dev>",
+    to: email,
+    subject: "Réinitialisation de ton mot de passe",
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 2rem;">
+        <h2 style="color: #fe7db6;">Pronote-MMI</h2>
+        <p>Bonjour ${user.nom},</p>
+        <p>Tu as demandé à réinitialiser ton mot de passe. Clique sur le bouton ci-dessous (lien valable 1h) :</p>
+        <a href="${resetUrl}" style="display:inline-block;margin:1rem 0;padding:0.75rem 1.5rem;background:#fe7db6;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">
+          Réinitialiser mon mot de passe
+        </a>
+        <p style="color:#94a3b8;font-size:0.85rem;">Si tu n'es pas à l'origine de cette demande, ignore cet email.</p>
+      </div>
+    `,
+  });
+
+  res.json({ message: "Si cet email existe, un lien a été envoyé." });
+});
+
+// POST /auth/reset-password — réinitialise le mot de passe avec le token
+router.post("/reset-password", async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) return res.status(400).json({ error: "Champs manquants." });
+  if (password.length < 6) return res.status(400).json({ error: "Le mot de passe doit faire au moins 6 caractères." });
+
+  const reset = await prisma.passwordReset.findUnique({ where: { token } });
+
+  if (!reset || reset.used || reset.expiresAt < new Date()) {
+    return res.status(400).json({ error: "Lien invalide ou expiré." });
+  }
+
+  const hash = await bcrypt.hash(password, 10);
+  await prisma.user.update({ where: { id: reset.userId }, data: { password: hash } });
+  await prisma.passwordReset.update({ where: { id: reset.id }, data: { used: true } });
+
+  res.json({ message: "Mot de passe réinitialisé avec succès." });
 });
 
 export default router;

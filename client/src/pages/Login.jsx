@@ -51,6 +51,7 @@ export default function Login() {
           {error && <p className={styles.error}>{error}</p>}
           <button type="submit">Se connecter</button>
         </form>
+        <a href="/forgot-password">Mot de passe oublié ?</a>
         <a href="/register">Pas encore de compte ? S'inscrire</a>
       </div>
     </div>
