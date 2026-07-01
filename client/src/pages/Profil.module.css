@@ -100,6 +100,21 @@
   background: var(--accent-hover);
 }
 
+.notifBtn {
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.notifBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .error {
   color: var(--danger);
   font-size: 0.8rem;

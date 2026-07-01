@@ -1,6 +1,7 @@
 import { Router } from "express";
 import prisma from "../db.js";
 import { requireAuth, requireRole } from "../middlewares/auth.js";
+import { sendPushToGroup } from "../utils/push.js";
 
 const router = Router();
 
@@ -33,8 +34,16 @@ router.post("/", requireAuth, requireRole("admin", "delegue"), async (req, res) 
     include: { auteur: { select: { nom: true } } },
   });
 
-  // Émet l'événement temps réel à tous les clients du même groupe
+  // Temps réel Socket.IO
   req.io.to(`groupe-${req.user.groupeId}`).emit("nouveauDevoir", devoir);
+
+  // Notification push aux membres du groupe
+  sendPushToGroup(req.user.groupeId, req.user.id, {
+    title: `Nouveau devoir — ${devoir.matiere}`,
+    body: devoir.titre,
+    url: "/devoirs",
+    tag: `devoir-${devoir.id}`,
+  });
 
   res.status(201).json(devoir);
 });

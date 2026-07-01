@@ -27,8 +27,19 @@ model User {
   groupe   Groupe @relation(fields: [groupeId], references: [id])
   groupeId Int
 
-  notes         Note[]
-  devoirsCreees Devoir[] @relation("AuteurDevoir")
+  notes              Note[]
+  devoirsCreees      Devoir[]           @relation("AuteurDevoir")
+  pushSubscriptions  PushSubscription[]
+}
+
+model PushSubscription {
+  id       Int    @id @default(autoincrement())
+  endpoint String @unique
+  p256dh   String
+  auth     String
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
 }
 
 model Devoir {

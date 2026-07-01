@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 import api from "../api/index.js";
+import { usePushNotifications } from "../hooks/usePushNotifications.js";
 import styles from "./Profil.module.css";
 
 export default function Profil() {
   const { user } = useAuth();
   const [form, setForm] = useState({ actuel: "", nouveau: "", confirmation: "" });
+  const { isSupported, permission, subscribed, loading, enable, disable } = usePushNotifications();
   const [message, setMessage] = useState(null);
   const [error, setError] = useState("");
 
@@ -53,6 +55,25 @@ export default function Profil() {
             <span className={styles.label}>Rôle</span>
             <span className={styles.role}>{user?.role}</span>
           </div>
+        </div>
+
+        <div className={styles.section}>
+          <h2>Notifications</h2>
+          {!isSupported ? (
+            <p className={styles.error}>Ton navigateur ne supporte pas les notifications push.</p>
+          ) : permission === "denied" ? (
+            <p className={styles.error}>Notifications bloquées dans les paramètres du navigateur.</p>
+          ) : (
+            <button
+              type="button"
+              className={styles.notifBtn}
+              style={{ background: subscribed ? "var(--tint-pink)" : "var(--accent)", color: subscribed ? "var(--accent)" : "#fff", border: subscribed ? "1px solid var(--accent)" : "none" }}
+              onClick={subscribed ? disable : enable}
+              disabled={loading}
+            >
+              {loading ? "..." : subscribed ? "Désactiver les notifications" : "Activer les notifications"}
+            </button>
+          )}
         </div>
 
         <div className={styles.section}>
