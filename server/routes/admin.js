@@ -37,4 +37,29 @@ router.patch("/users/:id/role", async (req, res) => {
   res.json({ message: `Rôle de ${user.nom} mis à jour : ${user.role}` });
 });
 
+// PATCH /admin/users/:id — modifie nom, email, groupe d'un utilisateur
+router.patch("/users/:id", async (req, res) => {
+  const { nom, email, groupeNom } = req.body;
+  const data = {};
+  if (nom) data.nom = nom;
+  if (email) data.email = email;
+  if (groupeNom) {
+    const groupe = await prisma.groupe.findUnique({ where: { nom: groupeNom } });
+    if (!groupe) return res.status(400).json({ error: "Groupe introuvable." });
+    data.groupeId = groupe.id;
+  }
+  const user = await prisma.user.update({
+    where: { id: Number(req.params.id) },
+    data,
+    include: { groupe: true },
+  });
+  res.json(user);
+});
+
+// DELETE /admin/users/:id — supprime un utilisateur
+router.delete("/users/:id", async (req, res) => {
+  await prisma.user.delete({ where: { id: Number(req.params.id) } });
+  res.json({ message: "Utilisateur supprimé." });
+});
+
 export default router;
