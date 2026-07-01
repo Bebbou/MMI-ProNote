@@ -92,3 +92,11 @@
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
 }
+
+@media (max-width: 768px) {
+  .page {
+    padding: 1rem;
+    align-items: flex-start;
+    padding-top: 3rem;
+  }
+}

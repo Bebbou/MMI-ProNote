@@ -132,3 +132,9 @@
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
 }
+
+@media (max-width: 768px) {
+  .page {
+    max-width: 100%;
+  }
+}

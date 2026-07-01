@@ -90,6 +90,7 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0.75rem;
+  overflow-x: auto;
 }
 
 .day {
@@ -163,4 +164,22 @@
 
 .deleteBtn:hover {
   color: var(--danger);
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .grid {
+    grid-template-columns: repeat(5, minmax(140px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+  }
 }

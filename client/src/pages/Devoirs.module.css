@@ -168,3 +168,15 @@
   border-color: var(--danger);
   color: var(--danger);
 }
+
+@media (max-width: 768px) {
+  .header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .cardHeader {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+}

@@ -162,3 +162,22 @@
 .deleteBtn:hover {
   color: var(--danger);
 }
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .cardRight {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
