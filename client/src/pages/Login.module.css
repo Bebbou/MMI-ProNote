@@ -48,6 +48,13 @@
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* PasswordInput wrapper prend toute la largeur dans le formulaire */
+.card form > div {
+  width: 100%;
 }
 
 .card select:focus,
