@@ -46,6 +46,19 @@
   gap: 0.75rem;
 }
 
+.dateLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  font-weight: 500;
+}
+
+.dateLabel input {
+  margin: 0;
+}
+
 .form input, .form textarea, .form select {
   background: var(--bg-input);
   border: 1px solid var(--border);
