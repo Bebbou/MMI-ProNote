@@ -16,10 +16,10 @@ const httpServer = createServer(app);
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
 
 const io = new Server(httpServer, {
-  cors: { origin: [CLIENT_ORIGIN, "http://localhost:5174"] },
+  cors: { origin: [CLIENT_ORIGIN, "http://localhost:5174", "http://localhost:4173"] },
 });
 
-app.use(cors({ origin: [CLIENT_ORIGIN, "http://localhost:5174"] }));
+app.use(cors({ origin: [CLIENT_ORIGIN, "http://localhost:5174", "http://localhost:4173"] }));
 app.use(express.json());
 
 // Rend io accessible dans toutes les routes via req.io
