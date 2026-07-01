@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "../context/AuthContext";
 
+const SERVER_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+
 let socket = null;
 
 export function useSocket() {
@@ -11,10 +13,10 @@ export function useSocket() {
   useEffect(() => {
     if (!user || initialized.current) return;
 
-    socket = io("http://localhost:3000");
+    const token = localStorage.getItem("token");
+    socket = io(SERVER_URL, { auth: { token } });
 
     socket.on("connect", () => {
-      // Rejoint la room du groupe pour recevoir les événements en temps réel
       socket.emit("rejoindreGroupe", user.groupeId);
     });
 

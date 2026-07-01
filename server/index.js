@@ -3,6 +3,8 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import jwt from "jsonwebtoken";
+import prisma from "./db.js";
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
 import devoirsRoutes from "./routes/devoirs.js";
@@ -10,10 +12,10 @@ import notesRoutes from "./routes/notes.js";
 import edtRoutes from "./routes/edt.js";
 import profilRoutes from "./routes/profil.js";
 import notificationsRoutes from "./routes/notifications.js";
+import chatRoutes from "./routes/chat.js";
 
 const app = express();
 const httpServer = createServer(app);
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
 
 const io = new Server(httpServer, {
   cors: { origin: true },
@@ -22,7 +24,6 @@ const io = new Server(httpServer, {
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-// Rend io accessible dans toutes les routes via req.io
 app.use((req, res, next) => {
   req.io = io;
   next();
@@ -39,22 +40,67 @@ app.use("/notes", notesRoutes);
 app.use("/edt", edtRoutes);
 app.use("/profil", profilRoutes);
 app.use("/notifications", notificationsRoutes);
+app.use("/chat", chatRoutes);
 
-// Connexion Socket.IO — chaque utilisateur rejoint la room de son groupe
-io.on("connection", (socket) => {
-  console.log(`Utilisateur connecté : ${socket.id}`);
-
-  socket.on("rejoindreGroupe", (groupeId) => {
-    socket.join(`groupe-${groupeId}`);
-    console.log(`Socket ${socket.id} a rejoint groupe-${groupeId}`);
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`Utilisateur déconnecté : ${socket.id}`);
-  });
+// Socket.IO — authentification + chat temps réel
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next(new Error("Non authentifié"));
+  try {
+    socket.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    next(new Error("Token invalide"));
+  }
 });
 
-const PORT = 3000;
-httpServer.listen(PORT, () => {
+io.on("connection", (socket) => {
+  // Rejoindre la room groupe pour les devoirs
+  socket.on("rejoindreGroupe", (groupeId) => {
+    socket.join(`groupe-${groupeId}`);
+  });
+
+  // Rejoindre un canal de chat
+  socket.on("rejoindreChannel", (channelId) => {
+    socket.join(`channel-${channelId}`);
+  });
+
+  // Quitter un canal de chat
+  socket.on("quitterChannel", (channelId) => {
+    socket.leave(`channel-${channelId}`);
+  });
+
+  // Envoyer un message dans un canal
+  socket.on("envoyerMessage", async ({ channelId, content }) => {
+    if (!content?.trim() || !channelId) return;
+    try {
+      const message = await prisma.message.create({
+        data: { content: content.trim(), channelId, auteurId: socket.user.id },
+        include: { auteur: { select: { id: true, nom: true } } },
+      });
+      io.to(`channel-${channelId}`).emit("nouveauMessage", message);
+    } catch {}
+  });
+
+  socket.on("disconnect", () => {});
+});
+
+// Seed des canaux par défaut au démarrage
+async function seedChannels() {
+  const defauts = [
+    { nom: "général", description: "Canal ouvert à tous", type: "general" },
+    { nom: "TPA1", description: "Canal du groupe TPA1", type: "groupe" },
+    { nom: "TPA2", description: "Canal du groupe TPA2", type: "groupe" },
+    { nom: "TPB1", description: "Canal du groupe TPB1", type: "groupe" },
+    { nom: "TPB2", description: "Canal du groupe TPB2", type: "groupe" },
+  ];
+  for (const c of defauts) {
+    await prisma.channel.upsert({ where: { nom: c.nom }, update: {}, create: c });
+  }
+}
+
+const PORT = process.env.PORT ?? 3000;
+httpServer.listen(PORT, async () => {
+  await seedChannels();
   console.log(`Serveur démarré sur http://localhost:${PORT}`);
 });

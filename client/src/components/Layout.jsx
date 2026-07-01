@@ -1,6 +1,6 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Home, BookOpen, BarChart2, Calendar, User, Settings, LogOut, LayoutGrid, Sun, Moon, Menu, X } from "lucide-react";
+import { Home, BookOpen, BarChart2, Calendar, User, Settings, LogOut, LayoutGrid, Sun, Moon, Menu, X, MessageSquare } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import { useState } from "react";
 import styles from "./Layout.module.css";
@@ -10,6 +10,7 @@ const navItems = [
   { to: "/devoirs", label: "Devoirs", icon: BookOpen },
   { to: "/notes", label: "Notes", icon: BarChart2 },
   { to: "/edt", label: "EDT", icon: Calendar },
+  { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/profil", label: "Profil", icon: User },
 ];
 

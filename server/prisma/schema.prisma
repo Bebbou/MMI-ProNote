@@ -30,8 +30,10 @@ model User {
   notes              Note[]
   devoirsCreees      Devoir[]           @relation("AuteurDevoir")
   pushSubscriptions  PushSubscription[]
+  messages           Message[]
   passwordResets     PasswordReset[]
 }
+
 
 model PushSubscription {
   id       Int    @id @default(autoincrement())
@@ -69,6 +71,25 @@ model Note {
   userId Int
 }
 
+model Channel {
+  id          Int       @id @default(autoincrement())
+  nom         String    @unique
+  description String?
+  type        String    @default("custom") // general | groupe | custom
+  createdAt   DateTime  @default(now())
+  messages    Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+
+  auteur   User    @relation(fields: [auteurId], references: [id], onDelete: Cascade)
+  auteurId Int
+
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId Int
 model PasswordReset {
   id        Int      @id @default(autoincrement())
   token     String   @unique

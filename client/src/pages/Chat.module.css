@@ -1,0 +1,345 @@
+.page {
+  display: flex;
+  height: calc(100vh - 4rem);
+  gap: 0;
+  margin: -2rem;
+  overflow: hidden;
+}
+
+/* ── Sidebar canaux ── */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--bg-dark);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebarTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.addBtn {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.addBtn:hover {
+  color: var(--accent);
+}
+
+.newChannelForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.newChannelForm input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.45rem 0.75rem;
+  color: var(--text);
+  font-size: 0.8rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.newChannelForm input:focus {
+  border-color: var(--accent);
+}
+
+.newChannelForm button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.channelList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.channelItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  color: var(--text-faint);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.channelItem:hover {
+  background: var(--bg-card);
+  color: var(--text-muted);
+}
+
+.channelActive {
+  background: var(--tint-pink);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.deleteChannelBtn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 0.1rem;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.channelItem:hover .deleteChannelBtn {
+  opacity: 1;
+}
+
+.deleteChannelBtn:hover {
+  color: var(--danger);
+}
+
+/* ── Zone chat ── */
+.chatArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+}
+
+.chatTitle {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.chatDesc {
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  border-left: 1px solid var(--border);
+  padding-left: 0.75rem;
+  margin-left: 0.25rem;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.empty {
+  color: var(--text-faint);
+  font-size: 0.875rem;
+  text-align: center;
+  margin: auto;
+}
+
+.noChannel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: 0.875rem;
+}
+
+.dateSeparator {
+  text-align: center;
+  font-size: 0.725rem;
+  color: var(--text-faint);
+  margin: 0.75rem 0 0.4rem;
+  position: relative;
+}
+
+.dateSeparator::before,
+.dateSeparator::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 35%;
+  height: 1px;
+  background: var(--border);
+}
+
+.dateSeparator::before { left: 0; }
+.dateSeparator::after { right: 0; }
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-width: 70%;
+  align-self: flex-start;
+}
+
+.messageMe {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.msgAuteur {
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: var(--accent);
+  padding-left: 0.25rem;
+}
+
+.msgBubble {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px 12px 12px 4px;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.875rem;
+  color: var(--text);
+  display: flex;
+  align-items: flex-end;
+  gap: 0.65rem;
+  word-break: break-word;
+}
+
+.messageMe .msgBubble {
+  background: var(--tint-pink);
+  border-color: var(--accent);
+  border-radius: 12px 12px 4px 12px;
+  color: var(--text);
+}
+
+.msgTime {
+  font-size: 0.65rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ── Zone de saisie ── */
+.inputArea {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.msgInput {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  color: var(--text);
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.msgInput:focus {
+  border-color: var(--accent);
+}
+
+.sendBtn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.sendBtn:hover {
+  background: var(--accent-hover);
+}
+
+.sendBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .page {
+    margin: -1.25rem -1rem;
+    height: calc(100vh - 64px - 3.5rem);
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: unset;
+    max-height: 160px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .channelList {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 0.4rem;
+  }
+
+  .channelItem {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .message {
+    max-width: 85%;
+  }
+}
