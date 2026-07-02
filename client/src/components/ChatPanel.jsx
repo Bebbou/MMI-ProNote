@@ -58,8 +58,18 @@ export default function ChatPanel() {
         if (!open) setUnread(u => u + 1);
       }
     });
-    return () => socket.off("nouveauMessage");
+    socket.on("messageSupprime", ({ id }) => {
+      setMessages(prev => prev.filter(m => m.id !== id));
+    });
+    return () => {
+      socket.off("nouveauMessage");
+      socket.off("messageSupprime");
+    };
   }, [socket, open]);
+
+  async function handleDeleteMessage(msgId) {
+    await api.delete(`/chat/messages/${msgId}`);
+  }
 
   useEffect(() => {
     if (open) {
@@ -162,7 +172,8 @@ export default function ChatPanel() {
                 <p className={styles.empty}>Aucun message. Sois le premier !</p>
               )}
               {messages.map((msg, i) => {
-                const isMe = msg.auteur.id === user?.id;
+                // eslint-disable-next-line eqeqeq
+                const isMe = msg.auteur.id == user?.id;
                 const showDate = i === 0 || formatDate(msg.createdAt) !== formatDate(messages[i - 1].createdAt);
                 return (
                   <div key={msg.id}>
@@ -172,6 +183,11 @@ export default function ChatPanel() {
                       <div className={styles.bubble}>
                         <span>{msg.content}</span>
                         <span className={styles.time}>{formatTime(msg.createdAt)}</span>
+                        {user?.role === "admin" && (
+                          <button className={styles.deleteMsgBtn} onClick={() => handleDeleteMessage(msg.id)}>
+                            <Trash2 size={10} strokeWidth={1.5} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

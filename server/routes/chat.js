@@ -43,4 +43,13 @@ router.get("/channels/:id/messages", async (req, res) => {
   res.json(messages);
 });
 
+// DELETE /chat/messages/:id — supprimer un message (admin seulement)
+router.delete("/messages/:id", requireRole("admin"), async (req, res) => {
+  const message = await prisma.message.findUnique({ where: { id: Number(req.params.id) } });
+  if (!message) return res.status(404).json({ error: "Message introuvable." });
+  await prisma.message.delete({ where: { id: message.id } });
+  req.io.to(`channel-${message.channelId}`).emit("messageSupprime", { id: message.id, channelId: message.channelId });
+  res.json({ message: "Message supprimé." });
+});
+
 export default router;

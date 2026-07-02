@@ -35,8 +35,6 @@
   font-family: inherit;
   font-weight: 600;
   transition: color 0.15s, background 0.15s;
-  writing-mode: vertical-rl;
-  gap: 0.5rem;
 }
 
 .panelOpen .toggleBtn {
@@ -312,6 +310,21 @@
 
 .sendBtn:hover { background: var(--accent-hover); }
 .sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.deleteMsgBtn {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  opacity: 0;
+  flex-shrink: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.bubble:hover .deleteMsgBtn { opacity: 1; }
+.deleteMsgBtn:hover { color: var(--danger); }
 
 /* ── Mobile : caché ── */
 @media (max-width: 768px) {
