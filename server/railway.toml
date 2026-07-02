@@ -1,7 +1,0 @@
-[deploy]
-startCommand = "node index.js"
-healthcheckPath = "/"
-healthcheckTimeout = 30
-
-[build]
-buildCommand = "prisma generate && prisma db push --accept-data-loss"
