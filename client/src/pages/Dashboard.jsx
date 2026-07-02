@@ -1,6 +1,6 @@
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, BarChart2, Calendar, MessageSquare } from "lucide-react";
+import { BookOpen, BarChart2, Calendar, MessageSquare, FolderOpen } from "lucide-react";
 import Layout from "../components/Layout";
 import styles from "./Dashboard.module.css";
 
@@ -9,6 +9,7 @@ const cards = [
   { to: "/notes", label: "Mes notes", icon: BarChart2 },
   { to: "/edt", label: "Emploi du temps", icon: Calendar },
   { to: "/chat", label: "Chat", icon: MessageSquare },
+  { to: "/documents", label: "Cours & Ressources", icon: FolderOpen },
 ];
 
 export default function Dashboard() {

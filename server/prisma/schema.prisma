@@ -33,6 +33,8 @@ model User {
   messages           Message[]
   reactions          Reaction[]
   passwordResets     PasswordReset[]
+  documents          Document[]         @relation("AuteurDocument")
+  commentairesDocs   CommentaireDoc[]   @relation("AuteurCommentaireDoc")
 }
 
 model PushSubscription {
@@ -133,4 +135,32 @@ model Cours {
 
   groupe   Groupe @relation(fields: [groupeId], references: [id])
   groupeId Int
+}
+
+model Document {
+  id          Int      @id @default(autoincrement())
+  titre       String
+  description String?
+  matiere     String
+  fileName    String
+  fileSize    Int
+  fileData    Bytes
+  createdAt   DateTime @default(now())
+
+  auteur   User @relation("AuteurDocument", fields: [auteurId], references: [id])
+  auteurId Int
+
+  commentaires CommentaireDoc[]
+}
+
+model CommentaireDoc {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+
+  auteur     User     @relation("AuteurCommentaireDoc", fields: [auteurId], references: [id])
+  auteurId   Int
+
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId Int
 }

@@ -1,6 +1,6 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Home, BookOpen, BarChart2, Calendar, User, Settings, LogOut, LayoutGrid, Sun, Moon, Menu, X, MessageSquare } from "lucide-react";
+import { Home, BookOpen, BarChart2, Calendar, User, Settings, LogOut, LayoutGrid, Sun, Moon, Menu, X, MessageSquare, FolderOpen } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import { useState } from "react";
 import ChatPanel from "./ChatPanel";
@@ -12,6 +12,7 @@ const navItems = [
   { to: "/notes", label: "Notes", icon: BarChart2 },
   { to: "/edt", label: "EDT", icon: Calendar },
   { to: "/chat", label: "Chat", icon: MessageSquare },
+  { to: "/documents", label: "Cours", icon: FolderOpen },
   { to: "/profil", label: "Profil", icon: User },
 ];
 

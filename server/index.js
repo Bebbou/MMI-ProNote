@@ -13,6 +13,7 @@ import edtRoutes from "./routes/edt.js";
 import profilRoutes from "./routes/profil.js";
 import notificationsRoutes from "./routes/notifications.js";
 import chatRoutes from "./routes/chat.js";
+import documentsRoutes from "./routes/documents.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -41,6 +42,7 @@ app.use("/edt", edtRoutes);
 app.use("/profil", profilRoutes);
 app.use("/notifications", notificationsRoutes);
 app.use("/chat", chatRoutes);
+app.use("/documents", documentsRoutes);
 
 // Socket.IO — auth + chat temps réel
 io.use((socket, next) => {

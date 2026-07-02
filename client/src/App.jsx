@@ -12,6 +12,7 @@ import Admin from "./pages/Admin";
 import Profil from "./pages/Profil";
 import Canvas from "./pages/Canvas";
 import Chat from "./pages/Chat";
+import Documents from "./pages/Documents";
 
 function PrivateRoute({ children }) {
   const { token } = useAuth();
@@ -35,6 +36,7 @@ function App() {
           <Route path="/profil" element={<PrivateRoute><Profil /></PrivateRoute>} />
           <Route path="/canvas" element={<PrivateRoute><Canvas /></PrivateRoute>} />
           <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>} />
+          <Route path="/documents" element={<PrivateRoute><Documents /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </BrowserRouter>
