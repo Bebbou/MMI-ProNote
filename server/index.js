@@ -42,7 +42,7 @@ app.use("/profil", profilRoutes);
 app.use("/notifications", notificationsRoutes);
 app.use("/chat", chatRoutes);
 
-// Socket.IO — authentification + chat temps réel
+// Socket.IO — auth + chat temps réel
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
   if (!token) return next(new Error("Non authentifié"));
@@ -55,22 +55,18 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  // Rejoindre la room groupe pour les devoirs
   socket.on("rejoindreGroupe", (groupeId) => {
     socket.join(`groupe-${groupeId}`);
   });
 
-  // Rejoindre un canal de chat
   socket.on("rejoindreChannel", (channelId) => {
     socket.join(`channel-${channelId}`);
   });
 
-  // Quitter un canal de chat
   socket.on("quitterChannel", (channelId) => {
     socket.leave(`channel-${channelId}`);
   });
 
-  // Envoyer un message dans un canal
   socket.on("envoyerMessage", async ({ channelId, content }) => {
     if (!content?.trim() || !channelId) return;
     try {
@@ -85,7 +81,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {});
 });
 
-// Seed des canaux par défaut au démarrage
 async function seedChannels() {
   const defauts = [
     { nom: "général", description: "Canal ouvert à tous", type: "general" },
@@ -107,7 +102,6 @@ httpServer.listen(PORT, async () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);
   try {
     await seedChannels();
-    console.log("Canaux seedés avec succès");
   } catch (e) {
     console.warn("seedChannels ignoré :", e.message);
   }
