@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "prisma db push --accept-data-loss && node index.js",
+    "start": "node index.js",
     "build": "prisma generate"
   },
   "keywords": [],
