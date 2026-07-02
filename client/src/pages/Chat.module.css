@@ -350,6 +350,7 @@
   padding: 0.85rem 1.25rem;
   border-top: 1px solid var(--border);
   background: var(--bg-card);
+  align-items: flex-end;
 }
 .msgInput {
   flex: 1;
@@ -363,8 +364,9 @@
   outline: none;
   transition: border-color 0.15s;
   resize: none;
-  overflow-y: hidden;
+  overflow-y: auto;
   line-height: 1.4;
+  min-height: 40px;
   max-height: 120px;
 }
 .msgInput:focus { border-color: var(--accent); }

@@ -365,7 +365,7 @@
 .replyBar button:hover { color: var(--accent); }
 
 /* Saisie */
-.inputArea { display: flex; gap: 0.4rem; padding: 0.65rem 0.85rem; border-top: 1px solid var(--border); }
+.inputArea { display: flex; gap: 0.4rem; padding: 0.65rem 0.85rem; border-top: 1px solid var(--border); align-items: flex-end; }
 .msgInput {
   flex: 1;
   background: var(--bg-input);
@@ -378,8 +378,9 @@
   outline: none;
   transition: border-color 0.15s;
   resize: none;
-  overflow-y: hidden;
+  overflow-y: auto;
   line-height: 1.4;
+  min-height: 36px;
   max-height: 120px;
 }
 .msgInput:focus { border-color: var(--accent); }
