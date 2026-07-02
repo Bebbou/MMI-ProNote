@@ -246,6 +246,13 @@
   padding-left: 0.2rem;
 }
 
+.auteurMe {
+  text-align: right;
+  padding-left: 0;
+  padding-right: 0.2rem;
+  color: var(--text-faint);
+}
+
 .bubble {
   background: var(--bg-dark);
   border: 1px solid var(--border);

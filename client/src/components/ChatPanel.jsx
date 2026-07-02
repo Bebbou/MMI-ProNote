@@ -53,7 +53,8 @@ export default function ChatPanel() {
   useEffect(() => {
     if (!socket) return;
     socket.on("nouveauMessage", (msg) => {
-      if (msg.channelId === activeChannelRef.current) {
+      // eslint-disable-next-line eqeqeq
+      if (msg.channelId === activeChannelRef.current && msg.auteur.id != user?.id) {
         setMessages(prev => [...prev, msg]);
         if (!open) setUnread(u => u + 1);
       }
@@ -65,7 +66,7 @@ export default function ChatPanel() {
       socket.off("nouveauMessage");
       socket.off("messageSupprime");
     };
-  }, [socket, open]);
+  }, [socket, open, user]);
 
   async function handleDeleteMessage(msgId) {
     await api.delete(`/chat/messages/${msgId}`);
@@ -85,7 +86,15 @@ export default function ChatPanel() {
   function handleSend(e) {
     e.preventDefault();
     if (!input.trim() || !activeChannel) return;
-    socket?.emit("envoyerMessage", { channelId: activeChannel.id, content: input });
+    const content = input.trim();
+    setMessages(prev => [...prev, {
+      id: `tmp-${Date.now()}`,
+      content,
+      createdAt: new Date().toISOString(),
+      channelId: activeChannel.id,
+      auteur: { id: user.id, nom: user.nom },
+    }]);
+    socket?.emit("envoyerMessage", { channelId: activeChannel.id, content });
     setInput("");
   }
 
@@ -179,7 +188,9 @@ export default function ChatPanel() {
                   <div key={msg.id}>
                     {showDate && <div className={styles.dateSep}>{formatDate(msg.createdAt)}</div>}
                     <div className={`${styles.message} ${isMe ? styles.messageMe : ""}`}>
-                      {!isMe && <span className={styles.auteur}>{msg.auteur.nom}</span>}
+                      <span className={`${styles.auteur} ${isMe ? styles.auteurMe : ""}`}>
+                        {isMe ? "Vous" : msg.auteur.nom}
+                      </span>
                       <div className={styles.bubble}>
                         <span>{msg.content}</span>
                         <span className={styles.time}>{formatTime(msg.createdAt)}</span>
