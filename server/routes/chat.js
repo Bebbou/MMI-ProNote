@@ -29,8 +29,17 @@ router.get("/channels", async (req, res) => {
     where: { id: req.user.groupeId },
     select: { nom: true },
   });
+  // TA1/TA2 → TDA, TB1/TB2 → TDB
+  const tdNom = "TD" + userGroupe.nom[1];
   const channels = await prisma.channel.findMany({
-    where: { OR: [{ type: "general" }, { type: "custom" }, { type: "groupe", nom: userGroupe.nom }] },
+    where: {
+      OR: [
+        { type: "general" },
+        { type: "custom" },
+        { type: "groupe", nom: userGroupe.nom },
+        { type: "td", nom: tdNom },
+      ],
+    },
     orderBy: { createdAt: "asc" },
   });
   res.json(channels);
