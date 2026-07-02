@@ -29,6 +29,13 @@ export default function Chat() {
   const bottomRef = useRef(null);
   const messagesRef = useRef(null);
   const isAtBottomRef = useRef(true);
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (input === "" && textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+  }, [input]);
 
   // Smart scroll
   useEffect(() => {
@@ -246,11 +253,24 @@ export default function Chat() {
               )}
 
               <form className={styles.inputArea} onSubmit={handleSend}>
-                <input
+                <textarea
+                  ref={textareaRef}
                   className={styles.msgInput}
                   placeholder={`Message dans #${activeChannel.nom}`}
                   value={input}
-                  onChange={e => setInput(e.target.value)}
+                  rows={1}
+                  onChange={e => {
+                    setInput(e.target.value);
+                    e.target.style.height = "auto";
+                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      if (input.trim()) handleSend(e);
+                      e.target.style.height = "auto";
+                    }
+                  }}
                 />
                 <button type="submit" className={styles.sendBtn} disabled={!input.trim()}>
                   <Send size={16} strokeWidth={1.5} />

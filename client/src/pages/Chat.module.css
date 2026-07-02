@@ -362,6 +362,10 @@
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s;
+  resize: none;
+  overflow-y: hidden;
+  line-height: 1.4;
+  max-height: 120px;
 }
 .msgInput:focus { border-color: var(--accent); }
 .sendBtn {
