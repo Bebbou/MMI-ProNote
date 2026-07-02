@@ -1,33 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
-/* ── MMI brand colors ── */
-:root {
-  --mmi-orange: #ff8d1a;
-  --mmi-red:    #ff2e0c;
-  --mmi-blue:   #469cd0;
-  --mmi-pink:   #ff7cb7;
-}
-
 :root, [data-theme="light"] {
-  --bg-page:   #f8f6f2;
-  --bg-card:   #ffffff;
-  --bg-input:  #f0ede7;
-  --bg-dark:   #ede9e2;
-  --border:    #ddd9d0;
-  --accent:       #ff8d1a;
-  --accent-hover: #d97000;
-  --accent-blue:  #469cd0;
-  --accent-orange: #ff8d1a;
-  --tint-pink:   #fff4e6;
-  --tint-blue:   #e8f4fb;
-  --tint-orange: #fff4e6;
-  --text:       #1a1a1a;
-  --text-muted: #3d3d3d;
-  --text-faint: #8a8a8a;
-  --danger:  #ff2e0c;
-  --success: #16a34a;
-  --warning: #ff8d1a;
-  --shadow:    0 4px 16px rgba(0,0,0,0.08);
+  --bg-page: #F7F6F3;
+  --bg-card: #FFFFFF;
+  --bg-input: #F2F1EE;
+  --bg-dark: #F7F6F3;
+  --border: #E4E2DD;
+  --accent: #fe7db6;
+  --accent-hover: #e05a9a;
+  --accent-blue: #29ABE2;
+  --accent-orange: #F26419;
+  --tint-pink: #FFF0F7;
+  --tint-blue: #EBF7FD;
+  --tint-orange: #FFF3EE;
+  --text: #1A1A1A;
+  --text-muted: #3D3D3D;
+  --text-faint: #888888;
+  --danger: #DC2626;
+  --success: #16A34A;
+  --warning: #F26419;
+  --shadow: 0 4px 16px rgba(0,0,0,0.07);
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
 }
 
@@ -66,13 +58,6 @@ body {
   color: var(--text);
   min-height: 100vh;
   transition: background 0.2s, color 0.2s;
-}
-
-/* Fond léger mode clair — très subtil grain */
-[data-theme="light"] body {
-  background-image:
-    radial-gradient(circle at 20% 20%, rgba(255,141,26,0.04) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(70,156,208,0.04) 0%, transparent 50%);
 }
 
 [data-theme="dark"] body {

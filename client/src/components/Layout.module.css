@@ -20,7 +20,7 @@
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  padding: 0 1rem 1.5rem;
+  padding: 1.5rem 1rem;
   gap: 1.5rem;
   position: fixed;
   top: 0;
@@ -30,28 +30,10 @@
   transition: transform 0.25s ease;
 }
 
-/* Barre décorative 4 couleurs MMI en haut */
-.sidebar::before {
-  content: "";
-  display: block;
-  height: 4px;
-  flex-shrink: 0;
-  background: linear-gradient(to right,
-    var(--mmi-pink)   0%   25%,
-    var(--mmi-blue)   25%  50%,
-    var(--mmi-orange) 50%  75%,
-    var(--mmi-red)    75%  100%
-  );
-  margin: 0 -1rem;
-  width: calc(100% + 2rem);
-}
-
-
 .sidebarTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 1.25rem;
 }
 
 .closeBtn {
@@ -70,34 +52,13 @@
 }
 
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.4rem 0.65rem;
-  background: var(--tint-pink);
-  border-radius: 10px;
-  text-decoration: none;
-}
-
-.logoText {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-}
-
-.logoMain {
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: var(--accent);
+  padding: 0.5rem 0.75rem;
+  background: var(--tint-pink);
+  border-radius: 8px;
   letter-spacing: -0.3px;
-}
-
-.logoSub {
-  font-size: 0.6rem;
-  font-weight: 600;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
 }
 
 .userInfo {
@@ -222,35 +183,6 @@
 .main {
   flex: 1;
   padding: 2rem;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Décoration MMI en arrière-plan */
-.mmiDecor {
-  position: absolute;
-  top: -60px;
-  right: -60px;
-  width: 320px;
-  height: 320px;
-  opacity: 0.13;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.mmiDecor svg {
-  width: 100%;
-  height: 100%;
-}
-
-/* Le contenu passe au-dessus */
-.main > *:not(.mmiDecor) {
-  position: relative;
-  z-index: 1;
-}
-
-[data-theme="dark"] .mmiDecor {
-  opacity: 0.06;
 }
 
 /* ── Mobile header (caché sur desktop) ── */
@@ -281,14 +213,20 @@
   }
 
   .logo {
-    padding: 0.4rem;
-    width: 44px;
-    height: 44px;
+    font-size: 0;
+    padding: 0.6rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
     justify-content: center;
   }
 
-  .logoText {
-    display: none;
+  .logo::after {
+    content: "P";
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--accent);
   }
 
   .userInfo {

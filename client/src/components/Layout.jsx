@@ -37,18 +37,7 @@ export default function Layout({ children }) {
       {/* Sidebar desktop */}
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarTop}>
-          <div className={styles.logo}>
-            {/* Mini logo MMI circulaire */}
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 3 A13 13 0 0 1 29 16" stroke="#ff7cb7" strokeWidth="5" strokeLinecap="round" fill="none"/>
-              <path d="M29 16 A13 13 0 0 1 16 29" stroke="#ff8d1a" strokeWidth="5" strokeLinecap="round" fill="none"/>
-              <path d="M16 29 A13 13 0 0 1 3 16" stroke="#469cd0" strokeWidth="5" strokeLinecap="round" fill="none" strokeDasharray="3 3"/>
-            </svg>
-            <div className={styles.logoText}>
-              <span className={styles.logoMain}>Pronote</span>
-              <span className={styles.logoSub}>MMI Béziers</span>
-            </div>
-          </div>
+          <div className={styles.logo}>Pronote-MMI</div>
           <button className={styles.closeBtn} onClick={() => setMenuOpen(false)} aria-label="Fermer le menu">
             <X size={18} strokeWidth={1.5} />
           </button>
@@ -101,28 +90,13 @@ export default function Layout({ children }) {
           <button className={styles.menuBtn} onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Menu size={20} strokeWidth={1.5} />
           </button>
-          <span className={styles.mobileTitle}>Pronote · MMI Béziers</span>
+          <span className={styles.mobileTitle}>Pronote-MMI</span>
           <button className={styles.themeIconBtn} onClick={toggleTheme}>
             {theme === "light" ? <Moon size={16} strokeWidth={1.5} /> : <Sun size={16} strokeWidth={1.5} />}
           </button>
         </header>
 
-        <main className={styles.main}>
-          {/* Décoration MMI — arcs colorés en fond */}
-          <div className={styles.mmiDecor} aria-hidden="true">
-            <svg viewBox="0 0 340 340" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Arc rose — création */}
-              <path d="M170 20 A150 150 0 0 1 320 170" stroke="#ff7cb7" strokeWidth="52" strokeLinecap="round" fill="none"/>
-              {/* Arc bleu hachuré — web */}
-              <path d="M20 170 A150 150 0 0 0 170 320" stroke="#469cd0" strokeWidth="52" strokeLinecap="round" fill="none" strokeDasharray="8 5"/>
-              {/* Arc orange — communication */}
-              <path d="M170 320 A150 150 0 0 0 305 230" stroke="#ff8d1a" strokeWidth="52" strokeLinecap="round" fill="none"/>
-              {/* Arc rouge — accent */}
-              <path d="M305 230 A150 150 0 0 0 320 170" stroke="#ff2e0c" strokeWidth="52" strokeLinecap="round" fill="none"/>
-            </svg>
-          </div>
-          {children}
-        </main>
+        <main className={styles.main}>{children}</main>
         <ChatPanel />
 
         {/* Bottom nav mobile */}
