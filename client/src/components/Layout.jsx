@@ -107,7 +107,22 @@ export default function Layout({ children }) {
           </button>
         </header>
 
-        <main className={styles.main}>{children}</main>
+        <main className={styles.main}>
+          {/* Décoration MMI — arcs colorés en fond */}
+          <div className={styles.mmiDecor} aria-hidden="true">
+            <svg viewBox="0 0 340 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Arc rose — création */}
+              <path d="M170 20 A150 150 0 0 1 320 170" stroke="#ff7cb7" strokeWidth="52" strokeLinecap="round" fill="none"/>
+              {/* Arc bleu hachuré — web */}
+              <path d="M20 170 A150 150 0 0 0 170 320" stroke="#469cd0" strokeWidth="52" strokeLinecap="round" fill="none" strokeDasharray="8 5"/>
+              {/* Arc orange — communication */}
+              <path d="M170 320 A150 150 0 0 0 305 230" stroke="#ff8d1a" strokeWidth="52" strokeLinecap="round" fill="none"/>
+              {/* Arc rouge — accent */}
+              <path d="M305 230 A150 150 0 0 0 320 170" stroke="#ff2e0c" strokeWidth="52" strokeLinecap="round" fill="none"/>
+            </svg>
+          </div>
+          {children}
+        </main>
         <ChatPanel />
 
         {/* Bottom nav mobile */}
