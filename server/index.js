@@ -99,12 +99,16 @@ async function seedChannels() {
   }
 }
 
+process.on("uncaughtException", (e) => console.error("uncaughtException:", e));
+process.on("unhandledRejection", (e) => console.error("unhandledRejection:", e));
+
 const PORT = process.env.PORT ?? 3000;
 httpServer.listen(PORT, async () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);
   try {
     await seedChannels();
+    console.log("Canaux seedés avec succès");
   } catch (e) {
-    console.warn("seedChannels ignoré (tables pas encore créées) :", e.message);
+    console.warn("seedChannels ignoré :", e.message);
   }
 });
