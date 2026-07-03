@@ -1,6 +1,7 @@
 import { Router } from "express";
 import prisma from "../db.js";
 import { requireAuth } from "../middlewares/auth.js";
+import { sendPushToUsers } from "../utils/push.js";
 
 const router = Router();
 
@@ -34,6 +35,23 @@ router.delete("/subscribe", requireAuth, async (req, res) => {
     where: { endpoint, userId: req.user.id },
   });
   res.json({ message: "Abonnement supprimé." });
+});
+
+// POST /notifications/test — envoie une notif test à soi-même
+router.post("/test", requireAuth, async (req, res) => {
+  const sub = await prisma.pushSubscription.findFirst({ where: { userId: req.user.id } });
+  if (!sub) return res.status(404).json({ error: "Aucun abonnement trouvé en base pour cet utilisateur." });
+  try {
+    await sendPushToUsers([req.user.id], {
+      title: "Test Pronote-MMI",
+      body: "Les notifications fonctionnent !",
+      url: "/dashboard",
+      tag: "test",
+    });
+    res.json({ message: "Notif envoyée.", endpoint: sub.endpoint.slice(0, 50) + "…" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;
