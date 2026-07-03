@@ -9,13 +9,7 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   );
 }
 
-export async function sendPushToGroup(groupeId, excludeUserId, payload) {
-  if (!process.env.VAPID_PUBLIC_KEY) return;
-
-  const subscriptions = await prisma.pushSubscription.findMany({
-    where: { user: { groupeId, id: { not: excludeUserId } } },
-  });
-
+async function sendToSubs(subscriptions, payload) {
   await Promise.allSettled(
     subscriptions.map(sub =>
       webpush
@@ -24,11 +18,34 @@ export async function sendPushToGroup(groupeId, excludeUserId, payload) {
           JSON.stringify(payload)
         )
         .catch(async err => {
-          // Supprimer les abonnements expirés ou invalides
           if (err.statusCode === 410 || err.statusCode === 404) {
             await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
           }
         })
     )
   );
+}
+
+export async function sendPushToGroup(groupeId, excludeUserId, payload) {
+  if (!process.env.VAPID_PUBLIC_KEY) return;
+  const subs = await prisma.pushSubscription.findMany({
+    where: { user: { groupeId, id: { not: excludeUserId } } },
+  });
+  await sendToSubs(subs, payload);
+}
+
+export async function sendPushToAll(excludeUserId, payload) {
+  if (!process.env.VAPID_PUBLIC_KEY) return;
+  const subs = await prisma.pushSubscription.findMany({
+    where: { user: { valide: true, id: { not: excludeUserId } } },
+  });
+  await sendToSubs(subs, payload);
+}
+
+export async function sendPushToUsers(userIds, payload) {
+  if (!process.env.VAPID_PUBLIC_KEY) return;
+  const subs = await prisma.pushSubscription.findMany({
+    where: { userId: { in: userIds } },
+  });
+  await sendToSubs(subs, payload);
 }

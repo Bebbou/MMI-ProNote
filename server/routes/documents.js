@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import prisma from "../db.js";
 import { requireAuth, requireRole } from "../middlewares/auth.js";
+import { sendPushToAll } from "../utils/push.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -57,6 +58,13 @@ router.post("/", requireRole("admin"), upload.single("file"), async (req, res) =
     },
     select: docSelect,
   });
+  sendPushToAll(req.user.id, {
+    title: `Nouveau cours — ${doc.matiere}`,
+    body: doc.titre,
+    url: "/documents",
+    tag: `document-${doc.id}`,
+  });
+
   res.status(201).json(doc);
 });
 
