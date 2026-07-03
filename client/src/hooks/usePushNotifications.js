@@ -36,8 +36,13 @@ export function usePushNotifications() {
       setPermission(perm);
       if (perm !== "granted") return;
 
+      // Nettoyer tous les anciens SW avant d'enregistrer le nouveau
+      const existingRegs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(existingRegs.map(r => r.unregister()));
+
       const { data } = await api.get("/notifications/vapid-public-key");
       const reg = await navigator.serviceWorker.register("/api/sw.js", { scope: "/" });
+      await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(data.key),
