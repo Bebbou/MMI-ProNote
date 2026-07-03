@@ -23,7 +23,7 @@ export function usePushNotifications() {
 
   useEffect(() => {
     if (!isSupported) return;
-    navigator.serviceWorker.ready.then(reg =>
+    navigator.serviceWorker.register("/api/sw.js", { scope: "/" }).then(reg =>
       reg.pushManager.getSubscription().then(sub => setSubscribed(!!sub))
     );
   }, [isSupported]);
@@ -37,7 +37,7 @@ export function usePushNotifications() {
       if (perm !== "granted") return;
 
       const { data } = await api.get("/notifications/vapid-public-key");
-      const reg = await navigator.serviceWorker.ready;
+      const reg = await navigator.serviceWorker.register("/api/sw.js", { scope: "/" });
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(data.key),
