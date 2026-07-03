@@ -16,6 +16,14 @@ const navItems = [
   { to: "/profil", label: "Profil", icon: User },
 ];
 
+const bottomNavItems = [
+  { to: "/dashboard", label: "Accueil", icon: Home },
+  { to: "/devoirs", label: "Devoirs", icon: BookOpen },
+  { to: "/edt", label: "EDT", icon: Calendar },
+  { to: "/chat", label: "Chat", icon: MessageSquare },
+  { to: "/profil", label: "Profil", icon: User },
+];
+
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -102,7 +110,7 @@ export default function Layout({ children }) {
 
         {/* Bottom nav mobile */}
         <nav className={styles.bottomNav}>
-          {navItems.map((item) => {
+          {bottomNavItems.map((item) => {
             const isActive = location.pathname === item.to;
             return (
               <NavLink
