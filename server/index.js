@@ -14,7 +14,6 @@ import profilRoutes from "./routes/profil.js";
 import notificationsRoutes from "./routes/notifications.js";
 import chatRoutes from "./routes/chat.js";
 import documentsRoutes from "./routes/documents.js";
-import { sendPushToUsers } from "./utils/push.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -87,27 +86,6 @@ io.on("connection", (socket) => {
         },
       });
       io.to(`channel-${channelId}`).emit("nouveauMessage", message);
-
-      // Notif push si canal non-général
-      const channel = await prisma.channel.findUnique({ where: { id: channelId }, select: { type: true, nom: true } });
-      if (channel && channel.type !== "general") {
-        const usersInRoom = await new Promise(resolve => {
-          io.in(`channel-${channelId}`).fetchSockets().then(sockets => {
-            resolve(sockets.map(s => s.user?.id).filter(Boolean));
-          });
-        });
-        const membres = await prisma.user.findMany({
-          where: { valide: true, id: { not: socket.user.id } },
-          select: { id: true },
-        });
-        const toNotify = membres.map(u => u.id).filter(id => !usersInRoom.includes(id));
-        sendPushToUsers(toNotify, {
-          title: `#${channel.nom} — ${message.auteur.nom}`,
-          body: message.content.slice(0, 100),
-          url: "/chat",
-          tag: `chat-${channelId}`,
-        });
-      }
     } catch {}
   });
 
