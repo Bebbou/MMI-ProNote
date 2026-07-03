@@ -37,7 +37,7 @@ router.get("/channels", async (req, res) => {
         { type: "general" },
         { type: "custom" },
         { type: "groupe", nom: userGroupe.nom },
-        { type: "td", nom: tdNom },
+        { nom: tdNom },
       ],
     },
     orderBy: { createdAt: "asc" },
