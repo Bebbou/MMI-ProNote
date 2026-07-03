@@ -7,7 +7,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      devOptions: { enabled: true },
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
+      devOptions: { enabled: true, type: 'module' },
       includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: {
         name: 'Pronote-MMI',

@@ -1,3 +1,8 @@
+import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
+
+precacheAndRoute(self.__WB_MANIFEST || []);
+cleanupOutdatedCaches();
+
 self.addEventListener("push", (event) => {
   const data = event.data?.json() ?? {};
   event.waitUntil(
