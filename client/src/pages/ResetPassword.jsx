@@ -32,7 +32,7 @@ export default function ResetPassword() {
     return (
       <div className={styles.page}>
         <div className={styles.card}>
-          <h1>MMIvers</h1>
+          <h1>Pronote-MMI</h1>
           <p className={styles.error}>Lien invalide.</p>
           <a href="/login">Retour à la connexion</a>
         </div>
@@ -43,7 +43,7 @@ export default function ResetPassword() {
   return (
     <div className={styles.page}>
       <div className={styles.card}>
-        <h1>MMIvers</h1>
+        <h1>Pronote-MMI</h1>
         <p className={styles.subtitle}>Nouveau mot de passe</p>
 
         {success ? (

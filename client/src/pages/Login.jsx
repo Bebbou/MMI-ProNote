@@ -30,7 +30,7 @@ export default function Login() {
   return (
     <div className={styles.page}>
       <div className={styles.card}>
-        <h1>MMIvers</h1>
+        <h1>Pronote-MMI</h1>
         <p className={styles.subtitle}>Connexion</p>
         <form onSubmit={handleSubmit}>
           <input

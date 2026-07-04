@@ -21,7 +21,7 @@ export default function ForgotPassword() {
   return (
     <div className={styles.page}>
       <div className={styles.card}>
-        <h1>MMIvers</h1>
+        <h1>Pronote-MMI</h1>
         <p className={styles.subtitle}>Mot de passe oublié</p>
 
         {sent ? (

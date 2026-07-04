@@ -41,10 +41,13 @@ export default function Layout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const themeRef = useRef(null);
+  const mobileThemeRef = useRef(null);
 
   useEffect(() => {
     function onClickOutside(e) {
-      if (themeRef.current && !themeRef.current.contains(e.target)) {
+      const inSidebar = themeRef.current && themeRef.current.contains(e.target);
+      const inMobile = mobileThemeRef.current && mobileThemeRef.current.contains(e.target);
+      if (!inSidebar && !inMobile) {
         setThemeOpen(false);
       }
     }
@@ -66,7 +69,7 @@ export default function Layout({ children }) {
     <div className={styles.layout}>
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarTop}>
-          <div className={styles.logo}>MMIvers</div>
+          <div className={styles.logo}>Pronote-MMI</div>
           <button className={styles.closeBtn} onClick={() => setMenuOpen(false)} aria-label="Fermer le menu">
             <X size={18} strokeWidth={1.5} />
           </button>
@@ -141,8 +144,8 @@ export default function Layout({ children }) {
           <button className={styles.menuBtn} onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Menu size={20} strokeWidth={1.5} />
           </button>
-          <span className={styles.mobileTitle}>MMIvers</span>
-          <div className={styles.mobileThemePicker} ref={themeRef}>
+          <span className={styles.mobileTitle}>Pronote-MMI</span>
+          <div className={styles.mobileThemePicker} ref={mobileThemeRef}>
             <button
               className={`${styles.themeIconBtn} ${themeOpen ? styles.themeIconBtnOpen : ""}`}
               onClick={() => setThemeOpen(v => !v)}

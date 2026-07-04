@@ -13,8 +13,8 @@ export default defineConfig({
       devOptions: { enabled: true, type: 'module' },
       includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: {
-        name: 'MMIvers',
-        short_name: 'MMIvers',
+        name: 'Pronote-MMI',
+        short_name: 'Pronote-MMI',
         description: 'Gestion des devoirs, notes et emploi du temps pour les étudiants MMI',
         start_url: '/',
         scope: '/',
