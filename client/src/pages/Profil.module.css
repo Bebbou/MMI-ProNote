@@ -41,7 +41,7 @@
   color: var(--accent);
   font-size: 0.775rem;
   font-weight: 700;
-  background: var(--tint-pink);
+  background: var(--tint-accent);
   padding: 0.15rem 0.6rem;
   border-radius: 20px;
 }

@@ -91,7 +91,7 @@ export default function Profil() {
             <button
               type="button"
               className={styles.notifBtn}
-              style={{ background: subscribed ? "var(--tint-pink)" : "var(--accent)", color: subscribed ? "var(--accent)" : "#fff", border: subscribed ? "1px solid var(--accent)" : "none" }}
+              style={{ background: subscribed ? "var(--tint-accent)" : "var(--accent)", color: subscribed ? "var(--accent)" : "#fff", border: subscribed ? "1px solid var(--accent)" : "none" }}
               onClick={subscribed ? disable : enable}
               disabled={loading}
             >

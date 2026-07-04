@@ -126,7 +126,7 @@
 }
 .filterBtn:hover { color: var(--text-muted); border-color: var(--text-faint); }
 .filterActive {
-  background: var(--tint-pink);
+  background: var(--tint-accent);
   border-color: var(--accent);
   color: var(--accent);
   font-weight: 600;
@@ -163,7 +163,7 @@
 }
 .cardIcon {
   color: var(--accent);
-  background: var(--tint-pink);
+  background: var(--tint-accent);
   border-radius: 10px;
   width: 44px;
   height: 44px;
@@ -180,7 +180,7 @@
   margin-bottom: 0.25rem;
 }
 .matiereBadge {
-  background: var(--tint-pink);
+  background: var(--tint-accent);
   color: var(--accent);
   font-size: 0.7rem;
   font-weight: 700;

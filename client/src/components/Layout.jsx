@@ -1,7 +1,7 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Home, BookOpen, BarChart2, Calendar, User, Settings, LogOut, LayoutGrid, Sun, Moon, Menu, X, MessageSquare, FolderOpen } from "lucide-react";
-import { useTheme } from "../hooks/useTheme";
+import { Home, BookOpen, BarChart2, Calendar, User, Settings, LogOut, LayoutGrid, Sun, Menu, X, MessageSquare, FolderOpen } from "lucide-react";
+import { useTheme, THEMES } from "../hooks/useTheme";
 import { useState } from "react";
 import ChatPanel from "./ChatPanel";
 import styles from "./Layout.module.css";
@@ -28,7 +28,15 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isDark, toggleTheme } = useTheme();
+  const { theme, setTheme, isDark } = useTheme();
+
+  const THEME_DOTS = {
+    mmi:      "#ff7cb7",
+    dark:     "#ff7cb7",
+    bleu:     "#469cd0",
+    pastel:   "#e8609a",
+    obsidian: "#9b7fe8",
+  };
   const [menuOpen, setMenuOpen] = useState(false);
 
   function handleLogout() {
@@ -45,6 +53,7 @@ export default function Layout({ children }) {
     <div className={styles.layout}>
       {/* Sidebar desktop */}
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
+        <div className={styles.accentStripe} />
         <div className={styles.sidebarTop}>
           <div className={styles.logo}>
             <img src="/logo-mmi.png" alt="MMI Béziers" className={styles.logoImg} />
@@ -72,10 +81,27 @@ export default function Layout({ children }) {
             </NavLink>
           ))}
         </nav>
-        <button className={styles.themeBtn} onClick={toggleTheme} title={isDark ? "Mode clair" : "Mode sombre"}>
-          {isDark ? <Sun size={13} strokeWidth={1.5} /> : <Moon size={13} strokeWidth={1.5} />}
-          <span className={styles.navLabel}>{isDark ? "Mode clair" : "Mode sombre"}</span>
-        </button>
+
+        {/* Theme picker */}
+        <div className={styles.themePicker}>
+          <button className={styles.themeBtn}>
+            <Sun size={13} strokeWidth={1.5} />
+            <span className={styles.navLabel}>Thème : {THEMES.find(t => t.id === theme)?.label}</span>
+          </button>
+          <div className={styles.themeDropdown}>
+            {THEMES.map(t => (
+              <button
+                key={t.id}
+                className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
+                onClick={() => setTheme(t.id)}
+              >
+                <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <NavLink
           to="/canvas"
           onClick={() => setMenuOpen(false)}
@@ -101,10 +127,10 @@ export default function Layout({ children }) {
           <button className={styles.menuBtn} onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Menu size={20} strokeWidth={1.5} />
           </button>
-          <span className={styles.mobileTitle}>Pronote-MMI</span>
-          <button className={styles.themeIconBtn} onClick={toggleTheme}>
-            {isDark ? <Sun size={16} strokeWidth={1.5} /> : <Moon size={16} strokeWidth={1.5} />}
-          </button>
+          <span className={styles.mobileTitle}>MMIvers</span>
+          <NavLink to="/profil" className={styles.themeIconBtn}>
+            <User size={18} strokeWidth={1.5} />
+          </NavLink>
         </header>
 
         <main className={styles.main}>{children}</main>

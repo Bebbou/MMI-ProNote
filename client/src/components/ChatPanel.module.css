@@ -33,7 +33,7 @@
   font-weight: 600;
   transition: color 0.15s, background 0.15s;
 }
-.panelOpen .toggleBtn { background: var(--tint-pink); color: var(--accent); border-color: var(--accent); }
+.panelOpen .toggleBtn { background: var(--tint-accent); color: var(--accent); border-color: var(--accent); }
 .toggleBtn:hover { color: var(--accent); }
 
 .badge {
@@ -130,7 +130,7 @@
   transition: background 0.1s, color 0.1s, border-color 0.1s;
 }
 .channelItem:hover { background: var(--bg-card); color: var(--text-muted); }
-.channelActive { background: var(--tint-pink); color: var(--accent); border-color: var(--accent); font-weight: 600; }
+.channelActive { background: var(--tint-accent); color: var(--accent); border-color: var(--accent); font-weight: 600; }
 .channelBadge {
   background: var(--accent);
   color: #fff;
@@ -244,7 +244,7 @@
   position: relative;
 }
 .messageMe .bubble {
-  background: var(--tint-pink);
+  background: var(--tint-accent);
   border-color: var(--accent);
   border-radius: 10px 10px 3px 10px;
 }
@@ -338,8 +338,8 @@
   transition: background 0.1s, border-color 0.1s;
   font-family: inherit;
 }
-.reaction:hover { border-color: var(--accent); background: var(--tint-pink); }
-.reactionMine { background: var(--tint-pink); border-color: var(--accent); font-weight: 600; }
+.reaction:hover { border-color: var(--accent); background: var(--tint-accent); }
+.reactionMine { background: var(--tint-accent); border-color: var(--accent); font-weight: 600; }
 
 /* Typing */
 .typing {

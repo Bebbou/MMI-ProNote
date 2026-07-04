@@ -93,7 +93,7 @@
   transition: background 0.1s, color 0.1s;
 }
 .channelItem:hover { background: var(--bg-card); color: var(--text-muted); }
-.channelActive { background: var(--tint-pink); color: var(--accent); font-weight: 600; }
+.channelActive { background: var(--tint-accent); color: var(--accent); font-weight: 600; }
 .channelBadge {
   margin-left: auto;
   background: var(--accent);
@@ -240,7 +240,7 @@
   position: relative;
 }
 .messageMe .msgBubble {
-  background: var(--tint-pink);
+  background: var(--tint-accent);
   border-color: var(--accent);
   border-radius: 12px 12px 4px 12px;
 }
@@ -330,8 +330,8 @@
   transition: background 0.1s, border-color 0.1s;
   font-family: inherit;
 }
-.reaction:hover { border-color: var(--accent); background: var(--tint-pink); }
-.reactionMine { background: var(--tint-pink); border-color: var(--accent); font-weight: 600; }
+.reaction:hover { border-color: var(--accent); background: var(--tint-accent); }
+.reactionMine { background: var(--tint-accent); border-color: var(--accent); font-weight: 600; }
 
 /* Typing indicator */
 .typingIndicator {
