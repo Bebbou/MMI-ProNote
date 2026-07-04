@@ -1,9 +1,9 @@
 # Pronote-MMI
 
 Application web pour les étudiants MMI, l'idée c'est : 
-- gestion des devoirs,
-- notes et emploi du temps, 
-- avec mises à jour en temps réel entre membres d'un même groupe
+- gestion des devoirs, notes et emploi du temps
+- chat en temps réel, documents partagés, sondages et annonces
+- le tout avec mises à jour instantanées entre membres d'un même groupe
 
 ---
 > [!WARNING]
@@ -14,15 +14,21 @@ Application web pour les étudiants MMI, l'idée c'est :
 Ce projet est réalisé MAJORITAIREMENT avec l'aide de l'Intelligence Artificielle. Je suis réellement loin d'avoir le niveau pour réaliser ce projet, mais sa réalisation me permet de progresser et de mieux comprendre comment réellement réaliser un "Logiciel" à un niveau professionnel.
 
 En bref, si vous me dites : "Aaahh, c'est de l'IA", je répondrai que, pour la majorité, oui. Mais au moins, je sais exactement comment fonctionne l'intégralité du projet et ce que fait chaque partie.
+
 ## Fonctionnalités
 
 - **Devoirs** — création, modification et suppression par les délégués et admins, mise à jour en temps réel pour tout le groupe via Socket.IO
 - **Notes** — saisie personnelle de notes avec coefficient et calcul de moyenne par matière
 - **Emploi du temps** — affichage du planning hebdomadaire par groupe
-- **Profil** — consultation des informations de son compte
-- **Mode Canvas** — vue alternative en widgets repositionnables (React Flow)
+- **Chat** — messagerie temps réel par canaux (général, groupe, personnalisés), réactions aux messages
+- **Documents** — partage de fichiers de cours avec commentaires
+- **Sondages** — création par les délégués/admins, vote en temps réel
+- **Notifications push** — alertes navigateur/mobile même app fermée (PWA installable)
+- **Profil** — consultation des informations de son compte, changement de mot de passe
+- **Thèmes** — 5 thèmes visuels au choix (MMI, Sombre, Bleu, Pastel, Obsidian), sauvegardés par utilisateur
+- **Mode Canvas** — vue alternative en widgets repositionnables (React Flow), positions persistées
 - **Admin** — validation des comptes, changement de rôles, suppression d'utilisateurs
-- **Authentification** — inscription avec validation manuelle par un admin, connexion par JWT
+- **Authentification** — inscription avec validation manuelle par un admin, connexion par JWT, réinitialisation de mot de passe par email
 
 ---
 
@@ -30,16 +36,20 @@ En bref, si vous me dites : "Aaahh, c'est de l'IA", je répondrai que, pour la m
 
 | Côté | Technologies |
 |------|-------------|
-| Frontend | React 18, React Router, Axios, CSS Modules, Vite |
+| Frontend | React 18, React Router, Axios, CSS Modules, Vite, @xyflow/react |
 | Backend | Node.js, Express, Socket.IO |
-| Base de données | SQLite via Prisma ORM |
+| Base de données | PostgreSQL via Prisma ORM |
 | Auth | JWT (jsonwebtoken) + bcryptjs |
+| Notifications | web-push (Web Push API) + Service Worker |
+
+Documentation détaillée de l'architecture et des choix techniques : [docs/DOCUMENTATION.html](docs/DOCUMENTATION.html)
 
 ---
 
 ## Prérequis
 
 - [Node.js](https://nodejs.org) v18 ou supérieur
+- Une base PostgreSQL (locale ou hébergée, ex. Railway)
 - npm évidemment
 
 ---
@@ -58,7 +68,7 @@ cd Pronote-MMI
 ```bash
 cd server
 cp .env.example .env
-# Remplir JWT_SECRET et DATABASE_URL dans .env
+# Remplir DATABASE_URL, JWT_SECRET et les clés VAPID dans .env
 npm install
 npx prisma migrate dev --name init
 node index.js
@@ -82,9 +92,12 @@ Fichier `server/.env` (copie de `.env.example`) :
 
 | Variable | Description | Exemple |
 |----------|-------------|---------|
-| `DATABASE_URL` | Chemin vers la base SQLite | `file:./prisma/dev.db` |
+| `DATABASE_URL` | URL de connexion à la base PostgreSQL | `postgresql://user:pass@host:5432/db` |
 | `JWT_SECRET` | Clé secrète pour signer les tokens JWT | `une_chaine_aleatoire_longue` |
 | `CLIENT_ORIGIN` | URL du frontend (CORS) | `http://localhost:5173` |
+| `VAPID_EMAIL` | Email de contact pour les notifications push | `ton@email.com` |
+| `VAPID_PUBLIC_KEY` | Clé publique VAPID (`npx web-push generate-vapid-keys`) | — |
+| `VAPID_PRIVATE_KEY` | Clé privée VAPID | — |
 
 ---
 
@@ -92,20 +105,26 @@ Fichier `server/.env` (copie de `.env.example`) :
 
 ```
 Pronote-MMI/
-├── client/                 # Frontend React
+├── client/                     # Frontend React
 │   └── src/
-│       ├── api/            # Client HTTP Axios
-│       ├── components/     # Composants partagés (Layout)
-│       ├── context/        # AuthContext (état global auth)
-│       ├── hooks/          # useSocket
-│       ├── pages/          # Une page par route
-│       └── widgets/        # Widgets pour le mode Canvas
-├── server/                 # Backend Express
-│   ├── middlewares/        # requireAuth, requireRole
-│   ├── routes/             # auth, admin, devoirs, notes, edt, profil
+│       ├── api/                # Client HTTP Axios (token auto-injecté)
+│       ├── assets/              # Logo MMI, images
+│       ├── components/          # Composants partagés (Layout, PageTitle,
+│       │                        #   MmiDecor, Toast, ConfirmModal, Skeleton...)
+│       ├── context/             # AuthContext (état global auth)
+│       ├── hooks/                # useSocket, useTheme, usePushNotifications
+│       ├── pages/                # Une page par route
+│       ├── widgets/              # Widgets du mode Canvas
+│       └── sw.js                 # Service worker (notifications push)
+├── server/                     # Backend Express
+│   ├── middlewares/             # requireAuth, requireRole
+│   ├── routes/                  # auth, admin, devoirs, notes, edt, profil,
+│   │                            #   chat, documents, sondages, notifications
 │   ├── prisma/
-│   │   └── schema.prisma   # Modèles de la base de données
-│   └── index.js            # Point d'entrée du serveur
+│   │   └── schema.prisma        # Modèles de la base de données
+│   └── index.js                 # Point d'entrée du serveur
+├── docs/
+│   └── DOCUMENTATION.html       # Doc complète : architecture, choix, fonctionnement
 └── README.md
 ```
 
@@ -115,9 +134,9 @@ Pronote-MMI/
 
 | Rôle | Droits |
 |------|--------|
-| `etudiant` | Lecture devoirs/EDT, gestion de ses propres notes |
-| `delegue` | + Création/modification/suppression de devoirs |
-| `admin` | Accès complet, gestion des comptes et de l'EDT |
+| `etudiant` | Lecture devoirs/EDT, gestion de ses propres notes, chat, vote aux sondages |
+| `delegue` | + Création/modification/suppression de devoirs, création de sondages et annonces |
+| `admin` | Accès complet, gestion des comptes, des rôles et de l'EDT |
 
 > Les nouveaux comptes sont en attente de validation par un admin avant de pouvoir se connecter.
 
@@ -127,9 +146,10 @@ Pronote-MMI/
 
 Voir [CONTRIBUTING.md](CONTRIBUTING.md).
 
-
-
 ## Licence
 
-Ce projet est sous licence MIT — voir [LICENSE](LICENSE). </br></br>
-    <center><a href="https://github.com/malbiruk/driftwm/blob/main/LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a></center>
+Ce projet est sous licence MIT — voir [LICENSE](LICENSE).
+
+<p align="center">
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue">
+</p>
