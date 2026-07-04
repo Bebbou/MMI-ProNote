@@ -1,6 +1,6 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Home, BookOpen, BarChart2, Calendar, User, Settings, LogOut, LayoutGrid, Sun, Menu, X, MessageSquare, FolderOpen } from "lucide-react";
+import { Home, BookOpen, BarChart2, Calendar, Settings, LogOut, LayoutGrid, Sun, Menu, X, MessageSquare, FolderOpen, User } from "lucide-react";
 import { useTheme, THEMES } from "../hooks/useTheme";
 import { useState, useEffect, useRef } from "react";
 import ChatPanel from "./ChatPanel";
@@ -66,7 +66,7 @@ export default function Layout({ children }) {
     <div className={styles.layout}>
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarTop}>
-          <div className={styles.logo}>Pronote-MMI</div>
+          <div className={styles.logo}>MMIvers</div>
           <button className={styles.closeBtn} onClick={() => setMenuOpen(false)} aria-label="Fermer le menu">
             <X size={18} strokeWidth={1.5} />
           </button>
@@ -141,10 +141,30 @@ export default function Layout({ children }) {
           <button className={styles.menuBtn} onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Menu size={20} strokeWidth={1.5} />
           </button>
-          <span className={styles.mobileTitle}>Pronote-MMI</span>
-          <NavLink to="/profil" className={styles.themeIconBtn}>
-            <User size={18} strokeWidth={1.5} />
-          </NavLink>
+          <span className={styles.mobileTitle}>MMIvers</span>
+          <div className={styles.mobileThemePicker} ref={themeRef}>
+            <button
+              className={`${styles.themeIconBtn} ${themeOpen ? styles.themeIconBtnOpen : ""}`}
+              onClick={() => setThemeOpen(v => !v)}
+              aria-label="Changer de thème"
+            >
+              <Sun size={18} strokeWidth={1.5} />
+            </button>
+            {themeOpen && (
+              <div className={styles.mobileThemeDropdown}>
+                {THEMES.map(t => (
+                  <button
+                    key={t.id}
+                    className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
+                    onClick={() => { setTheme(t.id); setThemeOpen(false); }}
+                  >
+                    <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </header>
 
         <main className={styles.main}>{children}</main>

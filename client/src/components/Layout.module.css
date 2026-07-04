@@ -278,7 +278,7 @@
   }
 
   .logo::after {
-    content: "P";
+    content: "M";
     font-size: 1rem;
     font-weight: 800;
     color: var(--accent);
@@ -381,8 +381,29 @@
   }
 
   .menuBtn:hover,
-  .themeIconBtn:hover {
+  .themeIconBtn:hover,
+  .themeIconBtnOpen {
     color: var(--accent);
+  }
+
+  .mobileThemePicker {
+    position: relative;
+  }
+
+  .mobileThemeDropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    z-index: 300;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    min-width: 150px;
   }
 
   .mobileTitle {

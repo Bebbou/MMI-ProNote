@@ -35,7 +35,7 @@ export default function Canvas() {
   return (
     <div className={styles.page}>
       <div className={styles.topbar}>
-        <span className={styles.logo}>Pronote-MMI</span>
+        <span className={styles.logo}>MMIvers</span>
         <div className={styles.userInfo}>
           <span>{user?.nom}</span>
           <span className={styles.groupe}>{user?.groupe}</span>

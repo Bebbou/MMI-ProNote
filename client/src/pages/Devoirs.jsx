@@ -9,11 +9,12 @@ export default function Devoirs() {
   const { user } = useAuth();
   const socket = useSocket();
   const [devoirs, setDevoirs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ titre: "", matiere: "", description: "", dateLimite: "" });
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    api.get("/devoirs").then(res => setDevoirs(res.data));
+    api.get("/devoirs").then(res => setDevoirs(res.data)).finally(() => setLoading(false));
   }, []);
 
   // Écoute les événements temps réel du serveur
@@ -47,6 +48,7 @@ export default function Devoirs() {
   }
 
   async function handleDelete(id) {
+    if (!window.confirm("Supprimer ce devoir ?")) return;
     await api.delete(`/devoirs/${id}`);
     setDevoirs(devoirs.filter(d => d.id !== id));
   }
@@ -79,7 +81,8 @@ export default function Devoirs() {
         )}
 
         <div className={styles.list}>
-          {devoirs.length === 0 && <p className={styles.empty}>Aucun devoir à venir</p>}
+          {loading && <p className={styles.empty}>Chargement...</p>}
+          {!loading && devoirs.length === 0 && <p className={styles.empty}>Aucun devoir à venir</p>}
           {devoirs.map(devoir => (
             <div key={devoir.id} className={styles.card}>
               <div className={styles.cardHeader}>

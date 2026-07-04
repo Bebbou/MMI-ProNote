@@ -5,11 +5,12 @@ import styles from "./Notes.module.css";
 
 export default function Notes() {
   const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ matiere: "", valeur: "", coefficient: "" });
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    api.get("/notes").then(res => setNotes(res.data));
+    api.get("/notes").then(res => setNotes(res.data)).finally(() => setLoading(false));
   }, []);
 
   function handleChange(e) {
@@ -25,6 +26,7 @@ export default function Notes() {
   }
 
   async function handleDelete(id) {
+    if (!window.confirm("Supprimer cette note ?")) return;
     await api.delete(`/notes/${id}`);
     setNotes(notes.filter(n => n.id !== id));
   }
@@ -57,7 +59,8 @@ export default function Notes() {
         )}
 
         <div className={styles.list}>
-          {notes.length === 0 && <p className={styles.empty}>Aucune note enregistrée.</p>}
+          {loading && <p className={styles.empty}>Chargement...</p>}
+          {!loading && notes.length === 0 && <p className={styles.empty}>Aucune note enregistrée.</p>}
           {notes.map(note => (
             <div key={note.id} className={styles.card}>
               <div className={styles.cardLeft}>
