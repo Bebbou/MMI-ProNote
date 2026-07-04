@@ -252,6 +252,9 @@ export default function Chat() {
                 </div>
               )}
 
+              {activeChannel?.type === "annonce" && !["admin", "delegue"].includes(user?.role) ? (
+                <div className={styles.readOnly}>Canal en lecture seule — seuls les admins peuvent écrire.</div>
+              ) : (
               <form className={styles.inputArea} onSubmit={handleSend}>
                 <textarea
                   ref={textareaRef}
@@ -276,6 +279,7 @@ export default function Chat() {
                   <Send size={16} strokeWidth={1.5} />
                 </button>
               </form>
+              )}
             </>
           ) : (
             <div className={styles.noChannel}>Sélectionne un canal pour commencer.</div>

@@ -79,7 +79,7 @@ export default function Devoirs() {
         )}
 
         <div className={styles.list}>
-          {devoirs.length === 0 && <p className={styles.empty}>Aucun devoir à venir 🎉</p>}
+          {devoirs.length === 0 && <p className={styles.empty}>Aucun devoir à venir</p>}
           {devoirs.map(devoir => (
             <div key={devoir.id} className={styles.card}>
               <div className={styles.cardHeader}>

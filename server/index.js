@@ -14,6 +14,7 @@ import profilRoutes from "./routes/profil.js";
 import notificationsRoutes from "./routes/notifications.js";
 import chatRoutes from "./routes/chat.js";
 import documentsRoutes from "./routes/documents.js";
+import { sendPushToAll } from "./utils/push.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -72,6 +73,10 @@ io.on("connection", (socket) => {
   socket.on("envoyerMessage", async ({ channelId, content, replyToId }) => {
     if (!content?.trim() || !channelId) return;
     try {
+      // Bloquer les étudiants sur le canal Annonces
+      const channel = await prisma.channel.findUnique({ where: { id: channelId }, select: { type: true, nom: true } });
+      if (channel?.type === "annonce" && !["admin", "delegue"].includes(socket.user.role)) return;
+
       const message = await prisma.message.create({
         data: {
           content: content.trim(),
@@ -86,6 +91,16 @@ io.on("connection", (socket) => {
         },
       });
       io.to(`channel-${channelId}`).emit("nouveauMessage", message);
+
+      // Notif push pour les annonces
+      if (channel?.type === "annonce") {
+        sendPushToAll(socket.user.id, {
+          title: `Annonce · ${message.auteur.nom}`,
+          body: message.content.slice(0, 120),
+          url: "/chat",
+          tag: `annonce-${message.id}`,
+        });
+      }
     } catch {}
   });
 

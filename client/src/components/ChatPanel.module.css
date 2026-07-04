@@ -384,6 +384,7 @@
   max-height: 120px;
 }
 .msgInput:focus { border-color: var(--accent); }
+.readOnly { padding: 0.65rem 0.85rem; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--border); text-align: center; }
 .sendBtn {
   background: var(--accent);
   color: #fff;

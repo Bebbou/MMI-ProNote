@@ -35,6 +35,7 @@ router.get("/channels", async (req, res) => {
     where: {
       OR: [
         { type: "general" },
+        { type: "annonce" },
         { type: "custom" },
         { type: "groupe", nom: userGroupe.nom },
         { nom: tdNom },

@@ -263,6 +263,9 @@ export default function ChatPanel() {
               </div>
             )}
 
+            {activeChannel?.type === "annonce" && !["admin", "delegue"].includes(user?.role) ? (
+              <div className={styles.readOnly}>Canal en lecture seule — seuls les admins peuvent écrire.</div>
+            ) : (
             <form className={styles.inputArea} onSubmit={handleSend}>
               <textarea
                 ref={textareaRef}
@@ -287,6 +290,7 @@ export default function ChatPanel() {
                 <Send size={14} strokeWidth={1.5} />
               </button>
             </form>
+            )}
           </div>
         </div>
       )}
