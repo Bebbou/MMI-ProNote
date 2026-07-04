@@ -6,6 +6,7 @@ import { usePushNotifications } from "../hooks/usePushNotifications.js";
 import { useTheme, THEMES } from "../hooks/useTheme.js";
 import PasswordInput from "../components/PasswordInput";
 import PageTitle from "../components/PageTitle";
+import AppFooter from "../components/AppFooter";
 import styles from "./Profil.module.css";
 
 const THEME_DOTS = {
@@ -138,6 +139,8 @@ export default function Profil() {
             <button type="submit">Mettre a jour</button>
           </form>
         </div>
+
+        <AppFooter />
       </div>
     </Layout>
   );
