@@ -385,6 +385,17 @@
 }
 .msgInput:focus { border-color: var(--accent); }
 .readOnly { padding: 0.65rem 0.85rem; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--border); text-align: center; }
+.sondagesZone {
+  padding: 0.5rem 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--bg);
+  flex-shrink: 0;
+}
 .sondageBtn { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 2px; border-radius: 4px; display: flex; }
 .sondageBtn:hover { color: var(--accent); }
 .sondageForm { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.35rem; background: var(--bg-card); }

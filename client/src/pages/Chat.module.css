@@ -130,6 +130,17 @@
   color: var(--text-muted);
 }
 .chatTitle { font-weight: 700; font-size: 0.95rem; }
+.sondagesZone {
+  padding: 0.75rem 1.25rem 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--bg);
+  flex-shrink: 0;
+}
 .sondageBtn { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 6px; display: flex; }
 .sondageBtn:hover { color: var(--accent); background: var(--border); }
 .chatDesc {

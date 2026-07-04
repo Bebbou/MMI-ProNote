@@ -218,6 +218,21 @@ export default function Chat() {
                 </form>
               )}
 
+              {sondages.length > 0 && (
+                <div className={styles.sondagesZone}>
+                  {sondages.map(s => (
+                    <SondageCard
+                      key={s.id}
+                      sondage={s}
+                      currentUserId={user?.id}
+                      isPrivileged={isPrivileged && (user?.role === "admin" || s.auteur.id === user?.id)}
+                      onUpdate={updated => setSondages(prev => prev.map(p => p.id === updated.id ? updated : p))}
+                      onDelete={id => setSondages(prev => prev.filter(s => s.id !== id))}
+                    />
+                  ))}
+                </div>
+              )}
+
               <div className={styles.messages} ref={messagesRef}>
                 {hasMore && (
                   <button className={styles.loadMoreBtn} onClick={loadMore} disabled={loadingMore}>
@@ -225,19 +240,9 @@ export default function Chat() {
                     {loadingMore ? "Chargement…" : "Messages précédents"}
                   </button>
                 )}
-                {messages.length === 0 && sondages.length === 0 && (
+                {messages.length === 0 && (
                   <p className={styles.empty}>Aucun message pour l'instant. Sois le premier !</p>
                 )}
-                {sondages.map(s => (
-                  <SondageCard
-                    key={s.id}
-                    sondage={s}
-                    currentUserId={user?.id}
-                    isPrivileged={isPrivileged && (user?.role === "admin" || s.auteur.id === user?.id)}
-                    onUpdate={updated => setSondages(prev => prev.map(p => p.id === updated.id ? updated : p))}
-                    onDelete={id => setSondages(prev => prev.filter(s => s.id !== id))}
-                  />
-                ))}
                 {messages.map((msg, i) => {
                   // eslint-disable-next-line eqeqeq
                   const isMe = msg.auteur.id == user?.id;
