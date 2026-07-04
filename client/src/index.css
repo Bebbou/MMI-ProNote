@@ -10,29 +10,30 @@
 
 /* ── Thème MMI (défaut clair) ── */
 :root, [data-theme="mmi"] {
-  --bg-page: #FAFAFA;
+  --bg-page: #F7F6F3;
   --bg-card: #FFFFFF;
-  --bg-input: #F3F3F3;
-  --bg-dark: #F0F0F0;
-  --border: #E8E8E8;
+  --bg-input: #F0EFEC;
+  --bg-dark: #EDECE9;
+  --border: #E4E2DD;
   --accent: #ff7cb7;
   --accent-hover: #e0559a;
   --accent-rgb: 255, 124, 183;
   --tint-accent: #FFF0F6;
-  --sidebar-bg: #111111;
-  --sidebar-text: #ffffff;
-  --sidebar-faint: rgba(255,255,255,0.4);
-  --sidebar-active-bg: rgba(255,124,183,0.18);
-  --sidebar-active-color: #ff7cb7;
-  --sidebar-hover-bg: rgba(255,255,255,0.07);
-  --text: #111111;
-  --text-muted: #444444;
-  --text-faint: #999999;
+  --sidebar-bg: #FFFFFF;
+  --sidebar-border: #E8E6E2;
+  --sidebar-text: #1a1a1a;
+  --sidebar-faint: #999999;
+  --sidebar-active-bg: #FFF0F6;
+  --sidebar-active-color: #e0559a;
+  --sidebar-hover-bg: #F5F4F1;
+  --text: #1A1A1A;
+  --text-muted: #3D3D3D;
+  --text-faint: #888888;
   --danger: #ff2e0c;
   --success: #16A34A;
   --warning: #ff8d1a;
-  --shadow: 0 4px 20px rgba(255,124,183,0.12);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow: 0 4px 20px rgba(255,124,183,0.10);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 /* ── Thème Sombre ── */
@@ -47,6 +48,7 @@
   --accent-rgb: 255, 124, 183;
   --tint-accent: #2a0f1a;
   --sidebar-bg: #0a0a0a;
+  --sidebar-border: rgba(255,255,255,0.07);
   --sidebar-text: #e0e0e0;
   --sidebar-faint: rgba(255,255,255,0.3);
   --sidebar-active-bg: rgba(255,124,183,0.15);
@@ -74,6 +76,7 @@
   --accent-rgb: 70, 156, 208;
   --tint-accent: #E3F1FB;
   --sidebar-bg: #0d2135;
+  --sidebar-border: rgba(255,255,255,0.07);
   --sidebar-text: #ffffff;
   --sidebar-faint: rgba(255,255,255,0.4);
   --sidebar-active-bg: rgba(70,156,208,0.25);
@@ -101,6 +104,7 @@
   --accent-rgb: 232, 96, 154;
   --tint-accent: #FFE0EE;
   --sidebar-bg: #3d1a2a;
+  --sidebar-border: rgba(255,255,255,0.07);
   --sidebar-text: #fde8f2;
   --sidebar-faint: rgba(253,232,242,0.4);
   --sidebar-active-bg: rgba(232,96,154,0.22);
@@ -128,6 +132,7 @@
   --accent-rgb: 155, 127, 232;
   --tint-accent: #251e3e;
   --sidebar-bg: #0d0b14;
+  --sidebar-border: rgba(255,255,255,0.06);
   --sidebar-text: #e2dff5;
   --sidebar-faint: rgba(226,223,245,0.35);
   --sidebar-active-bg: rgba(155,127,232,0.2);

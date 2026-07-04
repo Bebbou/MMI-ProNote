@@ -17,6 +17,7 @@
   width: 240px;
   min-height: 100vh;
   background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border, rgba(255,255,255,0.08));
   display: flex;
   flex-direction: column;
   padding: 1.25rem 0.85rem;
@@ -103,9 +104,9 @@
   flex-direction: column;
   gap: 0.2rem;
   padding: 0.65rem 0.75rem;
-  background: rgba(255,255,255,0.06);
+  background: var(--sidebar-hover-bg);
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--sidebar-border, rgba(255,255,255,0.08));
 }
 .userName {
   font-weight: 600;
@@ -154,8 +155,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--sidebar-hover-bg);
+  border: 1px solid var(--sidebar-border, rgba(255,255,255,0.1));
   color: var(--sidebar-faint);
   padding: 0.55rem 0.75rem;
   font-size: 0.775rem;
@@ -177,23 +178,14 @@
   left: 0;
   right: 0;
   background: var(--sidebar-bg);
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid var(--sidebar-border, rgba(255,255,255,0.12));
   border-radius: 10px;
   padding: 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(4px);
-  transition: opacity 0.15s, transform 0.15s;
   z-index: 10;
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-}
-.themePicker:hover .themeDropdown {
-  opacity: 1;
-  pointer-events: all;
-  transform: translateY(0);
 }
 .themeItem {
   display: flex;
@@ -232,8 +224,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--sidebar-hover-bg);
+  border: 1px solid var(--sidebar-border, rgba(255,255,255,0.1));
   color: var(--sidebar-faint);
   padding: 0.55rem;
   font-size: 0.8rem;
@@ -251,7 +243,7 @@
 
 .logout {
   background: none;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--sidebar-border, rgba(255,255,255,0.08));
   color: var(--sidebar-faint);
   padding: 0.55rem;
   cursor: pointer;
@@ -273,6 +265,33 @@
 .main {
   flex: 1;
   padding: 2rem;
+  position: relative;
+}
+
+/* Bande de couleurs MMI en haut de chaque page */
+.main::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, #ff7cb7 0%, #ff8d1a 33%, #ff2e0c 55%, #469cd0 78%, #ff7cb7 100%);
+  opacity: 0.7;
+}
+
+/* Blob décoratif coin haut droit */
+.main::after {
+  content: "";
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* ── Mobile header ── */

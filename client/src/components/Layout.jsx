@@ -38,6 +38,7 @@ export default function Layout({ children }) {
     obsidian: "#9b7fe8",
   };
   const [menuOpen, setMenuOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
 
   function handleLogout() {
     logout();
@@ -84,22 +85,24 @@ export default function Layout({ children }) {
 
         {/* Theme picker */}
         <div className={styles.themePicker}>
-          <button className={styles.themeBtn}>
+          <button className={styles.themeBtn} onClick={() => setThemeOpen(v => !v)}>
             <Sun size={13} strokeWidth={1.5} />
             <span className={styles.navLabel}>Thème : {THEMES.find(t => t.id === theme)?.label}</span>
           </button>
-          <div className={styles.themeDropdown}>
-            {THEMES.map(t => (
-              <button
-                key={t.id}
-                className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
-                onClick={() => setTheme(t.id)}
-              >
-                <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
-                {t.label}
-              </button>
-            ))}
-          </div>
+          {themeOpen && (
+            <div className={styles.themeDropdown}>
+              {THEMES.map(t => (
+                <button
+                  key={t.id}
+                  className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
+                  onClick={() => { setTheme(t.id); setThemeOpen(false); }}
+                >
+                  <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <NavLink
