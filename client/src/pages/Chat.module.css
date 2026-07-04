@@ -130,6 +130,8 @@
   color: var(--text-muted);
 }
 .chatTitle { font-weight: 700; font-size: 0.95rem; }
+.sondageBtn { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 6px; display: flex; }
+.sondageBtn:hover { color: var(--accent); background: var(--border); }
 .chatDesc {
   color: var(--text-faint);
   font-size: 0.8rem;
@@ -386,6 +388,35 @@
 .sendBtn:hover { background: var(--accent-hover); }
 .sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 .readOnly { padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--text-muted); border-top: 1px solid var(--border); text-align: center; }
+
+/* ── Formulaire sondage ── */
+.sondageForm {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  background: var(--bg-card);
+}
+.sondageInput {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.65rem;
+  color: var(--text);
+  font-size: 0.82rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.sondageInput:focus { border-color: var(--accent); }
+.sondageOptionRow { display: flex; gap: 0.35rem; align-items: center; }
+.removeOptBtn { background: none; border: none; cursor: pointer; color: var(--text-muted); flex-shrink: 0; }
+.removeOptBtn:hover { color: var(--danger, #e55); }
+.addOptBtn { font-size: 0.78rem; color: var(--accent); background: none; border: none; cursor: pointer; text-align: left; padding: 0; }
+.sondageFormActions { display: flex; gap: 0.5rem; margin-top: 0.2rem; }
+.sondageSubmit { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 0.4rem 0.85rem; font-size: 0.8rem; cursor: pointer; }
+.sondageCancel { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.85rem; font-size: 0.8rem; cursor: pointer; color: var(--text-muted); }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {

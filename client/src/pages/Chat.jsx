@@ -2,14 +2,16 @@ import { useState, useEffect, useRef } from "react";
 import { useChatChannel } from "../hooks/useChatChannel";
 import Layout from "../components/Layout";
 import api from "../api/index.js";
-import { Hash, Plus, Trash2, Send, X, Pencil, Reply, SmilePlus, ChevronUp } from "lucide-react";
+import { Hash, Plus, Trash2, Send, X, Pencil, Reply, SmilePlus, ChevronUp, BarChart2 } from "lucide-react";
+import SondageCard from "../components/SondageCard";
 import styles from "./Chat.module.css";
 
 const EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🎉"];
 
 export default function Chat() {
   const {
-    user, channels, setChannels,
+    user, socket,
+    channels, setChannels,
     activeChannel, setActiveChannel,
     messages, hasMore, loadMore, loadingMore,
     input, setInput,
@@ -25,6 +27,45 @@ export default function Chat() {
   const [newChannelNom, setNewChannelNom] = useState("");
   const [newChannelDesc, setNewChannelDesc] = useState("");
   const [emojiPickerFor, setEmojiPickerFor] = useState(null);
+
+  const [sondages, setSondages] = useState([]);
+  const [sondageForm, setSondageForm] = useState(false);
+  const [sondageQuestion, setSondageQuestion] = useState("");
+  const [sondageOptions, setSondageOptions] = useState(["", ""]);
+
+  const isPrivileged = ["admin", "delegue"].includes(user?.role);
+
+  // Charger les sondages du canal actif
+  useEffect(() => {
+    if (!activeChannel) return;
+    api.get(`/sondages/channel/${activeChannel.id}`).then(r => setSondages(r.data));
+  }, [activeChannel]);
+
+  // Socket : sondages en live
+  useEffect(() => {
+    if (!socket) return;
+    const onNew = (s) => setSondages(prev => [s, ...prev]);
+    const onMaj = (s) => setSondages(prev => prev.map(p => p.id === s.id ? s : p));
+    const onDel = ({ id }) => setSondages(prev => prev.filter(s => s.id !== id));
+    socket.on("nouveauSondage", onNew);
+    socket.on("sondageMaj", onMaj);
+    socket.on("sondageSupprime", onDel);
+    return () => {
+      socket.off("nouveauSondage", onNew);
+      socket.off("sondageMaj", onMaj);
+      socket.off("sondageSupprime", onDel);
+    };
+  }, [socket]);
+
+  async function handleCreateSondage(e) {
+    e.preventDefault();
+    const opts = sondageOptions.filter(o => o.trim());
+    if (opts.length < 2) return;
+    await api.post("/sondages", { question: sondageQuestion, options: opts, channelId: activeChannel.id });
+    setSondageForm(false);
+    setSondageQuestion("");
+    setSondageOptions(["", ""]);
+  }
 
   const bottomRef = useRef(null);
   const messagesRef = useRef(null);
@@ -132,7 +173,50 @@ export default function Chat() {
                 {activeChannel.description && (
                   <span className={styles.chatDesc}>{activeChannel.description}</span>
                 )}
+                {isPrivileged && (
+                  <button className={styles.sondageBtn} onClick={() => setSondageForm(v => !v)} title="Créer un sondage">
+                    <BarChart2 size={15} strokeWidth={1.5} />
+                  </button>
+                )}
               </div>
+
+              {sondageForm && (
+                <form className={styles.sondageForm} onSubmit={handleCreateSondage}>
+                  <input
+                    placeholder="Question du sondage"
+                    value={sondageQuestion}
+                    onChange={e => setSondageQuestion(e.target.value)}
+                    required
+                    className={styles.sondageInput}
+                  />
+                  {sondageOptions.map((opt, i) => (
+                    <div key={i} className={styles.sondageOptionRow}>
+                      <input
+                        placeholder={`Option ${i + 1}`}
+                        value={opt}
+                        onChange={e => setSondageOptions(prev => prev.map((o, j) => j === i ? e.target.value : o))}
+                        className={styles.sondageInput}
+                      />
+                      {sondageOptions.length > 2 && (
+                        <button type="button" className={styles.removeOptBtn}
+                          onClick={() => setSondageOptions(prev => prev.filter((_, j) => j !== i))}>
+                          <X size={12} strokeWidth={1.5} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {sondageOptions.length < 6 && (
+                    <button type="button" className={styles.addOptBtn}
+                      onClick={() => setSondageOptions(prev => [...prev, ""])}>
+                      + Option
+                    </button>
+                  )}
+                  <div className={styles.sondageFormActions}>
+                    <button type="submit" className={styles.sondageSubmit}>Créer le sondage</button>
+                    <button type="button" className={styles.sondageCancel} onClick={() => setSondageForm(false)}>Annuler</button>
+                  </div>
+                </form>
+              )}
 
               <div className={styles.messages} ref={messagesRef}>
                 {hasMore && (
@@ -141,9 +225,19 @@ export default function Chat() {
                     {loadingMore ? "Chargement…" : "Messages précédents"}
                   </button>
                 )}
-                {messages.length === 0 && (
+                {messages.length === 0 && sondages.length === 0 && (
                   <p className={styles.empty}>Aucun message pour l'instant. Sois le premier !</p>
                 )}
+                {sondages.map(s => (
+                  <SondageCard
+                    key={s.id}
+                    sondage={s}
+                    currentUserId={user?.id}
+                    isPrivileged={isPrivileged && (user?.role === "admin" || s.auteur.id === user?.id)}
+                    onUpdate={updated => setSondages(prev => prev.map(p => p.id === updated.id ? updated : p))}
+                    onDelete={id => setSondages(prev => prev.filter(s => s.id !== id))}
+                  />
+                ))}
                 {messages.map((msg, i) => {
                   // eslint-disable-next-line eqeqeq
                   const isMe = msg.auteur.id == user?.id;

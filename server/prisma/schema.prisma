@@ -35,6 +35,8 @@ model User {
   passwordResets     PasswordReset[]
   documents          Document[]         @relation("AuteurDocument")
   commentairesDocs   CommentaireDoc[]   @relation("AuteurCommentaireDoc")
+  sondages           Sondage[]          @relation("AuteurSondage")
+  votes              VoteSondage[]
 }
 
 model PushSubscription {
@@ -80,6 +82,7 @@ model Channel {
   type        String    @default("custom") // general | groupe | custom
   createdAt   DateTime  @default(now())
   messages    Message[]
+  sondages    Sondage[]
 }
 
 model Message {
@@ -163,4 +166,45 @@ model CommentaireDoc {
 
   document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
   documentId Int
+}
+
+model Sondage {
+  id        Int      @id @default(autoincrement())
+  question  String
+  clos      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  auteur    User    @relation("AuteurSondage", fields: [auteurId], references: [id])
+  auteurId  Int
+
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId Int
+
+  options   OptionSondage[]
+}
+
+model OptionSondage {
+  id      Int    @id @default(autoincrement())
+  texte   String
+
+  sondage   Sondage @relation(fields: [sondageId], references: [id], onDelete: Cascade)
+  sondageId Int
+
+  votes   VoteSondage[]
+}
+
+model VoteSondage {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  option   OptionSondage @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId Int
+
+  @@unique([userId, sondageId])
+
+  sondage   Sondage @relation(fields: [sondageId], references: [id], onDelete: Cascade)
+  sondageId Int
 }

@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS "Sondage" (
+  "id"        SERIAL PRIMARY KEY,
+  "question"  TEXT NOT NULL,
+  "clos"      BOOLEAN NOT NULL DEFAULT false,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "auteurId"  INTEGER NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+  "channelId" INTEGER NOT NULL REFERENCES "Channel"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "OptionSondage" (
+  "id"        SERIAL PRIMARY KEY,
+  "texte"     TEXT NOT NULL,
+  "sondageId" INTEGER NOT NULL REFERENCES "Sondage"("id") ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "VoteSondage" (
+  "id"        SERIAL PRIMARY KEY,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "userId"    INTEGER NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+  "optionId"  INTEGER NOT NULL REFERENCES "OptionSondage"("id") ON DELETE CASCADE,
+  "sondageId" INTEGER NOT NULL REFERENCES "Sondage"("id") ON DELETE CASCADE,
+  CONSTRAINT "VoteSondage_userId_sondageId_key" UNIQUE ("userId", "sondageId")
+);

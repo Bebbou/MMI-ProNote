@@ -14,6 +14,7 @@ import profilRoutes from "./routes/profil.js";
 import notificationsRoutes from "./routes/notifications.js";
 import chatRoutes from "./routes/chat.js";
 import documentsRoutes from "./routes/documents.js";
+import sondagesRoutes from "./routes/sondages.js";
 import { sendPushToAll } from "./utils/push.js";
 
 const app = express();
@@ -44,6 +45,7 @@ app.use("/profil", profilRoutes);
 app.use("/notifications", notificationsRoutes);
 app.use("/chat", chatRoutes);
 app.use("/documents", documentsRoutes);
+app.use("/sondages", sondagesRoutes);
 
 // Socket.IO — auth + chat temps réel
 io.use((socket, next) => {

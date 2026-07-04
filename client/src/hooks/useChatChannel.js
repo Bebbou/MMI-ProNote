@@ -188,6 +188,7 @@ export function useChatChannel() {
 
   return {
     user,
+    socket,
     channels, setChannels,
     activeChannel, setActiveChannel,
     messages,
