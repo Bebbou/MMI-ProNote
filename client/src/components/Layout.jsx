@@ -1,9 +1,12 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Home, BookOpen, BarChart2, Calendar, User, Settings, LogOut, LayoutGrid, Sun, Menu, X, MessageSquare, FolderOpen } from "lucide-react";
+import { Home, BookOpen, BarChart2, Calendar, Settings, LogOut, LayoutGrid, Sun, Menu, X, MessageSquare, FolderOpen, User } from "lucide-react";
 import { useTheme, THEMES } from "../hooks/useTheme";
 import { useState, useEffect, useRef } from "react";
 import ChatPanel from "./ChatPanel";
+import MmiDecor from "./MmiDecor";
+import { Toaster } from "./Toast";
+import logoMmi from "../assets/logo_mmi.jpg";
 import styles from "./Layout.module.css";
 
 const navItems = [
@@ -41,10 +44,13 @@ export default function Layout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const themeRef = useRef(null);
+  const mobileThemeRef = useRef(null);
 
   useEffect(() => {
     function onClickOutside(e) {
-      if (themeRef.current && !themeRef.current.contains(e.target)) {
+      const inSidebar = themeRef.current && themeRef.current.contains(e.target);
+      const inMobile = mobileThemeRef.current && mobileThemeRef.current.contains(e.target);
+      if (!inSidebar && !inMobile) {
         setThemeOpen(false);
       }
     }
@@ -66,7 +72,7 @@ export default function Layout({ children }) {
     <div className={styles.layout}>
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarTop}>
-          <div className={styles.logo}>Pronote-MMI</div>
+          <img src={logoMmi} alt="MMI Béziers" className={styles.logo} />
           <button className={styles.closeBtn} onClick={() => setMenuOpen(false)} aria-label="Fermer le menu">
             <X size={18} strokeWidth={1.5} />
           </button>
@@ -142,11 +148,33 @@ export default function Layout({ children }) {
             <Menu size={20} strokeWidth={1.5} />
           </button>
           <span className={styles.mobileTitle}>Pronote-MMI</span>
-          <NavLink to="/profil" className={styles.themeIconBtn}>
-            <User size={18} strokeWidth={1.5} />
-          </NavLink>
+          <div className={styles.mobileThemePicker} ref={mobileThemeRef}>
+            <button
+              className={`${styles.themeIconBtn} ${themeOpen ? styles.themeIconBtnOpen : ""}`}
+              onClick={() => setThemeOpen(v => !v)}
+              aria-label="Changer de thème"
+            >
+              <Sun size={18} strokeWidth={1.5} />
+            </button>
+            {themeOpen && (
+              <div className={styles.mobileThemeDropdown}>
+                {THEMES.map(t => (
+                  <button
+                    key={t.id}
+                    className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
+                    onClick={() => { setTheme(t.id); setThemeOpen(false); }}
+                  >
+                    <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </header>
 
+        <MmiDecor />
+        <Toaster />
         <main className={styles.main}>{children}</main>
         <ChatPanel />
 

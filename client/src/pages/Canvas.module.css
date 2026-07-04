@@ -9,19 +9,43 @@
 .topbar {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   padding: 0.65rem 1.5rem;
-  background: #FFFFFF;
+  background: var(--bg-card);
   border-bottom: 1px solid var(--border);
   z-index: 10;
+}
+
+.logoImg {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #fff;
+  padding: 2px;
+  flex-shrink: 0;
 }
 
 .logo {
   font-size: 1rem;
   font-weight: 700;
   color: var(--accent);
-  margin-right: auto;
   letter-spacing: -0.3px;
+}
+
+.canvasTag {
+  font-size: 0.675rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--tint-pink);
+  padding: 0.15rem 0.5rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.spacer {
+  margin-right: auto;
 }
 
 .userInfo {
@@ -41,7 +65,7 @@
   border-radius: 20px;
 }
 
-.themeBtn {
+.iconBtn {
   background: none;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -55,9 +79,63 @@
   transition: border-color 0.15s, color 0.15s;
 }
 
-.themeBtn:hover {
+.iconBtn:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.themePicker {
+  position: relative;
+}
+
+.themeDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  z-index: 300;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  min-width: 150px;
+}
+
+.themeItem {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  transition: background 0.12s, color 0.12s;
+  text-align: left;
+  width: 100%;
+}
+
+.themeItem:hover {
+  background: var(--bg-dark);
+  color: var(--text-muted);
+}
+
+.themeItemActive {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.themeDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .backBtn {

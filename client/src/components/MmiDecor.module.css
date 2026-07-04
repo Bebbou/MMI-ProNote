@@ -1,0 +1,61 @@
+.decor {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.circleTop {
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 260px;
+  height: 260px;
+  opacity: 0.14;
+}
+
+.circleBottom {
+  position: absolute;
+  bottom: 40px;
+  left: 260px;
+  width: 130px;
+  height: 130px;
+  opacity: 0.1;
+}
+
+.dots {
+  position: absolute;
+  top: 45%;
+  right: 6%;
+  width: 90px;
+  height: 90px;
+  opacity: 0.12;
+}
+
+/* Sur les thèmes sombres, on remonte légèrement l'opacité pour rester visible */
+[data-theme="dark"] .circleTop,
+[data-theme="obsidian"] .circleTop {
+  opacity: 0.2;
+}
+
+[data-theme="dark"] .circleBottom,
+[data-theme="obsidian"] .circleBottom {
+  opacity: 0.15;
+}
+
+[data-theme="dark"] .dots,
+[data-theme="obsidian"] .dots {
+  opacity: 0.18;
+}
+
+@media (max-width: 768px) {
+  .circleBottom {
+    left: -40px;
+    bottom: 80px;
+  }
+
+  .dots {
+    display: none;
+  }
+}

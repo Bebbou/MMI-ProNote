@@ -56,7 +56,7 @@ export default function DevoirsWidget() {
       )}
 
       <div className={styles.list}>
-        {devoirs.length === 0 && <p className={styles.empty}>Aucun devoir 🎉</p>}
+        {devoirs.length === 0 && <p className={styles.empty}>Aucun devoir</p>}
         {devoirs.map(d => (
           <div key={d.id} className={styles.item}>
             <div className={styles.itemMain}>
