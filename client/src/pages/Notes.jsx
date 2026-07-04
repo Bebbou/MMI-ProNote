@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
+import MmiDecor from "../components/MmiDecor";
 import api from "../api/index.js";
 import styles from "./Notes.module.css";
 
@@ -37,10 +38,11 @@ export default function Notes() {
   return (
     <Layout>
       <div className={styles.page}>
+        <MmiDecor />
         <div className={styles.header}>
           <div>
             <h1>Mes notes</h1>
-            {moyenne && <p className={styles.moyenne}>Moyenne générale : <strong>{moyenne}/20</strong></p>}
+            {moyenne && <p className={styles.moyenne}>Moyenne gÃ©nÃ©rale : <strong>{moyenne}/20</strong></p>}
           </div>
           <button onClick={() => setShowForm(!showForm)}>
             {showForm ? "Annuler" : "+ Ajouter"}
@@ -49,7 +51,7 @@ export default function Notes() {
 
         {showForm && (
           <form className={styles.form} onSubmit={handleSubmit}>
-            <input name="matiere" placeholder="Matière" value={form.matiere} onChange={handleChange} required />
+            <input name="matiere" placeholder="MatiÃ¨re" value={form.matiere} onChange={handleChange} required />
             <input name="valeur" type="number" min="0" max="20" step="0.5" placeholder="Note /20" value={form.valeur} onChange={handleChange} required />
             <input name="coefficient" type="number" min="0.5" step="0.5" placeholder="Coefficient" value={form.coefficient} onChange={handleChange} />
             <button type="submit">Ajouter la note</button>
@@ -57,7 +59,7 @@ export default function Notes() {
         )}
 
         <div className={styles.list}>
-          {notes.length === 0 && <p className={styles.empty}>Aucune note enregistrée.</p>}
+          {notes.length === 0 && <p className={styles.empty}>Aucune note enregistrÃ©e.</p>}
           {notes.map(note => (
             <div key={note.id} className={styles.card}>
               <div className={styles.cardLeft}>
@@ -66,7 +68,7 @@ export default function Notes() {
               </div>
               <div className={styles.cardRight}>
                 <span className={styles.valeur}>{note.valeur}/20</span>
-                <button className={styles.deleteBtn} onClick={() => handleDelete(note.id)}>✕</button>
+                <button className={styles.deleteBtn} onClick={() => handleDelete(note.id)}>âœ•</button>
               </div>
             </div>
           ))}
@@ -75,3 +77,5 @@ export default function Notes() {
     </Layout>
   );
 }
+
+

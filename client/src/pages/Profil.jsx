@@ -1,6 +1,7 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
+import MmiDecor from "../components/MmiDecor";
 import api from "../api/index.js";
 import { usePushNotifications } from "../hooks/usePushNotifications.js";
 import { useTheme, THEMES } from "../hooks/useTheme.js";
@@ -36,13 +37,14 @@ export default function Profil() {
       setMessage(data.message);
       setForm({ actuel: "", nouveau: "", confirmation: "" });
     } catch (err) {
-      setError(err.response?.data?.error ?? "Erreur lors de la mise à jour.");
+      setError(err.response?.data?.error ?? "Erreur lors de la mise Ã  jour.");
     }
   }
 
   return (
     <Layout>
       <div className={styles.page}>
+        <MmiDecor />
         <h1>Mon profil</h1>
 
         <div className={styles.infoCard}>
@@ -55,7 +57,7 @@ export default function Profil() {
             <span className={styles.groupe}>{user?.groupe}</span>
           </div>
           <div className={styles.infoRow}>
-            <span className={styles.label}>Rôle</span>
+            <span className={styles.label}>RÃ´le</span>
             <span className={styles.role}>{user?.role}</span>
           </div>
         </div>
@@ -86,7 +88,7 @@ export default function Profil() {
           {!isSupported ? (
             <p className={styles.error}>Ton navigateur ne supporte pas les notifications push.</p>
           ) : permission === "denied" ? (
-            <p className={styles.error}>Notifications bloquées dans les paramètres du navigateur.</p>
+            <p className={styles.error}>Notifications bloquÃ©es dans les paramÃ¨tres du navigateur.</p>
           ) : (
             <button
               type="button"
@@ -95,7 +97,7 @@ export default function Profil() {
               onClick={subscribed ? disable : enable}
               disabled={loading}
             >
-              {loading ? "..." : subscribed ? "Désactiver les notifications" : "Activer les notifications"}
+              {loading ? "..." : subscribed ? "DÃ©sactiver les notifications" : "Activer les notifications"}
             </button>
           )}
         </div>
@@ -112,7 +114,7 @@ export default function Profil() {
             />
             <PasswordInput
               name="nouveau"
-              placeholder="Nouveau mot de passe (6 caractères min.)"
+              placeholder="Nouveau mot de passe (6 caractÃ¨res min.)"
               value={form.nouveau}
               onChange={handleChange}
               required
@@ -126,10 +128,12 @@ export default function Profil() {
             />
             {error && <p className={styles.error}>{error}</p>}
             {message && <p className={styles.success}>{message}</p>}
-            <button type="submit">Mettre à jour</button>
+            <button type="submit">Mettre Ã  jour</button>
           </form>
         </div>
       </div>
     </Layout>
   );
 }
+
+

@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../hooks/useSocket";
 import Layout from "../components/Layout";
+import MmiDecor from "../components/MmiDecor";
 import api from "../api/index.js";
 import styles from "./Devoirs.module.css";
 
@@ -16,7 +17,7 @@ export default function Devoirs() {
     api.get("/devoirs").then(res => setDevoirs(res.data));
   }, []);
 
-  // Écoute les événements temps réel du serveur
+  // Ã‰coute les Ã©vÃ©nements temps rÃ©el du serveur
   useEffect(() => {
     if (!socket) return;
 
@@ -56,8 +57,9 @@ export default function Devoirs() {
   return (
     <Layout>
       <div className={styles.page}>
+        <MmiDecor />
         <div className={styles.header}>
-          <h1>Devoirs à venir</h1>
+          <h1>Devoirs Ã  venir</h1>
           {canCreate && (
             <button onClick={() => setShowForm(!showForm)}>
               {showForm ? "Annuler" : "+ Ajouter"}
@@ -68,18 +70,18 @@ export default function Devoirs() {
         {showForm && (
           <form className={styles.form} onSubmit={handleSubmit}>
             <input name="titre" placeholder="Titre" value={form.titre} onChange={handleChange} required />
-            <input name="matiere" placeholder="Matière" value={form.matiere} onChange={handleChange} required />
+            <input name="matiere" placeholder="MatiÃ¨re" value={form.matiere} onChange={handleChange} required />
             <input name="description" placeholder="Description (optionnel)" value={form.description} onChange={handleChange} />
             <label className={styles.dateLabel}>
               Date limite
               <input name="dateLimite" type="datetime-local" value={form.dateLimite} onChange={handleChange} required />
             </label>
-            <button type="submit">Créer le devoir</button>
+            <button type="submit">CrÃ©er le devoir</button>
           </form>
         )}
 
         <div className={styles.list}>
-          {devoirs.length === 0 && <p className={styles.empty}>Aucun devoir à venir</p>}
+          {devoirs.length === 0 && <p className={styles.empty}>Aucun devoir Ã  venir</p>}
           {devoirs.map(devoir => (
             <div key={devoir.id} className={styles.card}>
               <div className={styles.cardHeader}>
@@ -91,7 +93,7 @@ export default function Devoirs() {
               <h3>{devoir.titre}</h3>
               {devoir.description && <p>{devoir.description}</p>}
               <div className={styles.cardFooter}>
-                <span className={styles.auteur}>Ajouté par {devoir.auteur?.nom}</span>
+                <span className={styles.auteur}>AjoutÃ© par {devoir.auteur?.nom}</span>
                 {canCreate && (
                   <button className={styles.deleteBtn} onClick={() => handleDelete(devoir.id)}>Supprimer</button>
                 )}
@@ -103,3 +105,5 @@ export default function Devoirs() {
     </Layout>
   );
 }
+
+

@@ -2,6 +2,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { BookOpen, BarChart2, Calendar, MessageSquare, FolderOpen } from "lucide-react";
 import Layout from "../components/Layout";
+import MmiDecor from "../components/MmiDecor";
 import styles from "./Dashboard.module.css";
 
 const cards = [
@@ -19,6 +20,7 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className={styles.page}>
+        <MmiDecor />
         <h1>Bienvenue, {user?.nom}</h1>
         <p className={styles.subtitle}>GROUPE_{user?.groupe} / {user?.role.toUpperCase()}</p>
         <div className={styles.cards}>

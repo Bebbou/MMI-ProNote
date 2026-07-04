@@ -1,4 +1,5 @@
-.page {
+﻿.page {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -183,3 +184,4 @@
     grid-template-columns: 1fr;
   }
 }
+

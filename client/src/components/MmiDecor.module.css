@@ -1,0 +1,86 @@
+.decor {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 260px;
+  height: 260px;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Grille de points */
+.dotGrid {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 110px;
+  height: 110px;
+  background-image: radial-gradient(circle, var(--accent) 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
+  opacity: 0.18;
+}
+
+/* Arc rose (quart de cercle) */
+.arcPink {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 28px solid #ff7cb7;
+  opacity: 0.15;
+  clip-path: polygon(0 100%, 100% 100%, 100% 0);
+}
+
+/* Arc orange */
+.arcOrange {
+  position: absolute;
+  top: 20px;
+  right: 60px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 18px solid #ff8d1a;
+  opacity: 0.13;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+/* Arc bleu */
+.arcBlue {
+  position: absolute;
+  top: 60px;
+  right: -20px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 14px solid #469cd0;
+  opacity: 0.15;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+/* Variante "corner" — coin bas droit */
+.corner {
+  top: auto;
+  bottom: 0;
+  right: 0;
+}
+.corner .dotGrid {
+  top: auto;
+  bottom: 16px;
+}
+.corner .arcPink {
+  top: auto;
+  bottom: -40px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+.corner .arcOrange {
+  top: auto;
+  bottom: 40px;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+.corner .arcBlue {
+  top: auto;
+  bottom: 80px;
+}

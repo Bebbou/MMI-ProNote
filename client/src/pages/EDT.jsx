@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
+import MmiDecor from "../components/MmiDecor";
 import api from "../api/index.js";
 import styles from "./EDT.module.css";
 
@@ -36,6 +37,7 @@ export default function EDT() {
   return (
     <Layout>
       <div className={styles.page}>
+        <MmiDecor />
         <div className={styles.header}>
           <h1>Emploi du temps</h1>
           {user?.role === "admin" && (
@@ -47,7 +49,7 @@ export default function EDT() {
 
         {showForm && (
           <form className={styles.form} onSubmit={handleSubmit}>
-            <input name="matiere" placeholder="Matière" value={form.matiere} onChange={handleChange} required />
+            <input name="matiere" placeholder="MatiÃ¨re" value={form.matiere} onChange={handleChange} required />
             <select name="jour" value={form.jour} onChange={handleChange}>
               {JOURS.map(j => <option key={j}>{j}</option>)}
             </select>
@@ -67,15 +69,15 @@ export default function EDT() {
             return (
               <div key={jour} className={styles.day}>
                 <h3 className={styles.dayTitle}>{jour}</h3>
-                {coursDuJour.length === 0 && <p className={styles.empty}>—</p>}
+                {coursDuJour.length === 0 && <p className={styles.empty}>â€”</p>}
                 {coursDuJour.map(c => (
                   <div key={c.id} className={styles.cours}>
-                    <div className={styles.coursTime}>{c.heureDebut} – {c.heureFin}</div>
+                    <div className={styles.coursTime}>{c.heureDebut} â€“ {c.heureFin}</div>
                     <div className={styles.coursMatiere}>{c.matiere}</div>
                     {c.salle && <div className={styles.coursMeta}>{c.salle}</div>}
                     {c.prof && <div className={styles.coursMeta}>{c.prof}</div>}
                     {user?.role === "admin" && (
-                      <button className={styles.deleteBtn} onClick={() => handleDelete(c.id)}>✕</button>
+                      <button className={styles.deleteBtn} onClick={() => handleDelete(c.id)}>âœ•</button>
                     )}
                   </div>
                 ))}
@@ -87,3 +89,5 @@ export default function EDT() {
     </Layout>
   );
 }
+
+

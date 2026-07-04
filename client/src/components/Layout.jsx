@@ -2,7 +2,7 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Home, BookOpen, BarChart2, Calendar, User, Settings, LogOut, LayoutGrid, Sun, Menu, X, MessageSquare, FolderOpen } from "lucide-react";
 import { useTheme, THEMES } from "../hooks/useTheme";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import ChatPanel from "./ChatPanel";
 import styles from "./Layout.module.css";
 
@@ -24,20 +24,33 @@ const bottomNavItems = [
   { to: "/profil", label: "Profil", icon: User },
 ];
 
+const THEME_DOTS = {
+  mmi:      "#ff7cb7",
+  dark:     "#ff7cb7",
+  bleu:     "#469cd0",
+  pastel:   "#e8609a",
+  obsidian: "#9b7fe8",
+};
+
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, setTheme, isDark } = useTheme();
+  const { theme, setTheme } = useTheme();
 
-  const THEME_DOTS = {
-    mmi:      "#ff7cb7",
-    dark:     "#ff7cb7",
-    bleu:     "#469cd0",
-    pastel:   "#e8609a",
-    obsidian: "#9b7fe8",
-  };
   const [menuOpen, setMenuOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
+  const themePickerRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (themePickerRef.current && !themePickerRef.current.contains(e.target)) {
+        setThemeOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   function handleLogout() {
     logout();
@@ -82,24 +95,29 @@ export default function Layout({ children }) {
           ))}
         </nav>
 
-        {/* Theme picker */}
-        <div className={styles.themePicker}>
-          <button className={styles.themeBtn}>
+        {/* Theme picker — click-based */}
+        <div className={styles.themePicker} ref={themePickerRef}>
+          <button
+            className={`${styles.themeBtn} ${themeOpen ? styles.themeBtnOpen : ""}`}
+            onClick={() => setThemeOpen(v => !v)}
+          >
             <Sun size={13} strokeWidth={1.5} />
             <span className={styles.navLabel}>Thème : {THEMES.find(t => t.id === theme)?.label}</span>
           </button>
-          <div className={styles.themeDropdown}>
-            {THEMES.map(t => (
-              <button
-                key={t.id}
-                className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
-                onClick={() => setTheme(t.id)}
-              >
-                <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
-                {t.label}
-              </button>
-            ))}
-          </div>
+          {themeOpen && (
+            <div className={styles.themeDropdown}>
+              {THEMES.map(t => (
+                <button
+                  key={t.id}
+                  className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
+                  onClick={() => { setTheme(t.id); setThemeOpen(false); }}
+                >
+                  <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <NavLink

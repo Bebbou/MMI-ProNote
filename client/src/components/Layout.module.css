@@ -17,6 +17,7 @@
   width: 240px;
   min-height: 100vh;
   background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border, rgba(255,255,255,0.08));
   display: flex;
   flex-direction: column;
   padding: 1.25rem 0.85rem;
@@ -30,7 +31,7 @@
   overflow: hidden;
 }
 
-/* Élement décoratif — arc MMI en fond */
+/* Arc décoratif MMI en fond sidebar */
 .sidebar::before {
   content: "";
   position: absolute;
@@ -39,7 +40,7 @@
   width: 200px;
   height: 200px;
   border-radius: 50%;
-  border: 32px solid rgba(var(--accent-rgb), 0.12);
+  border: 32px solid rgba(var(--accent-rgb), 0.1);
   pointer-events: none;
 }
 .sidebar::after {
@@ -50,7 +51,7 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  border: 20px solid rgba(var(--accent-rgb), 0.07);
+  border: 20px solid rgba(var(--accent-rgb), 0.06);
   pointer-events: none;
 }
 
@@ -83,7 +84,6 @@
 }
 .closeBtn:hover { color: var(--sidebar-text); }
 
-/* Logo — fond blanc fixe pour lisibilité sur tous les thèmes */
 .logo {
   padding: 0.2rem;
   display: flex;
@@ -103,9 +103,9 @@
   flex-direction: column;
   gap: 0.2rem;
   padding: 0.65rem 0.75rem;
-  background: rgba(255,255,255,0.06);
+  background: var(--sidebar-hover-bg);
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--sidebar-border, rgba(255,255,255,0.08));
 }
 .userName {
   font-weight: 600;
@@ -154,8 +154,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--sidebar-hover-bg);
+  border: 1px solid var(--sidebar-border, rgba(255,255,255,0.1));
   color: var(--sidebar-faint);
   padding: 0.55rem 0.75rem;
   font-size: 0.775rem;
@@ -166,10 +166,9 @@
   cursor: pointer;
   width: 100%;
 }
-.themeBtn:hover {
+.themeBtn:hover, .themeBtnOpen {
   border-color: var(--accent);
   color: var(--sidebar-text);
-  background: rgba(255,255,255,0.1);
 }
 .themeDropdown {
   position: absolute;
@@ -177,23 +176,14 @@
   left: 0;
   right: 0;
   background: var(--sidebar-bg);
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid var(--sidebar-border, rgba(255,255,255,0.12));
   border-radius: 10px;
   padding: 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(4px);
-  transition: opacity 0.15s, transform 0.15s;
-  z-index: 10;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-}
-.themePicker:hover .themeDropdown {
-  opacity: 1;
-  pointer-events: all;
-  transform: translateY(0);
+  z-index: 300;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 .themeItem {
   display: flex;
@@ -209,9 +199,10 @@
   color: var(--sidebar-faint);
   transition: background 0.12s, color 0.12s;
   text-align: left;
+  width: 100%;
 }
 .themeItem:hover {
-  background: rgba(255,255,255,0.08);
+  background: var(--sidebar-hover-bg);
   color: var(--sidebar-text);
 }
 .themeItemActive {
@@ -223,7 +214,6 @@
   height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
-  border: 2px solid rgba(255,255,255,0.15);
 }
 
 /* ── Canvas + Logout ── */
@@ -232,8 +222,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--sidebar-hover-bg);
+  border: 1px solid var(--sidebar-border, rgba(255,255,255,0.1));
   color: var(--sidebar-faint);
   padding: 0.55rem;
   font-size: 0.8rem;
@@ -251,7 +241,7 @@
 
 .logout {
   background: none;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--sidebar-border, rgba(255,255,255,0.08));
   color: var(--sidebar-faint);
   padding: 0.55rem;
   cursor: pointer;
@@ -273,6 +263,17 @@
 .main {
   flex: 1;
   padding: 2rem;
+  position: relative;
+}
+
+/* Bande arc-en-ciel MMI en haut de chaque page */
+.main::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(to right, #ff7cb7 0%, #ff8d1a 33%, #ff2e0c 55%, #469cd0 78%, #ff7cb7 100%);
+  opacity: 0.65;
 }
 
 /* ── Mobile header ── */

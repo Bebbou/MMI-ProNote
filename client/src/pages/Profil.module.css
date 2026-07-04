@@ -1,4 +1,5 @@
-.page {
+﻿.page {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -100,7 +101,7 @@
   background: var(--accent-hover);
 }
 
-/* ── Sélecteur de thème ── */
+/* â”€â”€ SÃ©lecteur de thÃ¨me â”€â”€ */
 .themeGrid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -134,7 +135,7 @@
   position: relative;
 }
 
-/* Couleurs de preview pour chaque thème */
+/* Couleurs de preview pour chaque thÃ¨me */
 [data-theme-preview="mmi"] .themePreview { background: #ffffff; }
 [data-theme-preview="dark"] .themePreview { background: #111111; }
 [data-theme-preview="bleu"] .themePreview { background: #F4F9FD; }
@@ -218,3 +219,4 @@
     max-width: 100%;
   }
 }
+
