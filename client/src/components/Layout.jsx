@@ -4,6 +4,7 @@ import { Home, BookOpen, BarChart2, Calendar, Settings, LogOut, LayoutGrid, Sun,
 import { useTheme, THEMES } from "../hooks/useTheme";
 import { useState, useEffect, useRef } from "react";
 import ChatPanel from "./ChatPanel";
+import logoMmi from "../assets/logo_mmi.jpg";
 import styles from "./Layout.module.css";
 
 const navItems = [
@@ -69,7 +70,7 @@ export default function Layout({ children }) {
     <div className={styles.layout}>
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarTop}>
-          <div className={styles.logo}>Pronote-MMI</div>
+          <img src={logoMmi} alt="MMI Béziers" className={styles.logo} />
           <button className={styles.closeBtn} onClick={() => setMenuOpen(false)} aria-label="Fermer le menu">
             <X size={18} strokeWidth={1.5} />
           </button>

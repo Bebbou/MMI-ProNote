@@ -52,13 +52,13 @@
 }
 
 .logo {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--accent);
-  padding: 0.5rem 0.75rem;
-  background: var(--tint-pink);
-  border-radius: 8px;
-  letter-spacing: -0.3px;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: #fff;
+  padding: 3px;
+  flex-shrink: 0;
 }
 
 .userInfo {
@@ -268,20 +268,9 @@
   }
 
   .logo {
-    font-size: 0;
-    padding: 0.6rem;
     width: 40px;
     height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .logo::after {
-    content: "P";
-    font-size: 1rem;
-    font-weight: 800;
-    color: var(--accent);
+    padding: 2px;
   }
 
   .userInfo {
