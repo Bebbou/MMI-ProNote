@@ -24,7 +24,7 @@ const initialNodes = [
 export default function Canvas() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
 
   function handleLogout() {
@@ -41,7 +41,7 @@ export default function Canvas() {
           <span className={styles.groupe}>{user?.groupe}</span>
         </div>
         <button className={styles.themeBtn} onClick={toggleTheme}>
-          {theme === "light" ? <Moon size={12} strokeWidth={1.5} /> : <Sun size={12} strokeWidth={1.5} />}
+          {isDark ? <Sun size={12} strokeWidth={1.5} /> : <Moon size={12} strokeWidth={1.5} />}
         </button>
         <Link to="/dashboard" className={styles.backBtn}>
           <ArrowLeft size={12} strokeWidth={1.5} />

@@ -3,11 +3,13 @@ import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 import api from "../api/index.js";
 import { usePushNotifications } from "../hooks/usePushNotifications.js";
+import { useTheme, THEMES } from "../hooks/useTheme.js";
 import PasswordInput from "../components/PasswordInput";
 import styles from "./Profil.module.css";
 
 export default function Profil() {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [form, setForm] = useState({ actuel: "", nouveau: "", confirmation: "" });
   const { isSupported, permission, subscribed, loading, enable, disable } = usePushNotifications();
   const [message, setMessage] = useState(null);
@@ -55,6 +57,27 @@ export default function Profil() {
           <div className={styles.infoRow}>
             <span className={styles.label}>Rôle</span>
             <span className={styles.role}>{user?.role}</span>
+          </div>
+        </div>
+
+        <div className={styles.section}>
+          <h2>Apparence</h2>
+          <div className={styles.themeGrid}>
+            {THEMES.map(t => (
+              <button
+                key={t.id}
+                className={`${styles.themeOption} ${theme === t.id ? styles.themeActive : ""}`}
+                data-theme-preview={t.id}
+                onClick={() => setTheme(t.id)}
+              >
+                <div className={styles.themePreview}>
+                  <div className={styles.previewBar} />
+                  <div className={styles.previewCard} />
+                  <div className={styles.previewAccent} />
+                </div>
+                <span>{t.label}</span>
+              </button>
+            ))}
           </div>
         </div>
 

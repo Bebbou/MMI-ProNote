@@ -2,15 +2,18 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="theme-color" content="#fe7db6" />
+    <link rel="icon" type="image/png" href="/logo-mmi.png" />
+    <link rel="apple-touch-icon" href="/logo-mmi.png" />
+    <meta name="theme-color" content="#ff7cb7" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Pronote-MMI" />
+    <meta name="apple-mobile-web-app-title" content="MMIvers" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pronote-MMI</title>
+    <title>MMIvers</title>
     <script>
-      const t = localStorage.getItem('theme') ?? 'light';
+      const saved = localStorage.getItem('theme');
+      const valid = ['mmi','dark','bleu','pastel','obsidian'];
+      const t = valid.includes(saved) ? saved : 'mmi';
       document.documentElement.setAttribute('data-theme', t);
     </script>
   </head>

@@ -28,7 +28,7 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
 
   function handleLogout() {
@@ -46,7 +46,9 @@ export default function Layout({ children }) {
       {/* Sidebar desktop */}
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarTop}>
-          <div className={styles.logo}>Pronote-MMI</div>
+          <div className={styles.logo}>
+            <img src="/logo-mmi.png" alt="MMI Béziers" className={styles.logoImg} />
+          </div>
           <button className={styles.closeBtn} onClick={() => setMenuOpen(false)} aria-label="Fermer le menu">
             <X size={18} strokeWidth={1.5} />
           </button>
@@ -70,9 +72,9 @@ export default function Layout({ children }) {
             </NavLink>
           ))}
         </nav>
-        <button className={styles.themeBtn} onClick={toggleTheme} title={theme === "light" ? "Mode sombre" : "Mode clair"}>
-          {theme === "light" ? <Moon size={13} strokeWidth={1.5} /> : <Sun size={13} strokeWidth={1.5} />}
-          <span className={styles.navLabel}>{theme === "light" ? "Mode sombre" : "Mode clair"}</span>
+        <button className={styles.themeBtn} onClick={toggleTheme} title={isDark ? "Mode clair" : "Mode sombre"}>
+          {isDark ? <Sun size={13} strokeWidth={1.5} /> : <Moon size={13} strokeWidth={1.5} />}
+          <span className={styles.navLabel}>{isDark ? "Mode clair" : "Mode sombre"}</span>
         </button>
         <NavLink
           to="/canvas"
@@ -101,7 +103,7 @@ export default function Layout({ children }) {
           </button>
           <span className={styles.mobileTitle}>Pronote-MMI</span>
           <button className={styles.themeIconBtn} onClick={toggleTheme}>
-            {theme === "light" ? <Moon size={16} strokeWidth={1.5} /> : <Sun size={16} strokeWidth={1.5} />}
+            {isDark ? <Sun size={16} strokeWidth={1.5} /> : <Moon size={16} strokeWidth={1.5} />}
           </button>
         </header>
 

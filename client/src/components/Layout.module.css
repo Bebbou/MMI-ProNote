@@ -52,13 +52,15 @@
 }
 
 .logo {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--accent);
-  padding: 0.5rem 0.75rem;
-  background: var(--tint-pink);
-  border-radius: 8px;
-  letter-spacing: -0.3px;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
+}
+.logoImg {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 6px;
 }
 
 .userInfo {

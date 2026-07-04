@@ -1,49 +1,116 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
-:root, [data-theme="light"] {
-  --bg-page: #F7F6F3;
-  --bg-card: #FFFFFF;
-  --bg-input: #F2F1EE;
-  --bg-dark: #F7F6F3;
-  --border: #E4E2DD;
-  --accent: #fe7db6;
-  --accent-hover: #e05a9a;
-  --accent-blue: #29ABE2;
-  --accent-orange: #F26419;
-  --tint-pink: #FFF0F7;
-  --tint-blue: #EBF7FD;
-  --tint-orange: #FFF3EE;
-  --text: #1A1A1A;
-  --text-muted: #3D3D3D;
-  --text-faint: #888888;
-  --danger: #DC2626;
-  --success: #16A34A;
-  --warning: #F26419;
-  --shadow: 0 4px 16px rgba(0,0,0,0.07);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+@font-face {
+  font-family: 'KnuckleDown';
+  src: url('/fonts/KnuckleDown.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
+/* ── Thème MMI (défaut clair) ── */
+:root, [data-theme="mmi"] {
+  --bg-page: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-input: #F5F5F5;
+  --bg-dark: #F9F9F9;
+  --border: #EBEBEB;
+  --accent: #ff7cb7;
+  --accent-hover: #e0559a;
+  --accent-rgb: 255, 124, 183;
+  --text: #111111;
+  --text-muted: #444444;
+  --text-faint: #999999;
+  --danger: #ff2e0c;
+  --success: #16A34A;
+  --warning: #ff8d1a;
+  --shadow: 0 4px 20px rgba(255,124,183,0.10);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+  --font-display: 'KnuckleDown', 'Montserrat', sans-serif;
+}
+
+/* ── Thème Sombre ── */
 [data-theme="dark"] {
   --bg-page: #0d0d0d;
   --bg-card: #111111;
   --bg-input: #0a0a0a;
   --bg-dark: #0d0d0d;
   --border: #2a2a2a;
-  --accent: #fe7db6;
-  --accent-hover: #e05a9a;
-  --accent-blue: #29ABE2;
-  --accent-orange: #F26419;
-  --tint-pink: #2a0f1a;
-  --tint-blue: #0a1e2a;
-  --tint-orange: #2a1205;
+  --accent: #ff7cb7;
+  --accent-hover: #e0559a;
+  --accent-rgb: 255, 124, 183;
   --text: #e0e0e0;
   --text-muted: #c1b492;
   --text-faint: #555555;
   --danger: #ff4d4d;
   --success: #00c136;
-  --warning: #f59e0b;
+  --warning: #ff8d1a;
   --shadow: 0 4px 16px rgba(0,0,0,0.5);
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+  --font-display: 'KnuckleDown', 'Montserrat', sans-serif;
+}
+
+/* ── Thème Bleu MMI ── */
+[data-theme="bleu"] {
+  --bg-page: #F4F9FD;
+  --bg-card: #FFFFFF;
+  --bg-input: #EBF4FB;
+  --bg-dark: #E3EFF8;
+  --border: #C8DFF0;
+  --accent: #469cd0;
+  --accent-hover: #2f7aad;
+  --accent-rgb: 70, 156, 208;
+  --text: #0d2135;
+  --text-muted: #2e5578;
+  --text-faint: #7aaac8;
+  --danger: #ff2e0c;
+  --success: #16A34A;
+  --warning: #ff8d1a;
+  --shadow: 0 4px 20px rgba(70,156,208,0.12);
+  --shadow-sm: 0 2px 8px rgba(70,156,208,0.07);
+  --font-display: 'KnuckleDown', 'Montserrat', sans-serif;
+}
+
+/* ── Thème Pastel ── */
+[data-theme="pastel"] {
+  --bg-page: #FFF0F6;
+  --bg-card: #FFF7FB;
+  --bg-input: #FFE8F3;
+  --bg-dark: #FFE0EE;
+  --border: #F5C0D8;
+  --accent: #e8609a;
+  --accent-hover: #c94580;
+  --accent-rgb: 232, 96, 154;
+  --text: #2d0f1e;
+  --text-muted: #6b2c49;
+  --text-faint: #b87a9a;
+  --danger: #ff2e0c;
+  --success: #16A34A;
+  --warning: #ff8d1a;
+  --shadow: 0 4px 20px rgba(232,96,154,0.10);
+  --shadow-sm: 0 2px 8px rgba(232,96,154,0.06);
+  --font-display: 'KnuckleDown', 'Montserrat', sans-serif;
+}
+
+/* ── Thème Obsidian ── */
+[data-theme="obsidian"] {
+  --bg-page: #13111a;
+  --bg-card: #1c1928;
+  --bg-input: #100e18;
+  --bg-dark: #13111a;
+  --border: #2e2a40;
+  --accent: #9b7fe8;
+  --accent-hover: #7c5fd4;
+  --accent-rgb: 155, 127, 232;
+  --text: #e2dff5;
+  --text-muted: #a09cc0;
+  --text-faint: #4e4a6a;
+  --danger: #ff4d6a;
+  --success: #3ddc84;
+  --warning: #ffb347;
+  --shadow: 0 4px 20px rgba(0,0,0,0.6);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+  --font-display: 'KnuckleDown', 'Montserrat', sans-serif;
 }
 
 * {
@@ -57,22 +124,38 @@ body {
   background: var(--bg-page);
   color: var(--text);
   min-height: 100vh;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.25s, color 0.25s;
 }
 
-[data-theme="dark"] body {
-  background-image: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
+/* Fond texturé pour les thèmes sombres */
+[data-theme="dark"] body,
+[data-theme="obsidian"] body {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 30px 30px;
 }
 
-[data-theme="dark"] body::before {
-  content: " ";
+/* Scan line subtile sur les thèmes sombres */
+[data-theme="dark"] body::before,
+[data-theme="obsidian"] body::before {
+  content: "";
   position: fixed;
-  top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.05) 50%);
+  inset: 0;
+  background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.04) 50%);
   background-size: 100% 6px;
   z-index: 9999;
   pointer-events: none;
+}
+
+/* Accent décoratif pastel sur les bords */
+[data-theme="pastel"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(255,124,183,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(232,96,154,0.10) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 a {
