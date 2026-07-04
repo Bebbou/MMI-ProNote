@@ -144,7 +144,13 @@ Pronote-MMI/
 
 ## Contribuer
 
-Voir [CONTRIBUTING.md](CONTRIBUTING.md).
+Voir [CONTRIBUTING.md](CONTRIBUTING.md). Merci de respecter le [Code de conduite](CODE_OF_CONDUCT.md).
+
+## Sécurité
+
+Une faille de sécurité à signaler ? Voir [SECURITY.md](SECURITY.md)
+
+NE PAS METTRE L'ISSUE EN PUBLIQUE.
 
 ## Licence
 

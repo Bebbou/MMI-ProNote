@@ -1,0 +1,60 @@
+name: Signaler un bug
+description: Quelque chose ne fonctionne pas comme prévu
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Ce qui s'est passé
+      description: Décris le comportement inattendu ou le message d'erreur
+      placeholder: Ex. En cliquant sur "Supprimer" dans Devoirs, rien ne se passe...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ce qui était attendu
+      description: Que devrait-il se passer normalement ?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Étapes pour reproduire
+      placeholder: |
+        1. Aller sur la page Devoirs
+        2. Cliquer sur Supprimer
+        3. ...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: role
+    attributes:
+      label: Rôle utilisé
+      options:
+        - Étudiant
+        - Délégué
+        - Admin
+        - Non connecté
+    validations:
+      required: false
+
+  - type: input
+    id: browser
+    attributes:
+      label: Navigateur / appareil
+      placeholder: Ex. Chrome sur Windows, Safari sur iPhone...
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Capture d'écran (optionnel)
+      description: Glisse une image ici si ça aide à comprendre
+    validations:
+      required: false

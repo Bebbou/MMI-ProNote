@@ -1,0 +1,37 @@
+name: Proposer une fonctionnalité
+description: Une idée pour améliorer Pronote-MMI
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Quel problème ça résout
+      description: Quelle situation actuelle te gêne ou pourrait être améliorée ?
+      placeholder: Ex. Impossible de savoir si un devoir a déjà été rendu...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: La solution que tu proposes
+      description: Comment tu imagines que ça devrait fonctionner
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives envisagées (optionnel)
+      description: As-tu pensé à d'autres façons de résoudre ce problème ?
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexte additionnel (optionnel)
+      description: Maquettes, exemples d'autres apps, captures d'écran...
+    validations:
+      required: false
