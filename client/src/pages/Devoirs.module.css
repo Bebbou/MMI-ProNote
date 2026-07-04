@@ -193,3 +193,52 @@
     gap: 0.4rem;
   }
 }
+
+/* ── Devoirs en retard ── */
+.dateLate {
+  color: var(--danger);
+  font-size: 0.775rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lateBadge {
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.675rem;
+  font-weight: 700;
+  padding: 0.1rem 0.5rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.cardLate {
+  border-color: var(--danger);
+  opacity: 0.85;
+}
+
+/* ── Erreur de chargement ── */
+.loadError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 0;
+  color: var(--text-faint);
+  font-size: 0.875rem;
+}
+
+.loadError button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 1.25rem;
+  font-size: 0.825rem;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}

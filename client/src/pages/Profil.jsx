@@ -5,6 +5,7 @@ import api from "../api/index.js";
 import { usePushNotifications } from "../hooks/usePushNotifications.js";
 import { useTheme, THEMES } from "../hooks/useTheme.js";
 import PasswordInput from "../components/PasswordInput";
+import PageTitle from "../components/PageTitle";
 import styles from "./Profil.module.css";
 
 const THEME_DOTS = {
@@ -51,7 +52,7 @@ export default function Profil() {
   return (
     <Layout>
       <div className={styles.page}>
-        <h1>Mon profil</h1>
+        <PageTitle>Mon profil</PageTitle>
 
         <div className={styles.infoCard}>
           <div className={styles.infoRow}>

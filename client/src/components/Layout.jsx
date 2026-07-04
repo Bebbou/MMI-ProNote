@@ -5,6 +5,7 @@ import { useTheme, THEMES } from "../hooks/useTheme";
 import { useState, useEffect, useRef } from "react";
 import ChatPanel from "./ChatPanel";
 import MmiDecor from "./MmiDecor";
+import { Toaster } from "./Toast";
 import logoMmi from "../assets/logo_mmi.jpg";
 import styles from "./Layout.module.css";
 
@@ -173,6 +174,7 @@ export default function Layout({ children }) {
         </header>
 
         <MmiDecor />
+        <Toaster />
         <main className={styles.main}>{children}</main>
         <ChatPanel />
 

@@ -1,0 +1,43 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.bar {
+  display: flex;
+  gap: 4px;
+  height: 5px;
+  width: 120px;
+}
+
+.segPink {
+  flex: 2;
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+.segStripes {
+  flex: 1.4;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--accent-blue),
+    var(--accent-blue) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+  border-radius: 3px;
+}
+
+.segOrange {
+  flex: 1;
+  background: var(--accent-orange);
+  border-radius: 3px;
+}

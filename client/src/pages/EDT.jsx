@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
+import PageTitle from "../components/PageTitle";
 import api from "../api/index.js";
 import styles from "./EDT.module.css";
 
@@ -37,7 +38,7 @@ export default function EDT() {
     <Layout>
       <div className={styles.page}>
         <div className={styles.header}>
-          <h1>Emploi du temps</h1>
+          <PageTitle>Emploi du temps</PageTitle>
           {user?.role === "admin" && (
             <button onClick={() => setShowForm(!showForm)}>
               {showForm ? "Annuler" : "+ Ajouter un cours"}
