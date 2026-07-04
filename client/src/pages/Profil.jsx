@@ -43,92 +43,99 @@ export default function Profil() {
   return (
     <Layout>
       <div className={styles.page}>
-        <h1>Mon profil</h1>
 
-        <div className={styles.infoCard}>
-          <div className={styles.infoRow}>
-            <span className={styles.label}>Nom</span>
-            <span>{user?.nom}</span>
-          </div>
-          <div className={styles.infoRow}>
-            <span className={styles.label}>Groupe</span>
-            <span className={styles.groupe}>{user?.groupe}</span>
-          </div>
-          <div className={styles.infoRow}>
-            <span className={styles.label}>Rôle</span>
-            <span className={styles.role}>{user?.role}</span>
+        {/* Header profil */}
+        <div className={styles.header}>
+          <div className={styles.headerTop}>
+            <div className={styles.headerText}>
+              <div className={styles.headerName}>{user?.nom}</div>
+              <div className={styles.headerMeta}>
+                <span className={`${styles.headerBadge} ${styles.badgeGroupe}`}>{user?.groupe}</span>
+                <span className={`${styles.headerBadge} ${styles.badgeRole}`}>{user?.role}</span>
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Apparence */}
         <div className={styles.section}>
-          <h2>Apparence</h2>
-          <div className={styles.themeGrid}>
-            {THEMES.map(t => (
+          <span className={styles.sectionTitle}>Apparence</span>
+          <div className={styles.card}>
+            <div className={styles.themeGrid}>
+              {THEMES.map(t => (
+                <button
+                  key={t.id}
+                  className={`${styles.themeOption} ${theme === t.id ? styles.themeActive : ""}`}
+                  data-theme-preview={t.id}
+                  onClick={() => setTheme(t.id)}
+                >
+                  <div className={styles.themePreview}>
+                    <div className={styles.previewBar} />
+                    <div className={styles.previewCard} />
+                    <div className={styles.previewAccent} />
+                  </div>
+                  <span>{t.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Notifications */}
+        <div className={styles.section}>
+          <span className={styles.sectionTitle}>Notifications</span>
+          <div className={styles.card}>
+            {!isSupported ? (
+              <p className={styles.error}>Ton navigateur ne supporte pas les notifications push.</p>
+            ) : permission === "denied" ? (
+              <p className={styles.error}>Notifications bloquées dans les paramètres du navigateur.</p>
+            ) : (
               <button
-                key={t.id}
-                className={`${styles.themeOption} ${theme === t.id ? styles.themeActive : ""}`}
-                data-theme-preview={t.id}
-                onClick={() => setTheme(t.id)}
+                type="button"
+                className={styles.notifBtn}
+                style={{ background: subscribed ? "var(--tint-accent)" : "var(--accent)", color: subscribed ? "var(--accent)" : "#fff", border: subscribed ? "1px solid var(--accent)" : "none" }}
+                onClick={subscribed ? disable : enable}
+                disabled={loading}
               >
-                <div className={styles.themePreview}>
-                  <div className={styles.previewBar} />
-                  <div className={styles.previewCard} />
-                  <div className={styles.previewAccent} />
-                </div>
-                <span>{t.label}</span>
+                {loading ? "..." : subscribed ? "Désactiver les notifications" : "Activer les notifications"}
               </button>
-            ))}
+            )}
           </div>
         </div>
 
+        {/* Mot de passe */}
         <div className={styles.section}>
-          <h2>Notifications</h2>
-          {!isSupported ? (
-            <p className={styles.error}>Ton navigateur ne supporte pas les notifications push.</p>
-          ) : permission === "denied" ? (
-            <p className={styles.error}>Notifications bloquées dans les paramètres du navigateur.</p>
-          ) : (
-            <button
-              type="button"
-              className={styles.notifBtn}
-              style={{ background: subscribed ? "var(--tint-accent)" : "var(--accent)", color: subscribed ? "var(--accent)" : "#fff", border: subscribed ? "1px solid var(--accent)" : "none" }}
-              onClick={subscribed ? disable : enable}
-              disabled={loading}
-            >
-              {loading ? "..." : subscribed ? "Désactiver les notifications" : "Activer les notifications"}
-            </button>
-          )}
+          <span className={styles.sectionTitle}>Changer le mot de passe</span>
+          <div className={styles.card}>
+            <form className={styles.form} onSubmit={handleSubmit}>
+              <PasswordInput
+                name="actuel"
+                placeholder="Mot de passe actuel"
+                value={form.actuel}
+                onChange={handleChange}
+                required
+              />
+              <PasswordInput
+                name="nouveau"
+                placeholder="Nouveau mot de passe (6 caractères min.)"
+                value={form.nouveau}
+                onChange={handleChange}
+                required
+              />
+              <PasswordInput
+                name="confirmation"
+                placeholder="Confirmer le nouveau mot de passe"
+                value={form.confirmation}
+                onChange={handleChange}
+                required
+              />
+              {error && <p className={styles.error}>{error}</p>}
+              {message && <p className={styles.success}>{message}</p>}
+              <button type="submit">Mettre à jour</button>
+            </form>
+          </div>
         </div>
 
-        <div className={styles.section}>
-          <h2>Changer le mot de passe</h2>
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <PasswordInput
-              name="actuel"
-              placeholder="Mot de passe actuel"
-              value={form.actuel}
-              onChange={handleChange}
-              required
-            />
-            <PasswordInput
-              name="nouveau"
-              placeholder="Nouveau mot de passe (6 caractères min.)"
-              value={form.nouveau}
-              onChange={handleChange}
-              required
-            />
-            <PasswordInput
-              name="confirmation"
-              placeholder="Confirmer le nouveau mot de passe"
-              value={form.confirmation}
-              onChange={handleChange}
-              required
-            />
-            {error && <p className={styles.error}>{error}</p>}
-            {message && <p className={styles.success}>{message}</p>}
-            <button type="submit">Mettre à jour</button>
-          </form>
-        </div>
       </div>
     </Layout>
   );
