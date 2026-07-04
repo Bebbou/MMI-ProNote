@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
 @font-face {
   font-family: 'KnuckleDown';
@@ -8,7 +8,7 @@
   font-display: swap;
 }
 
-/* ── Thème MMI (défaut clair) ── */
+/* â”€â”€ ThÃ¨me MMI (dÃ©faut clair) â”€â”€ */
 :root, [data-theme="mmi"] {
   --bg-page: #F7F6F3;
   --bg-card: #FFFFFF;
@@ -36,7 +36,7 @@
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-/* ── Thème Sombre ── */
+/* â”€â”€ ThÃ¨me Sombre â”€â”€ */
 [data-theme="dark"] {
   --bg-page: #0d0d0d;
   --bg-card: #111111;
@@ -64,7 +64,7 @@
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
 }
 
-/* ── Thème Bleu MMI ── */
+/* â”€â”€ ThÃ¨me Bleu MMI â”€â”€ */
 [data-theme="bleu"] {
   --bg-page: #F2F7FC;
   --bg-card: #FFFFFF;
@@ -92,7 +92,7 @@
   --shadow-sm: 0 2px 8px rgba(70,156,208,0.08);
 }
 
-/* ── Thème Pastel ── */
+/* â”€â”€ ThÃ¨me Pastel â”€â”€ */
 [data-theme="pastel"] {
   --bg-page: #FEF0F6;
   --bg-card: #FFF8FB;
@@ -120,7 +120,7 @@
   --shadow-sm: 0 2px 8px rgba(232,96,154,0.07);
 }
 
-/* ── Thème Obsidian ── */
+/* â”€â”€ ThÃ¨me Obsidian â”€â”€ */
 [data-theme="obsidian"] {
   --bg-page: #13111a;
   --bg-card: #1c1928;
@@ -162,14 +162,14 @@ body {
   transition: background 0.25s, color 0.25s;
 }
 
-/* Fond texturé pour les thèmes sombres */
+/* Fond texturÃ© pour les thÃ¨mes sombres */
 [data-theme="dark"] body,
 [data-theme="obsidian"] body {
   background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 30px 30px;
 }
 
-/* Accent décoratif pastel sur les bords */
+/* Accent dÃ©coratif pastel sur les bords */
 [data-theme="pastel"] body::before {
   content: "";
   position: fixed;
@@ -189,3 +189,4 @@ a {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg-page); }
 ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+

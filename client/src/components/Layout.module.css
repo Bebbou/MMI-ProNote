@@ -1,4 +1,4 @@
-/* ── Layout global ── */
+﻿/* â”€â”€ Layout global â”€â”€ */
 .layout {
   display: flex;
   min-height: 100vh;
@@ -12,7 +12,7 @@
   min-width: 0;
 }
 
-/* ── Sidebar ── */
+/* â”€â”€ Sidebar â”€â”€ */
 .sidebar {
   width: 240px;
   min-height: 100vh;
@@ -31,7 +31,7 @@
   overflow: hidden;
 }
 
-/* Arc décoratif MMI en fond sidebar */
+/* Arc dÃ©coratif MMI en fond sidebar */
 .sidebar::before {
   content: "";
   position: absolute;
@@ -145,7 +145,7 @@
   font-weight: 600;
 }
 
-/* ── Theme picker ── */
+/* â”€â”€ Theme picker â”€â”€ */
 .themePicker {
   position: relative;
 }
@@ -216,7 +216,7 @@
   flex-shrink: 0;
 }
 
-/* ── Canvas + Logout ── */
+/* â”€â”€ Canvas + Logout â”€â”€ */
 .canvasBtn {
   display: flex;
   align-items: center;
@@ -259,7 +259,7 @@
   color: var(--danger);
 }
 
-/* ── Main content ── */
+/* â”€â”€ Main content â”€â”€ */
 .main {
   flex: 1;
   padding: 2rem;
@@ -276,12 +276,12 @@
   opacity: 0.65;
 }
 
-/* ── Mobile header ── */
+/* â”€â”€ Mobile header â”€â”€ */
 .mobileHeader { display: none; }
 .bottomNav { display: none; }
 .overlay { display: none; }
 
-/* ── Tablet : 768px – 1024px ── */
+/* â”€â”€ Tablet : 768px â€“ 1024px â”€â”€ */
 @media (max-width: 1024px) and (min-width: 769px) {
   .sidebar {
     width: 64px;
@@ -300,7 +300,7 @@
   .closeBtn { display: none; }
 }
 
-/* ── Mobile : < 768px ── */
+/* â”€â”€ Mobile : < 768px â”€â”€ */
 @media (max-width: 768px) {
   .layout { flex-direction: column; }
   .content { margin-left: 0; padding-bottom: 64px; }
@@ -381,3 +381,4 @@
   .bottomNavItem:hover { color: var(--text-muted); }
   .bottomNavActive { color: var(--accent); }
 }
+

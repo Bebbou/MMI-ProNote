@@ -64,12 +64,11 @@ export default function Layout({ children }) {
 
   return (
     <div className={styles.layout}>
-      {/* Sidebar desktop */}
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.accentStripe} />
         <div className={styles.sidebarTop}>
           <div className={styles.logo}>
-            <img src="/logo-mmi.png" alt="MMI Béziers" className={styles.logoImg} />
+            <img src="/logo-mmi.png" alt="MMI Beziers" className={styles.logoImg} />
           </div>
           <button className={styles.closeBtn} onClick={() => setMenuOpen(false)} aria-label="Fermer le menu">
             <X size={18} strokeWidth={1.5} />
@@ -95,14 +94,13 @@ export default function Layout({ children }) {
           ))}
         </nav>
 
-        {/* Theme picker — click-based */}
         <div className={styles.themePicker} ref={themePickerRef}>
           <button
             className={`${styles.themeBtn} ${themeOpen ? styles.themeBtnOpen : ""}`}
             onClick={() => setThemeOpen(v => !v)}
           >
             <Sun size={13} strokeWidth={1.5} />
-            <span className={styles.navLabel}>Thème : {THEMES.find(t => t.id === theme)?.label}</span>
+            <span className={styles.navLabel}>Theme : {THEMES.find(t => t.id === theme)?.label}</span>
           </button>
           {themeOpen && (
             <div className={styles.themeDropdown}>
@@ -132,15 +130,13 @@ export default function Layout({ children }) {
         </NavLink>
         <button className={styles.logout} onClick={handleLogout}>
           <LogOut size={13} strokeWidth={1.5} />
-          <span className={styles.navLabel}>Déconnexion</span>
+          <span className={styles.navLabel}>Deconnexion</span>
         </button>
       </aside>
 
-      {/* Overlay mobile */}
       {menuOpen && <div className={styles.overlay} onClick={() => setMenuOpen(false)} />}
 
       <div className={styles.content}>
-        {/* Header mobile */}
         <header className={styles.mobileHeader}>
           <button className={styles.menuBtn} onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Menu size={20} strokeWidth={1.5} />
@@ -154,7 +150,6 @@ export default function Layout({ children }) {
         <main className={styles.main}>{children}</main>
         <ChatPanel />
 
-        {/* Bottom nav mobile */}
         <nav className={styles.bottomNav}>
           {bottomNavItems.map((item) => {
             const isActive = location.pathname === item.to;

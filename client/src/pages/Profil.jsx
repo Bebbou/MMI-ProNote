@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 import MmiDecor from "../components/MmiDecor";
@@ -37,7 +37,7 @@ export default function Profil() {
       setMessage(data.message);
       setForm({ actuel: "", nouveau: "", confirmation: "" });
     } catch (err) {
-      setError(err.response?.data?.error ?? "Erreur lors de la mise Ã  jour.");
+      setError(err.response?.data?.error ?? "Erreur lors de la mise a jour.");
     }
   }
 
@@ -57,7 +57,7 @@ export default function Profil() {
             <span className={styles.groupe}>{user?.groupe}</span>
           </div>
           <div className={styles.infoRow}>
-            <span className={styles.label}>RÃ´le</span>
+            <span className={styles.label}>Role</span>
             <span className={styles.role}>{user?.role}</span>
           </div>
         </div>
@@ -88,7 +88,7 @@ export default function Profil() {
           {!isSupported ? (
             <p className={styles.error}>Ton navigateur ne supporte pas les notifications push.</p>
           ) : permission === "denied" ? (
-            <p className={styles.error}>Notifications bloquÃ©es dans les paramÃ¨tres du navigateur.</p>
+            <p className={styles.error}>Notifications bloquees dans les parametres du navigateur.</p>
           ) : (
             <button
               type="button"
@@ -97,7 +97,7 @@ export default function Profil() {
               onClick={subscribed ? disable : enable}
               disabled={loading}
             >
-              {loading ? "..." : subscribed ? "DÃ©sactiver les notifications" : "Activer les notifications"}
+              {loading ? "..." : subscribed ? "Desactiver les notifications" : "Activer les notifications"}
             </button>
           )}
         </div>
@@ -114,7 +114,7 @@ export default function Profil() {
             />
             <PasswordInput
               name="nouveau"
-              placeholder="Nouveau mot de passe (6 caractÃ¨res min.)"
+              placeholder="Nouveau mot de passe (6 caracteres min.)"
               value={form.nouveau}
               onChange={handleChange}
               required
@@ -128,12 +128,10 @@ export default function Profil() {
             />
             {error && <p className={styles.error}>{error}</p>}
             {message && <p className={styles.success}>{message}</p>}
-            <button type="submit">Mettre Ã  jour</button>
+            <button type="submit">Mettre a jour</button>
           </form>
         </div>
       </div>
     </Layout>
   );
 }
-
-
