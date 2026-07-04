@@ -1,0 +1,95 @@
+.decor {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 280px;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* ── Arc rose — quart de cercle plein ── */
+.arcPink {
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: #ff7cb7;
+  clip-path: polygon(0% 50%, 50% 50%, 50% 100%, 0% 100%);
+}
+
+/* ── Arc bleu hachuré ── */
+.arcBlue {
+  position: absolute;
+  top: 80px;
+  right: -20px;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  overflow: hidden;
+  /* Forme d'arc : cercle avec trou */
+}
+.arcBlueHatch {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-linear-gradient(
+    45deg,
+    #469cd0 0px,
+    #469cd0 3px,
+    transparent 3px,
+    transparent 10px
+  );
+  /* Découpe en arc via clip */
+  clip-path: polygon(0% 0%, 60% 0%, 60% 40%, 100% 40%, 100% 100%, 0% 100%);
+  mask-image: radial-gradient(
+    circle at center,
+    transparent 35%,
+    black 35%,
+    black 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    transparent 35%,
+    black 35%,
+    black 100%
+  );
+}
+
+/* ── Arc orange ── */
+.arcOrange {
+  position: absolute;
+  top: 190px;
+  right: -40px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 28px solid #ff8d1a;
+  clip-path: polygon(50% 50%, 100% 50%, 100% 100%, 50% 100%);
+}
+
+/* ── Grille de points ── */
+.dotGrid {
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.3;
+}
+
+/* Sur mobile, on cache le décor */
+@media (max-width: 1024px) {
+  .decor { display: none; }
+}
