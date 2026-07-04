@@ -4,6 +4,7 @@ import { Home, BookOpen, BarChart2, Calendar, Settings, LogOut, LayoutGrid, Sun,
 import { useTheme, THEMES } from "../hooks/useTheme";
 import { useState, useEffect, useRef } from "react";
 import ChatPanel from "./ChatPanel";
+import MmiDecor from "./MmiDecor";
 import logoMmi from "../assets/logo_mmi.jpg";
 import styles from "./Layout.module.css";
 
@@ -171,6 +172,7 @@ export default function Layout({ children }) {
           </div>
         </header>
 
+        <MmiDecor />
         <main className={styles.main}>{children}</main>
         <ChatPanel />
 
