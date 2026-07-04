@@ -1,5 +1,5 @@
 blank_issues_enabled: true
 contact_links:
   - name: Faille de sécurité
-    url: https://github.com/Bebbou/Pronote-MMI/security/policy
+    url: https://github.com/Bebbou/MMI-ProNote/security/policy
     about: Ne signale jamais une faille de sécurité en issue publique — suis la procédure de SECURITY.md

@@ -18,7 +18,7 @@ Merci de l'intérêt ! Voici comment participer :
 ### 1. Forker et cloner
 
 ```bash
-git clone https://github.com/Bebbou/Pronote-MMI.git
+git clone https://github.com/Bebbou/MMI-ProNote.git
 cd Pronote-MMI
 ```
 

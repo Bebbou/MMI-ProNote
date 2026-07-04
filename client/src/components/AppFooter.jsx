@@ -16,7 +16,7 @@ export default function AppFooter() {
       </p>
       <div className={styles.links}>
         <a
-          href="https://github.com/Bebbou/Pronote-MMI"
+          href="https://github.com/Bebbou/MMI-ProNote"
           target="_blank"
           rel="noopener noreferrer"
           className={styles.link}
@@ -26,7 +26,7 @@ export default function AppFooter() {
         </a>
         <span className={styles.sep}>·</span>
         <a
-          href="https://github.com/Bebbou/Pronote-MMI/blob/main/CREDITS.md"
+          href="https://github.com/Bebbou/MMI-ProNote/blob/main/CREDITS.md"
           target="_blank"
           rel="noopener noreferrer"
           className={styles.link}

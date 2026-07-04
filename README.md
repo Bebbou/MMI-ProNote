@@ -59,7 +59,7 @@ Documentation détaillée de l'architecture et des choix techniques : [docs/DOCU
 ### 1. Cloner le dépôt
 
 ```bash
-git clone https://github.com/Bebbou/Pronote-MMI.git
+git clone https://github.com/Bebbou/MMI-ProNote.git
 cd Pronote-MMI
 ```
 
