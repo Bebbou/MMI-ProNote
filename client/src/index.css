@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
-:root, [data-theme="light"] {
+:root, [data-theme="mmi"] {
   --bg-page: #F7F6F3;
   --bg-card: #FFFFFF;
   --bg-input: #F2F1EE;
@@ -46,6 +46,75 @@
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
 }
 
+[data-theme="bleu"] {
+  --bg-page: #F0F6FC;
+  --bg-card: #FFFFFF;
+  --bg-input: #E4EFF9;
+  --bg-dark: #DDE9F5;
+  --border: #BDD5EE;
+  --accent: #469cd0;
+  --accent-hover: #2f7aad;
+  --accent-blue: #469cd0;
+  --accent-orange: #F26419;
+  --tint-pink: #E3F1FB;
+  --tint-blue: #E3F1FB;
+  --tint-orange: #FFF3EE;
+  --text: #0d2135;
+  --text-muted: #2e5578;
+  --text-faint: #7aaac8;
+  --danger: #DC2626;
+  --success: #16A34A;
+  --warning: #F26419;
+  --shadow: 0 4px 16px rgba(70,156,208,0.12);
+  --shadow-sm: 0 2px 8px rgba(70,156,208,0.07);
+}
+
+[data-theme="pastel"] {
+  --bg-page: #FEF0F6;
+  --bg-card: #FFF8FB;
+  --bg-input: #FFE6F2;
+  --bg-dark: #FFDAEC;
+  --border: #F2B8D4;
+  --accent: #e8609a;
+  --accent-hover: #c94580;
+  --accent-blue: #29ABE2;
+  --accent-orange: #F26419;
+  --tint-pink: #FFE0EE;
+  --tint-blue: #EBF7FD;
+  --tint-orange: #FFF3EE;
+  --text: #2d0f1e;
+  --text-muted: #6b2c49;
+  --text-faint: #b87a9a;
+  --danger: #DC2626;
+  --success: #16A34A;
+  --warning: #F26419;
+  --shadow: 0 4px 16px rgba(232,96,154,0.10);
+  --shadow-sm: 0 2px 8px rgba(232,96,154,0.06);
+}
+
+[data-theme="obsidian"] {
+  --bg-page: #13111a;
+  --bg-card: #1c1928;
+  --bg-input: #100e18;
+  --bg-dark: #1a1726;
+  --border: #2e2a40;
+  --accent: #9b7fe8;
+  --accent-hover: #7c5fd4;
+  --accent-blue: #29ABE2;
+  --accent-orange: #F26419;
+  --tint-pink: #251e3e;
+  --tint-blue: #0a1e2a;
+  --tint-orange: #2a1205;
+  --text: #e2dff5;
+  --text-muted: #a09cc0;
+  --text-faint: #4e4a6a;
+  --danger: #ff4d6a;
+  --success: #3ddc84;
+  --warning: #ffb347;
+  --shadow: 0 4px 16px rgba(0,0,0,0.6);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -60,19 +129,10 @@ body {
   transition: background 0.2s, color 0.2s;
 }
 
-[data-theme="dark"] body {
-  background-image: radial-gradient(circle, #1a1a1a 1px, transparent 1px);
+[data-theme="dark"] body,
+[data-theme="obsidian"] body {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px);
   background-size: 30px 30px;
-}
-
-[data-theme="dark"] body::before {
-  content: " ";
-  position: fixed;
-  top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.05) 50%);
-  background-size: 100% 6px;
-  z-index: 9999;
-  pointer-events: none;
 }
 
 a {

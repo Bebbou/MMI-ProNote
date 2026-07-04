@@ -3,11 +3,21 @@ import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 import api from "../api/index.js";
 import { usePushNotifications } from "../hooks/usePushNotifications.js";
+import { useTheme, THEMES } from "../hooks/useTheme.js";
 import PasswordInput from "../components/PasswordInput";
 import styles from "./Profil.module.css";
 
+const THEME_DOTS = {
+  mmi:      "#fe7db6",
+  dark:     "#fe7db6",
+  bleu:     "#469cd0",
+  pastel:   "#e8609a",
+  obsidian: "#9b7fe8",
+};
+
 export default function Profil() {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [form, setForm] = useState({ actuel: "", nouveau: "", confirmation: "" });
   const { isSupported, permission, subscribed, loading, enable, disable } = usePushNotifications();
   const [message, setMessage] = useState(null);
@@ -34,7 +44,7 @@ export default function Profil() {
       setMessage(data.message);
       setForm({ actuel: "", nouveau: "", confirmation: "" });
     } catch (err) {
-      setError(err.response?.data?.error ?? "Erreur lors de la mise à jour.");
+      setError(err.response?.data?.error ?? "Erreur lors de la mise a jour.");
     }
   }
 
@@ -53,8 +63,24 @@ export default function Profil() {
             <span className={styles.groupe}>{user?.groupe}</span>
           </div>
           <div className={styles.infoRow}>
-            <span className={styles.label}>Rôle</span>
+            <span className={styles.label}>Role</span>
             <span className={styles.role}>{user?.role}</span>
+          </div>
+        </div>
+
+        <div className={styles.section}>
+          <h2>Apparence</h2>
+          <div className={styles.themeGrid}>
+            {THEMES.map(t => (
+              <button
+                key={t.id}
+                className={`${styles.themeOption} ${theme === t.id ? styles.themeActive : ""}`}
+                onClick={() => setTheme(t.id)}
+              >
+                <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
+                {t.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -63,7 +89,7 @@ export default function Profil() {
           {!isSupported ? (
             <p className={styles.error}>Ton navigateur ne supporte pas les notifications push.</p>
           ) : permission === "denied" ? (
-            <p className={styles.error}>Notifications bloquées dans les paramètres du navigateur.</p>
+            <p className={styles.error}>Notifications bloquees dans les parametres du navigateur.</p>
           ) : (
             <button
               type="button"
@@ -72,7 +98,7 @@ export default function Profil() {
               onClick={subscribed ? disable : enable}
               disabled={loading}
             >
-              {loading ? "..." : subscribed ? "Désactiver les notifications" : "Activer les notifications"}
+              {loading ? "..." : subscribed ? "Desactiver les notifications" : "Activer les notifications"}
             </button>
           )}
         </div>
@@ -89,7 +115,7 @@ export default function Profil() {
             />
             <PasswordInput
               name="nouveau"
-              placeholder="Nouveau mot de passe (6 caractères min.)"
+              placeholder="Nouveau mot de passe (6 caracteres min.)"
               value={form.nouveau}
               onChange={handleChange}
               required
@@ -103,7 +129,7 @@ export default function Profil() {
             />
             {error && <p className={styles.error}>{error}</p>}
             {message && <p className={styles.success}>{message}</p>}
-            <button type="submit">Mettre à jour</button>
+            <button type="submit">Mettre a jour</button>
           </form>
         </div>
       </div>

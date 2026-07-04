@@ -1,8 +1,8 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Home, BookOpen, BarChart2, Calendar, User, Settings, LogOut, LayoutGrid, Sun, Moon, Menu, X, MessageSquare, FolderOpen } from "lucide-react";
-import { useTheme } from "../hooks/useTheme";
-import { useState } from "react";
+import { Home, BookOpen, BarChart2, Calendar, User, Settings, LogOut, LayoutGrid, Sun, Menu, X, MessageSquare, FolderOpen } from "lucide-react";
+import { useTheme, THEMES } from "../hooks/useTheme";
+import { useState, useEffect, useRef } from "react";
 import ChatPanel from "./ChatPanel";
 import styles from "./Layout.module.css";
 
@@ -24,12 +24,33 @@ const bottomNavItems = [
   { to: "/profil", label: "Profil", icon: User },
 ];
 
+const THEME_DOTS = {
+  mmi:      "#fe7db6",
+  dark:     "#fe7db6",
+  bleu:     "#469cd0",
+  pastel:   "#e8609a",
+  obsidian: "#9b7fe8",
+};
+
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+
   const [menuOpen, setMenuOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
+  const themeRef = useRef(null);
+
+  useEffect(() => {
+    function onClickOutside(e) {
+      if (themeRef.current && !themeRef.current.contains(e.target)) {
+        setThemeOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
 
   function handleLogout() {
     logout();
@@ -43,7 +64,6 @@ export default function Layout({ children }) {
 
   return (
     <div className={styles.layout}>
-      {/* Sidebar desktop */}
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarTop}>
           <div className={styles.logo}>Pronote-MMI</div>
@@ -70,10 +90,34 @@ export default function Layout({ children }) {
             </NavLink>
           ))}
         </nav>
-        <button className={styles.themeBtn} onClick={toggleTheme} title={theme === "light" ? "Mode sombre" : "Mode clair"}>
-          {theme === "light" ? <Moon size={13} strokeWidth={1.5} /> : <Sun size={13} strokeWidth={1.5} />}
-          <span className={styles.navLabel}>{theme === "light" ? "Mode sombre" : "Mode clair"}</span>
-        </button>
+
+        {/* Theme picker */}
+        <div className={styles.themePicker} ref={themeRef}>
+          <button
+            className={`${styles.themeBtn} ${themeOpen ? styles.themeBtnOpen : ""}`}
+            onClick={() => setThemeOpen(v => !v)}
+          >
+            <Sun size={13} strokeWidth={1.5} />
+            <span className={styles.navLabel}>
+              {THEMES.find(t => t.id === theme)?.label ?? "Theme"}
+            </span>
+          </button>
+          {themeOpen && (
+            <div className={styles.themeDropdown}>
+              {THEMES.map(t => (
+                <button
+                  key={t.id}
+                  className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
+                  onClick={() => { setTheme(t.id); setThemeOpen(false); }}
+                >
+                  <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <NavLink
           to="/canvas"
           onClick={() => setMenuOpen(false)}
@@ -86,29 +130,26 @@ export default function Layout({ children }) {
         </NavLink>
         <button className={styles.logout} onClick={handleLogout}>
           <LogOut size={13} strokeWidth={1.5} />
-          <span className={styles.navLabel}>Déconnexion</span>
+          <span className={styles.navLabel}>Deconnexion</span>
         </button>
       </aside>
 
-      {/* Overlay mobile */}
       {menuOpen && <div className={styles.overlay} onClick={() => setMenuOpen(false)} />}
 
       <div className={styles.content}>
-        {/* Header mobile */}
         <header className={styles.mobileHeader}>
           <button className={styles.menuBtn} onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Menu size={20} strokeWidth={1.5} />
           </button>
           <span className={styles.mobileTitle}>Pronote-MMI</span>
-          <button className={styles.themeIconBtn} onClick={toggleTheme}>
-            {theme === "light" ? <Moon size={16} strokeWidth={1.5} /> : <Sun size={16} strokeWidth={1.5} />}
-          </button>
+          <NavLink to="/profil" className={styles.themeIconBtn}>
+            <User size={18} strokeWidth={1.5} />
+          </NavLink>
         </header>
 
         <main className={styles.main}>{children}</main>
         <ChatPanel />
 
-        {/* Bottom nav mobile */}
         <nav className={styles.bottomNav}>
           {bottomNavItems.map((item) => {
             const isActive = location.pathname === item.to;

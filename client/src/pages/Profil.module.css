@@ -100,6 +100,47 @@
   background: var(--accent-hover);
 }
 
+/* ── Sélecteur de thème ── */
+.themeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.themeOption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  font-weight: 500;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.themeOption:hover {
+  border-color: var(--accent);
+  color: var(--text-muted);
+}
+
+.themeActive {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.themeDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .notifBtn {
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
