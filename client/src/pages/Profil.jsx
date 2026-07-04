@@ -75,10 +75,15 @@ export default function Profil() {
               <button
                 key={t.id}
                 className={`${styles.themeOption} ${theme === t.id ? styles.themeActive : ""}`}
+                data-theme-preview={t.id}
                 onClick={() => setTheme(t.id)}
               >
-                <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
-                {t.label}
+                <div className={styles.themePreview}>
+                  <div className={styles.previewSidebar} />
+                  <div className={styles.previewCard} />
+                  <div className={styles.previewAccent} />
+                </div>
+                <span>{t.label}</span>
               </button>
             ))}
           </div>
