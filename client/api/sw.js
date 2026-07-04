@@ -12,12 +12,19 @@ self.addEventListener("push", (event) => {
       badge: "/icons/icon-192.png",
       tag: data.tag ?? "default",
       data: { url: data.url ?? "/" },
+      vibrate: [100, 50, 100],
+      requireInteraction: false,
+      actions: [
+        { action: "open", title: "Voir" },
+        { action: "close", title: "Ignorer" },
+      ],
     })
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  if (event.action === "close") return;
   const url = event.notification.data?.url ?? "/";
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {

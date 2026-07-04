@@ -59,8 +59,8 @@ router.post("/", requireRole("admin"), upload.single("file"), async (req, res) =
     select: docSelect,
   });
   sendPushToAll(req.user.id, {
-    title: `Nouveau cours — ${doc.matiere}`,
-    body: doc.titre,
+    title: `Nouveau cours · ${doc.matiere}`,
+    body: `${doc.titre}${doc.description ? ` — ${doc.description}` : ""}`,
     url: "/documents",
     tag: `document-${doc.id}`,
   });

@@ -38,9 +38,10 @@ router.post("/", requireAuth, requireRole("admin", "delegue"), async (req, res) 
   req.io.to(`groupe-${req.user.groupeId}`).emit("nouveauDevoir", devoir);
 
   // Notification push aux membres du groupe
+  const date = new Date(devoir.dateLimite).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
   sendPushToGroup(req.user.groupeId, req.user.id, {
-    title: `Nouveau devoir — ${devoir.matiere}`,
-    body: devoir.titre,
+    title: `Nouveau devoir · ${devoir.matiere}`,
+    body: `${devoir.titre} — à rendre pour le ${date}`,
     url: "/devoirs",
     tag: `devoir-${devoir.id}`,
   });

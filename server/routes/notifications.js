@@ -43,8 +43,8 @@ router.post("/test", requireAuth, async (req, res) => {
   if (!sub) return res.status(404).json({ error: "Aucun abonnement trouvé en base pour cet utilisateur." });
   try {
     await sendPushToUsers([req.user.id], {
-      title: "Test Pronote-MMI",
-      body: "Les notifications fonctionnent !",
+      title: "Pronote-MMI",
+      body: "Les notifications fonctionnent correctement !",
       url: "/dashboard",
       tag: "test",
     });
