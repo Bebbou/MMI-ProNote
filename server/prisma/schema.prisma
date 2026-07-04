@@ -181,6 +181,7 @@ model Sondage {
   channelId Int
 
   options   OptionSondage[]
+  votes     VoteSondage[]
 }
 
 model OptionSondage {
