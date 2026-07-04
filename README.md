@@ -152,6 +152,10 @@ Une faille de sécurité à signaler ? Voir [SECURITY.md](SECURITY.md)
 
 NE PAS METTRE L'ISSUE EN PUBLIQUE.
 
+## Crédits
+
+Voir [CREDITS.md](CREDITS.md) — testeurs, ressources et outils utilisés.
+
 ## Licence
 
 Ce projet est sous licence MIT — voir [LICENSE](LICENSE).

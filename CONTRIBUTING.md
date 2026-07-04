@@ -3,7 +3,8 @@
 Merci de l'intérêt ! Voici comment participer : 
 
 ---
-
+> [!WARNING]
+> This is experimental software, primarily built with AI.
 ## Avant de commencer
 
 - Vérifie qu'une issue n'existe pas déjà pour ce que tu veux faire

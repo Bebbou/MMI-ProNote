@@ -1,5 +1,6 @@
 # Code de conduite
-
+> [!WARNING]
+> This is experimental software, primarily built with AI.
 ## Notre engagement
 
 Pronote-MMI est un projet étudiant ouvert à la contribution. Soyez juste un minimum respectueux et même sympa :D

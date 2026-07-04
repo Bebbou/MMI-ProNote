@@ -1,5 +1,6 @@
 # Politique de sécurité
-
+> [!WARNING]
+> This is experimental software, primarily built with AI.
 ## Versions maintenues
 
 Ce projet est en développement actif sur la branche `main`. Seule la dernière version déployée en production (Vercel + Railway) est considérée comme à jour et suivie côté sécurité.
