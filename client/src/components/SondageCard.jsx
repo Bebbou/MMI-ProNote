@@ -7,7 +7,7 @@ export default function SondageCard({ sondage, currentUserId, isPrivileged, onUp
   const [voting, setVoting] = useState(false);
 
   const totalVotes = sondage.options.reduce((acc, o) => acc + o.votes.length, 0);
-  const myVote = sondage.options.find(o => o.votes.some(v => v.userId === currentUserId));
+  const myVote = sondage.options.find((o) => o.votes.some((v) => v.userId === currentUserId));
 
   async function vote(optionId) {
     if (sondage.clos || voting) return;
@@ -38,8 +38,14 @@ export default function SondageCard({ sondage, currentUserId, isPrivileged, onUp
         {sondage.clos && <span className={styles.closBadge}>Clos</span>}
         {isPrivileged && (
           <div className={styles.actions}>
-            {!sondage.clos && <button className={styles.actionBtn} onClick={clore}>Clore</button>}
-            <button className={styles.actionBtn} onClick={supprimer}><XCircle size={12} strokeWidth={1.5} /></button>
+            {!sondage.clos && (
+              <button className={styles.actionBtn} onClick={clore}>
+                Clore
+              </button>
+            )}
+            <button className={styles.actionBtn} onClick={supprimer}>
+              <XCircle size={12} strokeWidth={1.5} />
+            </button>
           </div>
         )}
       </div>
@@ -47,7 +53,7 @@ export default function SondageCard({ sondage, currentUserId, isPrivileged, onUp
       <p className={styles.question}>{sondage.question}</p>
 
       <div className={styles.options}>
-        {sondage.options.map(option => {
+        {sondage.options.map((option) => {
           const count = option.votes.length;
           const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
           const isMyVote = myVote?.id === option.id;
@@ -59,10 +65,15 @@ export default function SondageCard({ sondage, currentUserId, isPrivileged, onUp
               onClick={() => vote(option.id)}
               disabled={sondage.clos || voting}
             >
-              <div className={styles.optionBar} style={{ width: myVote || sondage.clos ? `${pct}%` : "0%" }} />
+              <div
+                className={styles.optionBar}
+                style={{ width: myVote || sondage.clos ? `${pct}%` : "0%" }}
+              />
               <span className={styles.optionTexte}>{option.texte}</span>
               {(myVote || sondage.clos) && (
-                <span className={styles.optionPct}>{pct}% <span className={styles.optionCount}>({count})</span></span>
+                <span className={styles.optionPct}>
+                  {pct}% <span className={styles.optionCount}>({count})</span>
+                </span>
               )}
               {isMyVote && <CheckCircle2 size={12} strokeWidth={1.5} className={styles.checkIcon} />}
             </button>
@@ -70,7 +81,9 @@ export default function SondageCard({ sondage, currentUserId, isPrivileged, onUp
         })}
       </div>
 
-      <span className={styles.total}>{totalVotes} vote{totalVotes !== 1 ? "s" : ""}</span>
+      <span className={styles.total}>
+        {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
+      </span>
     </div>
   );
 }

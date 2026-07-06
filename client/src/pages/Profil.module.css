@@ -121,7 +121,9 @@
   font-size: 0.72rem;
   color: var(--text-faint);
   font-weight: 500;
-  transition: border-color 0.15s, transform 0.1s;
+  transition:
+    border-color 0.15s,
+    transform 0.1s;
 }
 
 .themeOption:hover {
@@ -144,52 +146,105 @@
   position: relative;
 }
 
-[data-theme-preview="mmi"]      .themePreview { background: #F7F6F3; }
-[data-theme-preview="dark"]     .themePreview { background: #0d0d0d; }
-[data-theme-preview="bleu"]     .themePreview { background: #F0F6FC; }
-[data-theme-preview="pastel"]   .themePreview { background: #FEF0F6; }
-[data-theme-preview="obsidian"] .themePreview { background: #13111a; }
+[data-theme-preview="mmi"] .themePreview {
+  background: #f7f6f3;
+}
+[data-theme-preview="dark"] .themePreview {
+  background: #0d0d0d;
+}
+[data-theme-preview="bleu"] .themePreview {
+  background: #f0f6fc;
+}
+[data-theme-preview="pastel"] .themePreview {
+  background: #fef0f6;
+}
+[data-theme-preview="obsidian"] .themePreview {
+  background: #13111a;
+}
 
 .previewSidebar {
   position: absolute;
-  left: 0; top: 0; bottom: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: 32%;
 }
 
-[data-theme-preview="mmi"]      .previewSidebar { background: #FFFFFF; border-right: 1px solid #E4E2DD; }
-[data-theme-preview="dark"]     .previewSidebar { background: #111111; border-right: 1px solid #2a2a2a; }
-[data-theme-preview="bleu"]     .previewSidebar { background: #FFFFFF; border-right: 1px solid #BDD5EE; }
-[data-theme-preview="pastel"]   .previewSidebar { background: #FFF8FB; border-right: 1px solid #F2B8D4; }
-[data-theme-preview="obsidian"] .previewSidebar { background: #1c1928; border-right: 1px solid #2e2a40; }
+[data-theme-preview="mmi"] .previewSidebar {
+  background: #ffffff;
+  border-right: 1px solid #e4e2dd;
+}
+[data-theme-preview="dark"] .previewSidebar {
+  background: #111111;
+  border-right: 1px solid #2a2a2a;
+}
+[data-theme-preview="bleu"] .previewSidebar {
+  background: #ffffff;
+  border-right: 1px solid #bdd5ee;
+}
+[data-theme-preview="pastel"] .previewSidebar {
+  background: #fff8fb;
+  border-right: 1px solid #f2b8d4;
+}
+[data-theme-preview="obsidian"] .previewSidebar {
+  background: #1c1928;
+  border-right: 1px solid #2e2a40;
+}
 
 .previewCard {
   position: absolute;
-  right: 5px; top: 6px;
-  width: 54%; height: 16px;
+  right: 5px;
+  top: 6px;
+  width: 54%;
+  height: 16px;
   border-radius: 3px;
 }
 
-[data-theme-preview="mmi"]      .previewCard { background: #FFFFFF; }
-[data-theme-preview="dark"]     .previewCard { background: #1a1a1a; }
-[data-theme-preview="bleu"]     .previewCard { background: #FFFFFF; }
-[data-theme-preview="pastel"]   .previewCard { background: #FFE6F2; }
-[data-theme-preview="obsidian"] .previewCard { background: #2e2a40; }
+[data-theme-preview="mmi"] .previewCard {
+  background: #ffffff;
+}
+[data-theme-preview="dark"] .previewCard {
+  background: #1a1a1a;
+}
+[data-theme-preview="bleu"] .previewCard {
+  background: #ffffff;
+}
+[data-theme-preview="pastel"] .previewCard {
+  background: #ffe6f2;
+}
+[data-theme-preview="obsidian"] .previewCard {
+  background: #2e2a40;
+}
 
 .previewAccent {
   position: absolute;
-  right: 5px; bottom: 6px;
-  width: 36%; height: 7px;
+  right: 5px;
+  bottom: 6px;
+  width: 36%;
+  height: 7px;
   border-radius: 4px;
 }
 
-[data-theme-preview="mmi"]      .previewAccent { background: #fe7db6; }
-[data-theme-preview="dark"]     .previewAccent { background: #fe7db6; }
-[data-theme-preview="bleu"]     .previewAccent { background: #469cd0; }
-[data-theme-preview="pastel"]   .previewAccent { background: #e8609a; }
-[data-theme-preview="obsidian"] .previewAccent { background: #9b7fe8; }
+[data-theme-preview="mmi"] .previewAccent {
+  background: #fe7db6;
+}
+[data-theme-preview="dark"] .previewAccent {
+  background: #fe7db6;
+}
+[data-theme-preview="bleu"] .previewAccent {
+  background: #469cd0;
+}
+[data-theme-preview="pastel"] .previewAccent {
+  background: #e8609a;
+}
+[data-theme-preview="obsidian"] .previewAccent {
+  background: #9b7fe8;
+}
 
 @media (max-width: 480px) {
-  .themeGrid { grid-template-columns: repeat(3, 1fr); }
+  .themeGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .notifBtn {
@@ -210,8 +265,8 @@
 .error {
   color: var(--danger);
   font-size: 0.8rem;
-  background: #FEF2F2;
-  border: 1px solid #FECACA;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
 }
@@ -219,8 +274,8 @@
 .success {
   color: var(--success);
   font-size: 0.8rem;
-  background: #F0FDF4;
-  border: 1px solid #BBF7D0;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
 }

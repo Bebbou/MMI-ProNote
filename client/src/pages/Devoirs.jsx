@@ -22,8 +22,9 @@ export default function Devoirs() {
   const fetchDevoirs = useCallback(() => {
     setLoading(true);
     setLoadError(false);
-    api.get("/devoirs")
-      .then(res => setDevoirs(res.data))
+    api
+      .get("/devoirs")
+      .then((res) => setDevoirs(res.data))
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, []);
@@ -37,11 +38,11 @@ export default function Devoirs() {
     if (!socket) return;
 
     socket.on("nouveauDevoir", (devoir) => {
-      setDevoirs(prev => [...prev, devoir].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)));
+      setDevoirs((prev) => [...prev, devoir].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)));
     });
 
     socket.on("devoirSupprime", ({ id }) => {
-      setDevoirs(prev => prev.filter(d => d.id !== id));
+      setDevoirs((prev) => prev.filter((d) => d.id !== id));
     });
 
     return () => {
@@ -72,7 +73,7 @@ export default function Devoirs() {
     setToDelete(null);
     try {
       await api.delete(`/devoirs/${id}`);
-      setDevoirs(devoirs.filter(d => d.id !== id));
+      setDevoirs(devoirs.filter((d) => d.id !== id));
       toast("Devoir supprime");
     } catch {
       toast("Impossible de supprimer le devoir", "error");
@@ -88,20 +89,35 @@ export default function Devoirs() {
         <div className={styles.header}>
           <PageTitle>Devoirs à venir</PageTitle>
           {canCreate && (
-            <button onClick={() => setShowForm(!showForm)}>
-              {showForm ? "Annuler" : "+ Ajouter"}
-            </button>
+            <button onClick={() => setShowForm(!showForm)}>{showForm ? "Annuler" : "+ Ajouter"}</button>
           )}
         </div>
 
         {showForm && (
           <form className={styles.form} onSubmit={handleSubmit}>
             <input name="titre" placeholder="Titre" value={form.titre} onChange={handleChange} required />
-            <input name="matiere" placeholder="Matière" value={form.matiere} onChange={handleChange} required />
-            <input name="description" placeholder="Description (optionnel)" value={form.description} onChange={handleChange} />
+            <input
+              name="matiere"
+              placeholder="Matière"
+              value={form.matiere}
+              onChange={handleChange}
+              required
+            />
+            <input
+              name="description"
+              placeholder="Description (optionnel)"
+              value={form.description}
+              onChange={handleChange}
+            />
             <label className={styles.dateLabel}>
               Date limite
-              <input name="dateLimite" type="datetime-local" value={form.dateLimite} onChange={handleChange} required />
+              <input
+                name="dateLimite"
+                type="datetime-local"
+                value={form.dateLimite}
+                onChange={handleChange}
+                required
+              />
             </label>
             <button type="submit">Créer le devoir</button>
           </form>
@@ -119,7 +135,7 @@ export default function Devoirs() {
         {!loading && !loadError && (
           <div className={styles.list}>
             {devoirs.length === 0 && <p className={styles.empty}>Aucun devoir à venir</p>}
-            {devoirs.map(devoir => {
+            {devoirs.map((devoir) => {
               const isLate = new Date(devoir.dateLimite) < now;
               return (
                 <div key={devoir.id} className={`${styles.card} ${isLate ? styles.cardLate : ""}`}>
@@ -127,7 +143,12 @@ export default function Devoirs() {
                     <span className={styles.matiere}>{devoir.matiere}</span>
                     <span className={isLate ? styles.dateLate : styles.date}>
                       {isLate && <span className={styles.lateBadge}>En retard</span>}
-                      {new Date(devoir.dateLimite).toLocaleDateString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
+                      {new Date(devoir.dateLimite).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                   </div>
                   <h3>{devoir.titre}</h3>
@@ -135,7 +156,9 @@ export default function Devoirs() {
                   <div className={styles.cardFooter}>
                     <span className={styles.auteur}>Ajouté par {devoir.auteur?.nom}</span>
                     {canCreate && (
-                      <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)}>Supprimer</button>
+                      <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)}>
+                        Supprimer
+                      </button>
                     )}
                   </div>
                 </div>

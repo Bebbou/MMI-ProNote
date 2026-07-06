@@ -61,7 +61,8 @@ router.post("/channels", requireRole("admin"), async (req, res) => {
 router.delete("/channels/:id", requireRole("admin"), async (req, res) => {
   const channel = await prisma.channel.findUnique({ where: { id: Number(req.params.id) } });
   if (!channel) return res.status(404).json({ error: "Canal introuvable." });
-  if (channel.type !== "custom") return res.status(403).json({ error: "Impossible de supprimer un canal système." });
+  if (channel.type !== "custom")
+    return res.status(403).json({ error: "Impossible de supprimer un canal système." });
   await prisma.channel.delete({ where: { id: channel.id } });
   req.io.emit("channelSupprime", { id: channel.id });
   res.json({ message: "Canal supprimé." });

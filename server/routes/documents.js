@@ -17,8 +17,13 @@ const upload = multer({
 });
 
 const docSelect = {
-  id: true, titre: true, description: true, matiere: true,
-  fileName: true, fileSize: true, createdAt: true,
+  id: true,
+  titre: true,
+  description: true,
+  matiere: true,
+  fileName: true,
+  fileSize: true,
+  createdAt: true,
   auteur: { select: { id: true, nom: true } },
   _count: { select: { commentaires: true } },
 };
@@ -90,7 +95,10 @@ router.get("/:id/commentaires", async (req, res) => {
 router.post("/:id/commentaires", async (req, res) => {
   const { content } = req.body;
   if (!content?.trim()) return res.status(400).json({ error: "Commentaire vide." });
-  const doc = await prisma.document.findUnique({ where: { id: Number(req.params.id) }, select: { id: true } });
+  const doc = await prisma.document.findUnique({
+    where: { id: Number(req.params.id) },
+    select: { id: true },
+  });
   if (!doc) return res.status(404).json({ error: "Document introuvable." });
   const commentaire = await prisma.commentaireDoc.create({
     data: { content: content.trim(), auteurId: req.user.id, documentId: doc.id },

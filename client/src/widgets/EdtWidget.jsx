@@ -10,12 +10,15 @@ export default function EdtWidget() {
   const [cours, setCours] = useState([]);
 
   useEffect(() => {
-    api.get("/edt").then(res => setCours(res.data)).catch(() => {});
+    api
+      .get("/edt")
+      .then((res) => setCours(res.data))
+      .catch(() => {});
   }, []);
 
   const aujourdhui = JOURS[new Date().getDay()];
   const coursDuJour = cours
-    .filter(c => c.jour === aujourdhui)
+    .filter((c) => c.jour === aujourdhui)
     .sort((a, b) => a.heureDebut.localeCompare(b.heureDebut));
 
   return (
@@ -28,7 +31,7 @@ export default function EdtWidget() {
 
       <div className={styles.list}>
         {coursDuJour.length === 0 && <p className={styles.empty}>Pas de cours aujourd'hui</p>}
-        {coursDuJour.map(c => (
+        {coursDuJour.map((c) => (
           <div key={c.id} className={styles.item}>
             <div className={styles.itemMain}>
               <span className={styles.tag}>{c.heureDebut}</span>

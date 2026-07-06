@@ -12,20 +12,20 @@ export default function DevoirsWidget() {
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    api.get("/devoirs").then(res => setDevoirs(res.data));
+    api.get("/devoirs").then((res) => setDevoirs(res.data));
   }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
     const { data } = await api.post("/devoirs", form);
-    setDevoirs(prev => [...prev, data]);
+    setDevoirs((prev) => [...prev, data]);
     setForm({ titre: "", matiere: "", dateLimite: "" });
     setShowForm(false);
   }
 
   async function handleDelete(id) {
     await api.delete(`/devoirs/${id}`);
-    setDevoirs(prev => prev.filter(d => d.id !== id));
+    setDevoirs((prev) => prev.filter((d) => d.id !== id));
   }
 
   const canCreate = user?.role === "admin" || user?.role === "delegue";
@@ -45,19 +45,36 @@ export default function DevoirsWidget() {
 
       {showForm && (
         <form className={styles.form} onSubmit={handleSubmit}>
-          <input className={styles.input} placeholder="Titre" value={form.titre}
-            onChange={e => setForm({ ...form, titre: e.target.value })} required />
-          <input className={styles.input} placeholder="Matière" value={form.matiere}
-            onChange={e => setForm({ ...form, matiere: e.target.value })} required />
-          <input className={styles.input} type="datetime-local" value={form.dateLimite}
-            onChange={e => setForm({ ...form, dateLimite: e.target.value })} required />
-          <button className={styles.submitBtn} type="submit">Ajouter</button>
+          <input
+            className={styles.input}
+            placeholder="Titre"
+            value={form.titre}
+            onChange={(e) => setForm({ ...form, titre: e.target.value })}
+            required
+          />
+          <input
+            className={styles.input}
+            placeholder="Matière"
+            value={form.matiere}
+            onChange={(e) => setForm({ ...form, matiere: e.target.value })}
+            required
+          />
+          <input
+            className={styles.input}
+            type="datetime-local"
+            value={form.dateLimite}
+            onChange={(e) => setForm({ ...form, dateLimite: e.target.value })}
+            required
+          />
+          <button className={styles.submitBtn} type="submit">
+            Ajouter
+          </button>
         </form>
       )}
 
       <div className={styles.list}>
         {devoirs.length === 0 && <p className={styles.empty}>Aucun devoir</p>}
-        {devoirs.map(d => (
+        {devoirs.map((d) => (
           <div key={d.id} className={styles.item}>
             <div className={styles.itemMain}>
               <span className={styles.tag}>{d.matiere}</span>
@@ -67,7 +84,9 @@ export default function DevoirsWidget() {
               </span>
             </div>
             {canCreate && (
-              <button className={styles.deleteBtn} onClick={() => handleDelete(d.id)}>✕</button>
+              <button className={styles.deleteBtn} onClick={() => handleDelete(d.id)}>
+                ✕
+              </button>
             )}
           </div>
         ))}

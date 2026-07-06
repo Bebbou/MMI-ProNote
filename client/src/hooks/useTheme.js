@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 
 export const THEMES = [
-  { id: "mmi",      label: "MMI" },
-  { id: "dark",     label: "Sombre" },
-  { id: "bleu",     label: "Bleu" },
-  { id: "pastel",   label: "Pastel" },
+  { id: "mmi", label: "MMI" },
+  { id: "dark", label: "Sombre" },
+  { id: "bleu", label: "Bleu" },
+  { id: "pastel", label: "Pastel" },
   { id: "obsidian", label: "Obsidian" },
 ];
 
-const VALID = THEMES.map(t => t.id);
+const VALID = THEMES.map((t) => t.id);
 
 function getSaved() {
   const v = localStorage.getItem("theme");

@@ -35,7 +35,10 @@ describe("POST /auth/register", () => {
 
   it("refuse un mot de passe trop court", async () => {
     const res = await request(app).post("/auth/register").send({
-      nom: "Test", email: "a@b.c", password: "123", groupeNom: "TPA1",
+      nom: "Test",
+      email: "a@b.c",
+      password: "123",
+      groupeNom: "TPA1",
     });
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/6 caractères/);
@@ -44,7 +47,10 @@ describe("POST /auth/register", () => {
   it("refuse un groupe inexistant", async () => {
     prisma.groupe.findUnique.mockResolvedValue(null);
     const res = await request(app).post("/auth/register").send({
-      nom: "Test", email: "a@b.c", password: "motdepasse", groupeNom: "FAUX",
+      nom: "Test",
+      email: "a@b.c",
+      password: "motdepasse",
+      groupeNom: "FAUX",
     });
     expect(res.status).toBe(400);
   });
@@ -53,7 +59,10 @@ describe("POST /auth/register", () => {
     prisma.groupe.findUnique.mockResolvedValue(GROUPE);
     prisma.user.findUnique.mockResolvedValue({ id: 1, email: "a@b.c" });
     const res = await request(app).post("/auth/register").send({
-      nom: "Test", email: "a@b.c", password: "motdepasse", groupeNom: "TPA1",
+      nom: "Test",
+      email: "a@b.c",
+      password: "motdepasse",
+      groupeNom: "TPA1",
     });
     expect(res.status).toBe(400);
   });
@@ -64,7 +73,10 @@ describe("POST /auth/register", () => {
     prisma.user.create.mockResolvedValue({ id: 42 });
 
     const res = await request(app).post("/auth/register").send({
-      nom: "Test", email: "nouveau@b.c", password: "motdepasse", groupeNom: "TPA1",
+      nom: "Test",
+      email: "nouveau@b.c",
+      password: "motdepasse",
+      groupeNom: "TPA1",
     });
 
     expect(res.status).toBe(201);

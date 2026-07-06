@@ -10,10 +10,10 @@ import AppFooter from "../components/AppFooter";
 import styles from "./Profil.module.css";
 
 const THEME_DOTS = {
-  mmi:      "#fe7db6",
-  dark:     "#fe7db6",
-  bleu:     "#469cd0",
-  pastel:   "#e8609a",
+  mmi: "#fe7db6",
+  dark: "#fe7db6",
+  bleu: "#469cd0",
+  pastel: "#e8609a",
   obsidian: "#9b7fe8",
 };
 
@@ -73,7 +73,7 @@ export default function Profil() {
         <div className={styles.section}>
           <h2>Apparence</h2>
           <div className={styles.themeGrid}>
-            {THEMES.map(t => (
+            {THEMES.map((t) => (
               <button
                 key={t.id}
                 className={`${styles.themeOption} ${theme === t.id ? styles.themeActive : ""}`}
@@ -101,7 +101,11 @@ export default function Profil() {
             <button
               type="button"
               className={styles.notifBtn}
-              style={{ background: subscribed ? "var(--tint-pink)" : "var(--accent)", color: subscribed ? "var(--accent)" : "#fff", border: subscribed ? "1px solid var(--accent)" : "none" }}
+              style={{
+                background: subscribed ? "var(--tint-pink)" : "var(--accent)",
+                color: subscribed ? "var(--accent)" : "#fff",
+                border: subscribed ? "1px solid var(--accent)" : "none",
+              }}
               onClick={subscribed ? disable : enable}
               disabled={loading}
             >

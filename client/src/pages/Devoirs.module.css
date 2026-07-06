@@ -59,7 +59,9 @@
   margin: 0;
 }
 
-.form input, .form textarea, .form select {
+.form input,
+.form textarea,
+.form select {
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -71,7 +73,9 @@
   transition: border-color 0.15s;
 }
 
-.form input:focus, .form textarea:focus, .form select:focus {
+.form input:focus,
+.form textarea:focus,
+.form select:focus {
   border-color: var(--accent);
 }
 
@@ -118,7 +122,7 @@
 }
 
 .card:hover {
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 }
 
 .cardHeader {
@@ -174,7 +178,9 @@
   font-family: inherit;
   border-radius: 6px;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .deleteBtn:hover {

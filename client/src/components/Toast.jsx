@@ -19,9 +19,9 @@ export function Toaster() {
   useEffect(() => {
     function onToast(e) {
       const t = e.detail;
-      setToasts(prev => [...prev, t]);
+      setToasts((prev) => [...prev, t]);
       setTimeout(() => {
-        setToasts(prev => prev.filter(x => x.id !== t.id));
+        setToasts((prev) => prev.filter((x) => x.id !== t.id));
       }, 3200);
     }
     window.addEventListener("app-toast", onToast);
@@ -32,7 +32,7 @@ export function Toaster() {
 
   return (
     <div className={styles.stack}>
-      {toasts.map(t => (
+      {toasts.map((t) => (
         <div key={t.id} className={`${styles.toast} ${t.type === "error" ? styles.error : styles.success}`}>
           {t.message}
         </div>

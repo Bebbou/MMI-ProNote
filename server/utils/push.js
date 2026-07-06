@@ -12,14 +12,14 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 async function sendToSubs(subscriptions, payload) {
   console.log(`[push] envoi à ${subscriptions.length} abonnement(s)`);
   await Promise.allSettled(
-    subscriptions.map(sub =>
+    subscriptions.map((sub) =>
       webpush
         .sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
           JSON.stringify(payload)
         )
         .then(() => console.log(`[push] OK → ${sub.endpoint.slice(0, 40)}…`))
-        .catch(async err => {
+        .catch(async (err) => {
           console.error(`[push] ERREUR ${err.statusCode} → ${err.message}`);
           if (err.statusCode === 410 || err.statusCode === 404) {
             await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});

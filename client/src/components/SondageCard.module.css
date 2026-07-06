@@ -6,7 +6,9 @@
   margin: 0.5rem 0;
   max-width: 420px;
 }
-.card.clos { opacity: 0.8; }
+.card.clos {
+  opacity: 0.8;
+}
 
 .header {
   display: flex;
@@ -16,7 +18,10 @@
   font-size: 0.75rem;
   color: var(--text-muted);
 }
-.auteur { font-weight: 600; color: var(--text); }
+.auteur {
+  font-weight: 600;
+  color: var(--text);
+}
 .closBadge {
   font-size: 0.68rem;
   background: var(--border);
@@ -24,7 +29,12 @@
   border-radius: 999px;
   margin-left: auto;
 }
-.actions { display: flex; gap: 0.3rem; margin-left: auto; align-items: center; }
+.actions {
+  display: flex;
+  gap: 0.3rem;
+  margin-left: auto;
+  align-items: center;
+}
 .actionBtn {
   background: none;
   border: none;
@@ -36,7 +46,10 @@
   display: flex;
   align-items: center;
 }
-.actionBtn:hover { background: var(--border); color: var(--text); }
+.actionBtn:hover {
+  background: var(--border);
+  color: var(--text);
+}
 
 .question {
   font-size: 0.88rem;
@@ -46,7 +59,11 @@
   line-height: 1.4;
 }
 
-.options { display: flex; flex-direction: column; gap: 0.4rem; }
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
 
 .option {
   position: relative;
@@ -64,23 +81,52 @@
   overflow: hidden;
   transition: border-color 0.15s;
 }
-.option:hover:not(:disabled) { border-color: var(--accent); }
-.option.voted { border-color: var(--accent); }
-.option.optionClos { cursor: default; }
+.option:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.option.voted {
+  border-color: var(--accent);
+}
+.option.optionClos {
+  cursor: default;
+}
 
 .optionBar {
   position: absolute;
-  left: 0; top: 0; bottom: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
   background: var(--accent);
   opacity: 0.12;
   border-radius: 6px;
   transition: width 0.4s ease;
 }
-.option.voted .optionBar { opacity: 0.2; }
+.option.voted .optionBar {
+  opacity: 0.2;
+}
 
-.optionTexte { flex: 1; position: relative; }
-.optionPct { font-size: 0.75rem; color: var(--text-muted); position: relative; white-space: nowrap; }
-.optionCount { font-size: 0.7rem; }
-.checkIcon { color: var(--accent); flex-shrink: 0; position: relative; }
+.optionTexte {
+  flex: 1;
+  position: relative;
+}
+.optionPct {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  position: relative;
+  white-space: nowrap;
+}
+.optionCount {
+  font-size: 0.7rem;
+}
+.checkIcon {
+  color: var(--accent);
+  flex-shrink: 0;
+  position: relative;
+}
 
-.total { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.5rem; display: block; }
+.total {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  display: block;
+}

@@ -11,10 +11,17 @@ export default function EDT() {
   const { user } = useAuth();
   const [cours, setCours] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ matiere: "", jour: "Lundi", heureDebut: "", heureFin: "", salle: "", prof: "" });
+  const [form, setForm] = useState({
+    matiere: "",
+    jour: "Lundi",
+    heureDebut: "",
+    heureFin: "",
+    salle: "",
+    prof: "",
+  });
 
   useEffect(() => {
-    api.get("/edt").then(res => setCours(res.data));
+    api.get("/edt").then((res) => setCours(res.data));
   }, []);
 
   function handleChange(e) {
@@ -31,7 +38,7 @@ export default function EDT() {
 
   async function handleDelete(id) {
     await api.delete(`/edt/${id}`);
-    setCours(cours.filter(c => c.id !== id));
+    setCours(cours.filter((c) => c.id !== id));
   }
 
   return (
@@ -48,35 +55,52 @@ export default function EDT() {
 
         {showForm && (
           <form className={styles.form} onSubmit={handleSubmit}>
-            <input name="matiere" placeholder="Matière" value={form.matiere} onChange={handleChange} required />
+            <input
+              name="matiere"
+              placeholder="Matière"
+              value={form.matiere}
+              onChange={handleChange}
+              required
+            />
             <select name="jour" value={form.jour} onChange={handleChange}>
-              {JOURS.map(j => <option key={j}>{j}</option>)}
+              {JOURS.map((j) => (
+                <option key={j}>{j}</option>
+              ))}
             </select>
             <div className={styles.row}>
               <input name="heureDebut" type="time" value={form.heureDebut} onChange={handleChange} required />
               <input name="heureFin" type="time" value={form.heureFin} onChange={handleChange} required />
             </div>
             <input name="salle" placeholder="Salle (optionnel)" value={form.salle} onChange={handleChange} />
-            <input name="prof" placeholder="Professeur (optionnel)" value={form.prof} onChange={handleChange} />
+            <input
+              name="prof"
+              placeholder="Professeur (optionnel)"
+              value={form.prof}
+              onChange={handleChange}
+            />
             <button type="submit">Ajouter</button>
           </form>
         )}
 
         <div className={styles.grid}>
-          {JOURS.map(jour => {
-            const coursDuJour = cours.filter(c => c.jour === jour);
+          {JOURS.map((jour) => {
+            const coursDuJour = cours.filter((c) => c.jour === jour);
             return (
               <div key={jour} className={styles.day}>
                 <h3 className={styles.dayTitle}>{jour}</h3>
                 {coursDuJour.length === 0 && <p className={styles.empty}>—</p>}
-                {coursDuJour.map(c => (
+                {coursDuJour.map((c) => (
                   <div key={c.id} className={styles.cours}>
-                    <div className={styles.coursTime}>{c.heureDebut} – {c.heureFin}</div>
+                    <div className={styles.coursTime}>
+                      {c.heureDebut} – {c.heureFin}
+                    </div>
                     <div className={styles.coursMatiere}>{c.matiere}</div>
                     {c.salle && <div className={styles.coursMeta}>{c.salle}</div>}
                     {c.prof && <div className={styles.coursMeta}>{c.prof}</div>}
                     {user?.role === "admin" && (
-                      <button className={styles.deleteBtn} onClick={() => handleDelete(c.id)}>✕</button>
+                      <button className={styles.deleteBtn} onClick={() => handleDelete(c.id)}>
+                        ✕
+                      </button>
                     )}
                   </div>
                 ))}

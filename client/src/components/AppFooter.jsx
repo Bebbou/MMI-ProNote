@@ -11,9 +11,7 @@ export default function AppFooter() {
         <span className={styles.segStripes} />
         <span className={styles.segOrange} />
       </div>
-      <p className={styles.line}>
-        Pronote-MMI v{pkg.version} — fait par Lino Volle
-      </p>
+      <p className={styles.line}>Pronote-MMI v{pkg.version} — fait par Lino Volle</p>
       <div className={styles.links}>
         <a
           href="https://github.com/Bebbou/MMI-ProNote"

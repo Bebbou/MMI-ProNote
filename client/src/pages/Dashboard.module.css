@@ -26,12 +26,14 @@
   flex-direction: column;
   gap: 0.4rem;
   cursor: pointer;
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
   text-decoration: none;
 }
 
 .card:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border-color: var(--accent);
 }
 

@@ -39,7 +39,9 @@
   white-space: nowrap;
   transition: background 0.15s;
 }
-.uploadBtn:hover { background: var(--accent-hover); }
+.uploadBtn:hover {
+  background: var(--accent-hover);
+}
 
 /* ── Formulaire upload ── */
 .uploadForm {
@@ -66,7 +68,9 @@
   flex-direction: column;
   gap: 0.3rem;
 }
-.fieldFull { grid-column: 1 / -1; }
+.fieldFull {
+  grid-column: 1 / -1;
+}
 .field label {
   font-size: 0.8rem;
   font-weight: 600;
@@ -85,8 +89,13 @@
   transition: border-color 0.15s;
 }
 .field input:focus,
-.field select:focus { border-color: var(--accent); }
-.field input[type="file"] { padding: 0.4rem 0.7rem; cursor: pointer; }
+.field select:focus {
+  border-color: var(--accent);
+}
+.field input[type="file"] {
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+}
 .error {
   color: var(--danger);
   font-size: 0.825rem;
@@ -104,8 +113,13 @@
   cursor: pointer;
   transition: background 0.15s;
 }
-.submitBtn:hover { background: var(--accent-hover); }
-.submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+.submitBtn:hover {
+  background: var(--accent-hover);
+}
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* ── Filtres ── */
 .filters {
@@ -122,9 +136,15 @@
   font-family: inherit;
   color: var(--text-faint);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
-.filterBtn:hover { color: var(--text-muted); border-color: var(--text-faint); }
+.filterBtn:hover {
+  color: var(--text-muted);
+  border-color: var(--text-faint);
+}
 .filterActive {
   background: var(--tint-pink);
   border-color: var(--accent);
@@ -153,7 +173,9 @@
   overflow: hidden;
   transition: box-shadow 0.15s;
 }
-.card:hover { box-shadow: var(--shadow-sm); }
+.card:hover {
+  box-shadow: var(--shadow-sm);
+}
 
 .cardMain {
   display: flex;
@@ -172,7 +194,10 @@
   justify-content: center;
   flex-shrink: 0;
 }
-.cardInfo { flex: 1; min-width: 0; }
+.cardInfo {
+  flex: 1;
+  min-width: 0;
+}
 .cardMeta {
   display: flex;
   align-items: center;
@@ -231,9 +256,14 @@
   font-family: inherit;
   padding: 0.4rem 0.65rem;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
-.commentToggle:hover { color: var(--accent); border-color: var(--accent); }
+.commentToggle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
 .downloadBtn {
   display: flex;
   align-items: center;
@@ -249,7 +279,9 @@
   cursor: pointer;
   transition: background 0.15s;
 }
-.downloadBtn:hover { background: var(--accent-hover); }
+.downloadBtn:hover {
+  background: var(--accent-hover);
+}
 .deleteBtn {
   background: none;
   border: 1px solid var(--border);
@@ -259,9 +291,14 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
-.deleteBtn:hover { color: var(--danger); border-color: var(--danger); }
+.deleteBtn:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
 
 /* ── Commentaires ── */
 .comments {
@@ -314,7 +351,9 @@
   border-radius: 3px;
   transition: color 0.15s;
 }
-.commentDelete:hover { color: var(--danger); }
+.commentDelete:hover {
+  color: var(--danger);
+}
 .commentContent {
   font-size: 0.85rem;
   color: var(--text);
@@ -337,7 +376,9 @@
   outline: none;
   transition: border-color 0.15s;
 }
-.commentInput:focus { border-color: var(--accent); }
+.commentInput:focus {
+  border-color: var(--accent);
+}
 .commentSend {
   background: var(--accent);
   color: #fff;
@@ -349,14 +390,32 @@
   align-items: center;
   transition: background 0.15s;
 }
-.commentSend:hover { background: var(--accent-hover); }
-.commentSend:disabled { opacity: 0.5; cursor: not-allowed; }
+.commentSend:hover {
+  background: var(--accent-hover);
+}
+.commentSend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .formGrid { grid-template-columns: 1fr; }
-  .cardMain { flex-wrap: wrap; }
-  .cardActions { width: 100%; justify-content: flex-end; }
-  .header { flex-direction: column; align-items: flex-start; }
-  .uploadBtn { width: 100%; justify-content: center; }
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  .cardMain {
+    flex-wrap: wrap;
+  }
+  .cardActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .uploadBtn {
+    width: 100%;
+    justify-content: center;
+  }
 }

@@ -18,8 +18,9 @@ export default function Notes() {
   const fetchNotes = useCallback(() => {
     setLoading(true);
     setLoadError(false);
-    api.get("/notes")
-      .then(res => setNotes(res.data))
+    api
+      .get("/notes")
+      .then((res) => setNotes(res.data))
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, []);
@@ -50,17 +51,20 @@ export default function Notes() {
     setToDelete(null);
     try {
       await api.delete(`/notes/${id}`);
-      setNotes(notes.filter(n => n.id !== id));
+      setNotes(notes.filter((n) => n.id !== id));
       toast("Note supprimee");
     } catch {
       toast("Impossible de supprimer la note", "error");
     }
   }
 
-  const moyenne = notes.length === 0 ? null : (
-    notes.reduce((acc, n) => acc + n.valeur * n.coefficient, 0) /
-    notes.reduce((acc, n) => acc + n.coefficient, 0)
-  ).toFixed(2);
+  const moyenne =
+    notes.length === 0
+      ? null
+      : (
+          notes.reduce((acc, n) => acc + n.valeur * n.coefficient, 0) /
+          notes.reduce((acc, n) => acc + n.coefficient, 0)
+        ).toFixed(2);
 
   return (
     <Layout>
@@ -68,18 +72,44 @@ export default function Notes() {
         <div className={styles.header}>
           <div>
             <PageTitle>Mes notes</PageTitle>
-            {moyenne && <p className={styles.moyenne}>Moyenne générale : <strong>{moyenne}/20</strong></p>}
+            {moyenne && (
+              <p className={styles.moyenne}>
+                Moyenne générale : <strong>{moyenne}/20</strong>
+              </p>
+            )}
           </div>
-          <button onClick={() => setShowForm(!showForm)}>
-            {showForm ? "Annuler" : "+ Ajouter"}
-          </button>
+          <button onClick={() => setShowForm(!showForm)}>{showForm ? "Annuler" : "+ Ajouter"}</button>
         </div>
 
         {showForm && (
           <form className={styles.form} onSubmit={handleSubmit}>
-            <input name="matiere" placeholder="Matière" value={form.matiere} onChange={handleChange} required />
-            <input name="valeur" type="number" min="0" max="20" step="0.5" placeholder="Note /20" value={form.valeur} onChange={handleChange} required />
-            <input name="coefficient" type="number" min="0.5" step="0.5" placeholder="Coefficient" value={form.coefficient} onChange={handleChange} />
+            <input
+              name="matiere"
+              placeholder="Matière"
+              value={form.matiere}
+              onChange={handleChange}
+              required
+            />
+            <input
+              name="valeur"
+              type="number"
+              min="0"
+              max="20"
+              step="0.5"
+              placeholder="Note /20"
+              value={form.valeur}
+              onChange={handleChange}
+              required
+            />
+            <input
+              name="coefficient"
+              type="number"
+              min="0.5"
+              step="0.5"
+              placeholder="Coefficient"
+              value={form.coefficient}
+              onChange={handleChange}
+            />
             <button type="submit">Ajouter la note</button>
           </form>
         )}
@@ -96,7 +126,7 @@ export default function Notes() {
         {!loading && !loadError && (
           <div className={styles.list}>
             {notes.length === 0 && <p className={styles.empty}>Aucune note enregistrée.</p>}
-            {notes.map(note => (
+            {notes.map((note) => (
               <div key={note.id} className={styles.card}>
                 <div className={styles.cardLeft}>
                   <span className={styles.matiere}>{note.matiere}</span>
@@ -104,7 +134,9 @@ export default function Notes() {
                 </div>
                 <div className={styles.cardRight}>
                   <span className={styles.valeur}>{note.valeur}/20</span>
-                  <button className={styles.deleteBtn} onClick={() => setToDelete(note.id)}>✕</button>
+                  <button className={styles.deleteBtn} onClick={() => setToDelete(note.id)}>
+                    ✕
+                  </button>
                 </div>
               </div>
             ))}

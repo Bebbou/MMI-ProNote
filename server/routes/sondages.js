@@ -40,7 +40,7 @@ router.post("/", requireRole("admin", "delegue"), async (req, res) => {
       auteurId: req.user.id,
       channelId: Number(channelId),
       options: {
-        create: options.map(t => ({ texte: t.trim() })).filter(o => o.texte),
+        create: options.map((t) => ({ texte: t.trim() })).filter((o) => o.texte),
       },
     },
     include: sondageInclude,

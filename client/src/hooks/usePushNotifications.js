@@ -5,7 +5,7 @@ function urlBase64ToUint8Array(base64) {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
   const b64 = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(b64);
-  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
 
 export function usePushNotifications() {
@@ -15,17 +15,15 @@ export function usePushNotifications() {
     "PushManager" in window &&
     "Notification" in window;
 
-  const [permission, setPermission] = useState(
-    isSupported ? Notification.permission : "denied"
-  );
+  const [permission, setPermission] = useState(isSupported ? Notification.permission : "denied");
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!isSupported) return;
-    navigator.serviceWorker.register("/api/sw.js", { scope: "/" }).then(reg =>
-      reg.pushManager.getSubscription().then(sub => setSubscribed(!!sub))
-    );
+    navigator.serviceWorker
+      .register("/api/sw.js", { scope: "/" })
+      .then((reg) => reg.pushManager.getSubscription().then((sub) => setSubscribed(!!sub)));
   }, [isSupported]);
 
   async function enable() {
@@ -38,7 +36,7 @@ export function usePushNotifications() {
 
       // Nettoyer tous les anciens SW avant d'enregistrer le nouveau
       const existingRegs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(existingRegs.map(r => r.unregister()));
+      await Promise.all(existingRegs.map((r) => r.unregister()));
 
       const { data } = await api.get("/notifications/vapid-public-key");
       const reg = await navigator.serviceWorker.register("/api/sw.js", { scope: "/" });

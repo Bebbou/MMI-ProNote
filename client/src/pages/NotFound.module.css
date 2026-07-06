@@ -1,0 +1,47 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--bg-page);
+  padding: 2rem;
+  text-align: center;
+}
+
+.circle {
+  width: 110px;
+  height: 110px;
+  opacity: 0.9;
+  margin-bottom: 0.5rem;
+}
+
+.code {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.message {
+  color: var(--text-faint);
+  font-size: 0.95rem;
+}
+
+.backBtn {
+  margin-top: 0.75rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.65rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.backBtn:hover {
+  background: var(--accent-hover);
+}

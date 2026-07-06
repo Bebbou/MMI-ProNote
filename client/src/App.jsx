@@ -13,6 +13,7 @@ import Profil from "./pages/Profil";
 import Canvas from "./pages/Canvas";
 import Chat from "./pages/Chat";
 import Documents from "./pages/Documents";
+import NotFound from "./pages/NotFound";
 
 function PrivateRoute({ children }) {
   const { token } = useAuth();
@@ -28,16 +29,80 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/devoirs" element={<PrivateRoute><Devoirs /></PrivateRoute>} />
-          <Route path="/notes" element={<PrivateRoute><Notes /></PrivateRoute>} />
-          <Route path="/edt" element={<PrivateRoute><EDT /></PrivateRoute>} />
-          <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
-          <Route path="/profil" element={<PrivateRoute><Profil /></PrivateRoute>} />
-          <Route path="/canvas" element={<PrivateRoute><Canvas /></PrivateRoute>} />
-          <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>} />
-          <Route path="/documents" element={<PrivateRoute><Documents /></PrivateRoute>} />
-          <Route path="*" element={<Navigate to="/login" />} />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/devoirs"
+            element={
+              <PrivateRoute>
+                <Devoirs />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/notes"
+            element={
+              <PrivateRoute>
+                <Notes />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/edt"
+            element={
+              <PrivateRoute>
+                <EDT />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute>
+                <Admin />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profil"
+            element={
+              <PrivateRoute>
+                <Profil />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/canvas"
+            element={
+              <PrivateRoute>
+                <Canvas />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/chat"
+            element={
+              <PrivateRoute>
+                <Chat />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/documents"
+            element={
+              <PrivateRoute>
+                <Documents />
+              </PrivateRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

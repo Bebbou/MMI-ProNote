@@ -25,7 +25,7 @@ export function useChatChannel() {
 
   // Chargement des canaux
   useEffect(() => {
-    api.get("/chat/channels").then(res => {
+    api.get("/chat/channels").then((res) => {
       setChannels(res.data);
       if (res.data.length > 0) setActiveChannelState(res.data[0]);
     });
@@ -34,14 +34,17 @@ export function useChatChannel() {
   // Socket : canaux
   useEffect(() => {
     if (!socket) return;
-    const onNew = (c) => setChannels(prev => [...prev, c]);
+    const onNew = (c) => setChannels((prev) => [...prev, c]);
     const onDel = ({ id }) => {
-      setChannels(prev => prev.filter(c => c.id !== id));
-      setActiveChannelState(prev => prev?.id === id ? null : prev);
+      setChannels((prev) => prev.filter((c) => c.id !== id));
+      setActiveChannelState((prev) => (prev?.id === id ? null : prev));
     };
     socket.on("nouveauChannel", onNew);
     socket.on("channelSupprime", onDel);
-    return () => { socket.off("nouveauChannel", onNew); socket.off("channelSupprime", onDel); };
+    return () => {
+      socket.off("nouveauChannel", onNew);
+      socket.off("channelSupprime", onDel);
+    };
   }, [socket]);
 
   // Changement de canal : charger messages + rejoindre room
@@ -51,12 +54,12 @@ export function useChatChannel() {
       socket?.emit("quitterChannel", activeChannelRef.current);
     }
     activeChannelRef.current = activeChannel.id;
-    api.get(`/chat/channels/${activeChannel.id}/messages`).then(res => {
+    api.get(`/chat/channels/${activeChannel.id}/messages`).then((res) => {
       setMessages(res.data.messages);
       setHasMore(res.data.hasMore);
     });
     socket?.emit("rejoindreChannel", activeChannel.id);
-    setUnreadByChannel(prev => ({ ...prev, [activeChannel.id]: 0 }));
+    setUnreadByChannel((prev) => ({ ...prev, [activeChannel.id]: 0 }));
     setTypingUsers({});
   }, [activeChannel, socket]);
 
@@ -66,24 +69,30 @@ export function useChatChannel() {
 
     const onMsg = (msg) => {
       if (msg.channelId === activeChannelRef.current) {
-        // eslint-disable-next-line eqeqeq
-        if (msg.auteur.id != user?.id) setMessages(prev => [...prev, msg]);
-        setTypingUsers(prev => { const n = { ...prev }; delete n[msg.auteur.id]; return n; });
+        if (msg.auteur.id != user?.id) setMessages((prev) => [...prev, msg]);
+        setTypingUsers((prev) => {
+          const n = { ...prev };
+          delete n[msg.auteur.id];
+          return n;
+        });
       } else {
-        setUnreadByChannel(prev => ({ ...prev, [msg.channelId]: (prev[msg.channelId] || 0) + 1 }));
+        setUnreadByChannel((prev) => ({ ...prev, [msg.channelId]: (prev[msg.channelId] || 0) + 1 }));
       }
     };
-    const onDel = ({ id }) => setMessages(prev => prev.filter(m => m.id !== id));
+    const onDel = ({ id }) => setMessages((prev) => prev.filter((m) => m.id !== id));
     const onEdit = ({ id, content, editedAt }) =>
-      setMessages(prev => prev.map(m => m.id === id ? { ...m, content, editedAt } : m));
+      setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, content, editedAt } : m)));
     const onReaction = ({ messageId, reactions }) =>
-      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions } : m));
+      setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, reactions } : m)));
     const onTyping = ({ userId, nom, channelId }) => {
-      if (channelId === activeChannelRef.current)
-        setTypingUsers(prev => ({ ...prev, [userId]: nom }));
+      if (channelId === activeChannelRef.current) setTypingUsers((prev) => ({ ...prev, [userId]: nom }));
     };
     const onStopTyping = ({ userId }) =>
-      setTypingUsers(prev => { const n = { ...prev }; delete n[userId]; return n; });
+      setTypingUsers((prev) => {
+        const n = { ...prev };
+        delete n[userId];
+        return n;
+      });
 
     socket.on("nouveauMessage", onMsg);
     socket.on("messageSupprime", onDel);
@@ -108,10 +117,13 @@ export function useChatChannel() {
   async function loadMore() {
     if (!activeChannel || !hasMore || loadingMore || messages.length === 0) return;
     setLoadingMore(true);
-    const firstRealId = messages.find(m => typeof m.id === "number")?.id;
-    if (!firstRealId) { setLoadingMore(false); return; }
+    const firstRealId = messages.find((m) => typeof m.id === "number")?.id;
+    if (!firstRealId) {
+      setLoadingMore(false);
+      return;
+    }
     const res = await api.get(`/chat/channels/${activeChannel.id}/messages?before=${firstRealId}`);
-    setMessages(prev => [...res.data.messages, ...prev]);
+    setMessages((prev) => [...res.data.messages, ...prev]);
     setHasMore(res.data.hasMore);
     setLoadingMore(false);
   }
@@ -139,16 +151,21 @@ export function useChatChannel() {
     isTypingRef.current = false;
     socket?.emit("stopTyping", { channelId: activeChannel.id });
 
-    setMessages(prev => [...prev, {
-      id: `tmp-${Date.now()}`,
-      content,
-      createdAt: new Date().toISOString(),
-      channelId: activeChannel.id,
-      auteur: { id: user.id, nom: user.nom },
-      reactions: [],
-      replyTo: replyingTo ? { id: replyingTo.id, content: replyingTo.content, auteur: replyingTo.auteur } : null,
-      editedAt: null,
-    }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `tmp-${Date.now()}`,
+        content,
+        createdAt: new Date().toISOString(),
+        channelId: activeChannel.id,
+        auteur: { id: user.id, nom: user.nom },
+        reactions: [],
+        replyTo: replyingTo
+          ? { id: replyingTo.id, content: replyingTo.content, auteur: replyingTo.auteur }
+          : null,
+        editedAt: null,
+      },
+    ]);
     socket?.emit("envoyerMessage", {
       channelId: activeChannel.id,
       content,
@@ -175,9 +192,12 @@ export function useChatChannel() {
   }
 
   const typingList = Object.values(typingUsers);
-  const typingLabel = typingList.length === 0 ? null
-    : typingList.length === 1 ? `${typingList[0]} est en train d'écrire…`
-    : `${typingList.join(", ")} écrivent…`;
+  const typingLabel =
+    typingList.length === 0
+      ? null
+      : typingList.length === 1
+        ? `${typingList[0]} est en train d'écrire…`
+        : `${typingList.join(", ")} écrivent…`;
 
   function formatTime(date) {
     return new Date(date).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
@@ -189,20 +209,29 @@ export function useChatChannel() {
   return {
     user,
     socket,
-    channels, setChannels,
-    activeChannel, setActiveChannel,
+    channels,
+    setChannels,
+    activeChannel,
+    setActiveChannel,
     messages,
-    hasMore, loadMore, loadingMore,
-    input: inputRaw, setInput,
+    hasMore,
+    loadMore,
+    loadingMore,
+    input: inputRaw,
+    setInput,
     typingLabel,
     unreadByChannel,
-    editingId, setEditingId,
-    editInput, setEditInput,
-    replyingTo, setReplyingTo,
+    editingId,
+    setEditingId,
+    editInput,
+    setEditInput,
+    replyingTo,
+    setReplyingTo,
     handleSend,
     handleDeleteMessage,
     handleEditMessage,
     handleReaction,
-    formatTime, formatDate,
+    formatTime,
+    formatDate,
   };
 }

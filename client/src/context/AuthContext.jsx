@@ -16,7 +16,8 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!token) return;
 
-    api.get("/auth/me")
+    api
+      .get("/auth/me")
       .then(({ data }) => {
         setUser(data.user);
         localStorage.setItem("user", JSON.stringify(data.user));
@@ -45,11 +46,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("token");
   }
 
-  return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, token, login, logout }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

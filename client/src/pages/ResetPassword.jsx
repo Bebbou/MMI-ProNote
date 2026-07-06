@@ -56,14 +56,14 @@ export default function ResetPassword() {
               name="password"
               placeholder="Nouveau mot de passe (6 caractères min.)"
               value={form.password}
-              onChange={e => setForm({ ...form, password: e.target.value })}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
             />
             <PasswordInput
               name="confirmation"
               placeholder="Confirmer le mot de passe"
               value={form.confirmation}
-              onChange={e => setForm({ ...form, confirmation: e.target.value })}
+              onChange={(e) => setForm({ ...form, confirmation: e.target.value })}
               required
             />
             {error && <p className={styles.error}>{error}</p>}

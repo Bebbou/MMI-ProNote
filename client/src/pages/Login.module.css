@@ -15,7 +15,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
 
 .card h1 {
@@ -94,8 +94,8 @@
 .error {
   color: var(--danger);
   font-size: 0.8rem;
-  background: #FEF2F2;
-  border: 1px solid #FECACA;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
 }

@@ -27,7 +27,8 @@ export default function ForgotPassword() {
         {sent ? (
           <>
             <p style={{ color: "var(--text-faint)", fontSize: "0.9rem", lineHeight: 1.6 }}>
-              Si cet email est associé à un compte, tu recevras un lien de réinitialisation dans quelques instants.
+              Si cet email est associé à un compte, tu recevras un lien de réinitialisation dans quelques
+              instants.
             </p>
             <a href="/login">Retour à la connexion</a>
           </>
@@ -38,7 +39,7 @@ export default function ForgotPassword() {
                 type="email"
                 placeholder="Ton adresse email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
               {error && <p className={styles.error}>{error}</p>}

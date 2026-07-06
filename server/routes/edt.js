@@ -22,7 +22,10 @@ router.post("/", requireAuth, requireRole("admin"), async (req, res) => {
 
   const cours = await prisma.cours.create({
     data: {
-      matiere, jour, heureDebut, heureFin,
+      matiere,
+      jour,
+      heureDebut,
+      heureFin,
       salle: salle ?? null,
       prof: prof ?? null,
       groupeId: groupeId ?? req.user.groupeId,

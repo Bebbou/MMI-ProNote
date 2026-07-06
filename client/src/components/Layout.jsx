@@ -1,6 +1,20 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Home, BookOpen, BarChart2, Calendar, Settings, LogOut, LayoutGrid, Sun, Menu, X, MessageSquare, FolderOpen, User } from "lucide-react";
+import {
+  Home,
+  BookOpen,
+  BarChart2,
+  Calendar,
+  Settings,
+  LogOut,
+  LayoutGrid,
+  Sun,
+  Menu,
+  X,
+  MessageSquare,
+  FolderOpen,
+  User,
+} from "lucide-react";
 import { useTheme, THEMES } from "../hooks/useTheme";
 import { useState, useEffect, useRef } from "react";
 import ChatPanel from "./ChatPanel";
@@ -28,10 +42,10 @@ const bottomNavItems = [
 ];
 
 const THEME_DOTS = {
-  mmi:      "#fe7db6",
-  dark:     "#fe7db6",
-  bleu:     "#469cd0",
-  pastel:   "#e8609a",
+  mmi: "#fe7db6",
+  dark: "#fe7db6",
+  bleu: "#469cd0",
+  pastel: "#e8609a",
   obsidian: "#9b7fe8",
 };
 
@@ -87,9 +101,7 @@ export default function Layout({ children }) {
               key={item.to}
               to={item.to}
               onClick={() => setMenuOpen(false)}
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.active : ""}`
-              }
+              className={({ isActive }) => `${styles.navLink} ${isActive ? styles.active : ""}`}
             >
               <item.icon size={15} strokeWidth={1.5} />
               <span className={styles.navLabel}>{item.label}</span>
@@ -101,20 +113,21 @@ export default function Layout({ children }) {
         <div className={styles.themePicker} ref={themeRef}>
           <button
             className={`${styles.themeBtn} ${themeOpen ? styles.themeBtnOpen : ""}`}
-            onClick={() => setThemeOpen(v => !v)}
+            onClick={() => setThemeOpen((v) => !v)}
           >
             <Sun size={13} strokeWidth={1.5} />
-            <span className={styles.navLabel}>
-              {THEMES.find(t => t.id === theme)?.label ?? "Theme"}
-            </span>
+            <span className={styles.navLabel}>{THEMES.find((t) => t.id === theme)?.label ?? "Theme"}</span>
           </button>
           {themeOpen && (
             <div className={styles.themeDropdown}>
-              {THEMES.map(t => (
+              {THEMES.map((t) => (
                 <button
                   key={t.id}
                   className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
-                  onClick={() => { setTheme(t.id); setThemeOpen(false); }}
+                  onClick={() => {
+                    setTheme(t.id);
+                    setThemeOpen(false);
+                  }}
                 >
                   <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
                   {t.label}
@@ -127,9 +140,7 @@ export default function Layout({ children }) {
         <NavLink
           to="/canvas"
           onClick={() => setMenuOpen(false)}
-          className={({ isActive }) =>
-            `${styles.canvasBtn} ${isActive ? styles.canvasBtnActive : ""}`
-          }
+          className={({ isActive }) => `${styles.canvasBtn} ${isActive ? styles.canvasBtnActive : ""}`}
         >
           <LayoutGrid size={13} strokeWidth={1.5} />
           <span className={styles.navLabel}>Mode Canvas</span>
@@ -151,18 +162,21 @@ export default function Layout({ children }) {
           <div className={styles.mobileThemePicker} ref={mobileThemeRef}>
             <button
               className={`${styles.themeIconBtn} ${themeOpen ? styles.themeIconBtnOpen : ""}`}
-              onClick={() => setThemeOpen(v => !v)}
+              onClick={() => setThemeOpen((v) => !v)}
               aria-label="Changer de thème"
             >
               <Sun size={18} strokeWidth={1.5} />
             </button>
             {themeOpen && (
               <div className={styles.mobileThemeDropdown}>
-                {THEMES.map(t => (
+                {THEMES.map((t) => (
                   <button
                     key={t.id}
                     className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
-                    onClick={() => { setTheme(t.id); setThemeOpen(false); }}
+                    onClick={() => {
+                      setTheme(t.id);
+                      setThemeOpen(false);
+                    }}
                   >
                     <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
                     {t.label}

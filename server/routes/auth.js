@@ -69,11 +69,9 @@ router.post("/login", authLimiter, async (req, res) => {
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) return res.status(401).json({ error: "Identifiants invalides." });
 
-  const token = jwt.sign(
-    { id: user.id, role: user.role, groupeId: user.groupeId },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
+  const token = jwt.sign({ id: user.id, role: user.role, groupeId: user.groupeId }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 
   res.json({
     token,
@@ -142,7 +140,8 @@ router.post("/forgot-password", authLimiter, async (req, res) => {
 router.post("/reset-password", authLimiter, async (req, res) => {
   const { token, password } = req.body;
   if (!token || !password) return res.status(400).json({ error: "Champs manquants." });
-  if (password.length < 6) return res.status(400).json({ error: "Le mot de passe doit faire au moins 6 caractères." });
+  if (password.length < 6)
+    return res.status(400).json({ error: "Le mot de passe doit faire au moins 6 caractères." });
 
   const reset = await prisma.passwordReset.findUnique({ where: { token } });
 

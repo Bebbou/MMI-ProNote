@@ -41,7 +41,9 @@
   border-radius: 4px;
   transition: color 0.15s;
 }
-.addBtn:hover { color: var(--accent); }
+.addBtn:hover {
+  color: var(--accent);
+}
 
 .newChannelForm {
   display: flex;
@@ -60,7 +62,9 @@
   font-family: inherit;
   outline: none;
 }
-.newChannelForm input:focus { border-color: var(--accent); }
+.newChannelForm input:focus {
+  border-color: var(--accent);
+}
 .newChannelForm button {
   background: var(--accent);
   color: #fff;
@@ -90,10 +94,19 @@
   color: var(--text-faint);
   font-size: 0.875rem;
   cursor: pointer;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }
-.channelItem:hover { background: var(--bg-card); color: var(--text-muted); }
-.channelActive { background: var(--tint-pink); color: var(--accent); font-weight: 600; }
+.channelItem:hover {
+  background: var(--bg-card);
+  color: var(--text-muted);
+}
+.channelActive {
+  background: var(--tint-pink);
+  color: var(--accent);
+  font-weight: 600;
+}
 .channelBadge {
   margin-left: auto;
   background: var(--accent);
@@ -113,13 +126,24 @@
   display: flex;
   align-items: center;
   opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
+  transition:
+    opacity 0.15s,
+    color 0.15s;
 }
-.channelItem:hover .deleteChannelBtn { opacity: 1; }
-.deleteChannelBtn:hover { color: var(--danger); }
+.channelItem:hover .deleteChannelBtn {
+  opacity: 1;
+}
+.deleteChannelBtn:hover {
+  color: var(--danger);
+}
 
 /* ── Zone chat ── */
-.chatArea { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chatArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 .chatHeader {
   display: flex;
   align-items: center;
@@ -129,7 +153,10 @@
   background: var(--bg-card);
   color: var(--text-muted);
 }
-.chatTitle { font-weight: 700; font-size: 0.95rem; }
+.chatTitle {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
 .sondagesZone {
   padding: 0.75rem 1.25rem 0;
   border-bottom: 1px solid var(--border);
@@ -141,8 +168,20 @@
   background: var(--bg);
   flex-shrink: 0;
 }
-.sondageBtn { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 6px; display: flex; }
-.sondageBtn:hover { color: var(--accent); background: var(--border); }
+.sondageBtn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+}
+.sondageBtn:hover {
+  color: var(--accent);
+  background: var(--border);
+}
 .chatDesc {
   color: var(--text-faint);
   font-size: 0.8rem;
@@ -159,8 +198,20 @@
   flex-direction: column;
   gap: 0.3rem;
 }
-.empty { color: var(--text-faint); font-size: 0.875rem; text-align: center; margin: auto; }
-.noChannel { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-faint); font-size: 0.875rem; }
+.empty {
+  color: var(--text-faint);
+  font-size: 0.875rem;
+  text-align: center;
+  margin: auto;
+}
+.noChannel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: 0.875rem;
+}
 
 .loadMoreBtn {
   display: flex;
@@ -175,10 +226,18 @@
   cursor: pointer;
   padding: 0.4rem 0.85rem;
   margin: 0 auto 0.75rem;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
-.loadMoreBtn:hover { color: var(--accent); border-color: var(--accent); }
-.loadMoreBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.loadMoreBtn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.loadMoreBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .dateSeparator {
   text-align: center;
@@ -187,7 +246,8 @@
   margin: 0.75rem 0 0.4rem;
   position: relative;
 }
-.dateSeparator::before, .dateSeparator::after {
+.dateSeparator::before,
+.dateSeparator::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -195,8 +255,12 @@
   height: 1px;
   background: var(--border);
 }
-.dateSeparator::before { left: 0; }
-.dateSeparator::after { right: 0; }
+.dateSeparator::before {
+  left: 0;
+}
+.dateSeparator::after {
+  right: 0;
+}
 
 .message {
   display: flex;
@@ -205,10 +269,23 @@
   max-width: 70%;
   align-self: flex-start;
 }
-.messageMe { align-self: flex-end; align-items: flex-end; }
+.messageMe {
+  align-self: flex-end;
+  align-items: flex-end;
+}
 
-.msgAuteur { font-size: 0.725rem; font-weight: 600; color: var(--accent); padding-left: 0.25rem; }
-.msgAuteurMe { text-align: right; padding-left: 0; padding-right: 0.25rem; color: var(--text-faint); }
+.msgAuteur {
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: var(--accent);
+  padding-left: 0.25rem;
+}
+.msgAuteurMe {
+  text-align: right;
+  padding-left: 0;
+  padding-right: 0.25rem;
+  color: var(--text-faint);
+}
 
 /* Citation réponse */
 .replyQuote {
@@ -222,8 +299,17 @@
   max-width: 100%;
   overflow: hidden;
 }
-.replyQuoteAuteur { color: var(--accent); font-weight: 600; white-space: nowrap; }
-.replyQuoteContent { color: var(--text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.replyQuoteAuteur {
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.replyQuoteContent {
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* Bulle */
 .msgBubble {
@@ -244,8 +330,19 @@
   border-color: var(--accent);
   border-radius: 12px 12px 4px 12px;
 }
-.msgTime { font-size: 0.65rem; color: var(--text-faint); white-space: nowrap; flex-shrink: 0; }
-.editedLabel { font-size: 0.65rem; color: var(--text-faint); white-space: nowrap; flex-shrink: 0; font-style: italic; }
+.msgTime {
+  font-size: 0.65rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.editedLabel {
+  font-size: 0.65rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-style: italic;
+}
 
 /* Actions */
 .msgActions {
@@ -255,7 +352,9 @@
   transition: opacity 0.15s;
   flex-shrink: 0;
 }
-.msgBubble:hover .msgActions { opacity: 1; }
+.msgBubble:hover .msgActions {
+  opacity: 1;
+}
 .actionBtn {
   background: none;
   border: none;
@@ -265,12 +364,21 @@
   display: flex;
   align-items: center;
   border-radius: 3px;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
 }
-.actionBtn:hover { color: var(--accent); background: var(--bg-dark); }
+.actionBtn:hover {
+  color: var(--accent);
+  background: var(--bg-dark);
+}
 
 /* Édition inline */
-.editForm { display: flex; gap: 0.4rem; align-items: center; }
+.editForm {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
 .editForm input {
   flex: 1;
   background: var(--bg-input);
@@ -292,7 +400,9 @@
   border-radius: 4px;
   transition: color 0.15s;
 }
-.editForm button:hover { color: var(--accent); }
+.editForm button:hover {
+  color: var(--accent);
+}
 
 /* Emoji picker */
 .emojiPicker {
@@ -302,7 +412,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.4rem 0.5rem;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 .emojiBtn {
   background: none;
@@ -311,12 +421,22 @@
   font-size: 1.15rem;
   padding: 0.15rem 0.2rem;
   border-radius: 6px;
-  transition: transform 0.1s, background 0.1s;
+  transition:
+    transform 0.1s,
+    background 0.1s;
 }
-.emojiBtn:hover { transform: scale(1.3); background: var(--bg-dark); }
+.emojiBtn:hover {
+  transform: scale(1.3);
+  background: var(--bg-dark);
+}
 
 /* Réactions */
-.reactions { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.2rem; }
+.reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.2rem;
+}
 .reaction {
   display: flex;
   align-items: center;
@@ -327,11 +447,20 @@
   padding: 0.15rem 0.55rem;
   font-size: 0.8rem;
   cursor: pointer;
-  transition: background 0.1s, border-color 0.1s;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
   font-family: inherit;
 }
-.reaction:hover { border-color: var(--accent); background: var(--tint-pink); }
-.reactionMine { background: var(--tint-pink); border-color: var(--accent); font-weight: 600; }
+.reaction:hover {
+  border-color: var(--accent);
+  background: var(--tint-pink);
+}
+.reactionMine {
+  background: var(--tint-pink);
+  border-color: var(--accent);
+  font-weight: 600;
+}
 
 /* Typing indicator */
 .typingIndicator {
@@ -352,9 +481,23 @@
   font-size: 0.8rem;
   color: var(--text-muted);
 }
-.replyBar span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.replyBar button { background: none; border: none; cursor: pointer; color: var(--text-faint); display: flex; padding: 0.1rem; }
-.replyBar button:hover { color: var(--accent); }
+.replyBar span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.replyBar button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-faint);
+  display: flex;
+  padding: 0.1rem;
+}
+.replyBar button:hover {
+  color: var(--accent);
+}
 
 /* Saisie */
 .inputArea {
@@ -382,7 +525,9 @@
   min-height: 40px;
   max-height: 120px;
 }
-.msgInput:focus { border-color: var(--accent); }
+.msgInput:focus {
+  border-color: var(--accent);
+}
 .sendBtn {
   background: var(--accent);
   color: #fff;
@@ -396,9 +541,20 @@
   transition: background 0.15s;
   flex-shrink: 0;
 }
-.sendBtn:hover { background: var(--accent-hover); }
-.sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-.readOnly { padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--text-muted); border-top: 1px solid var(--border); text-align: center; }
+.sendBtn:hover {
+  background: var(--accent-hover);
+}
+.sendBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.readOnly {
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
 
 /* ── Formulaire sondage ── */
 .sondageForm {
@@ -420,20 +576,82 @@
   width: 100%;
   box-sizing: border-box;
 }
-.sondageInput:focus { border-color: var(--accent); }
-.sondageOptionRow { display: flex; gap: 0.35rem; align-items: center; }
-.removeOptBtn { background: none; border: none; cursor: pointer; color: var(--text-muted); flex-shrink: 0; }
-.removeOptBtn:hover { color: var(--danger, #e55); }
-.addOptBtn { font-size: 0.78rem; color: var(--accent); background: none; border: none; cursor: pointer; text-align: left; padding: 0; }
-.sondageFormActions { display: flex; gap: 0.5rem; margin-top: 0.2rem; }
-.sondageSubmit { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 0.4rem 0.85rem; font-size: 0.8rem; cursor: pointer; }
-.sondageCancel { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.85rem; font-size: 0.8rem; cursor: pointer; color: var(--text-muted); }
+.sondageInput:focus {
+  border-color: var(--accent);
+}
+.sondageOptionRow {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+.removeOptBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.removeOptBtn:hover {
+  color: var(--danger, #e55);
+}
+.addOptBtn {
+  font-size: 0.78rem;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+}
+.sondageFormActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+.sondageSubmit {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.sondageCancel {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--text-muted);
+}
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .page { margin: -1.25rem -1rem; height: calc(100vh - 64px - 3.5rem); flex-direction: column; }
-  .sidebar { width: 100%; min-width: unset; max-height: 160px; border-right: none; border-bottom: 1px solid var(--border); }
-  .channelList { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; padding: 0.4rem; }
-  .channelItem { white-space: nowrap; flex-shrink: 0; }
-  .message { max-width: 85%; }
+  .page {
+    margin: -1.25rem -1rem;
+    height: calc(100vh - 64px - 3.5rem);
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    min-width: unset;
+    max-height: 160px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .channelList {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 0.4rem;
+  }
+  .channelItem {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .message {
+    max-width: 85%;
+  }
 }

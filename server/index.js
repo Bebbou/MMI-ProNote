@@ -4,6 +4,7 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import compression from "compression";
 import jwt from "jsonwebtoken";
 import prisma from "./db.js";
 import authRoutes from "./routes/auth.js";
@@ -22,10 +23,7 @@ const app = express();
 const httpServer = createServer(app);
 
 // Origines autorisées : le front en prod (CLIENT_ORIGIN) + le dev local
-const allowedOrigins = [
-  process.env.CLIENT_ORIGIN,
-  "http://localhost:5173",
-].filter(Boolean);
+const allowedOrigins = [process.env.CLIENT_ORIGIN, "http://localhost:5173"].filter(Boolean);
 
 const io = new Server(httpServer, {
   cors: { origin: allowedOrigins },
@@ -35,6 +33,7 @@ const io = new Server(httpServer, {
 // voie la vraie IP du client et pas celle du proxy
 app.set("trust proxy", 1);
 
+app.use(compression()); // réponses compressées en gzip : moins de données, plus rapide
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
@@ -96,7 +95,10 @@ io.on("connection", (socket) => {
     if (!content?.trim() || !channelId) return;
     try {
       // Bloquer les étudiants sur le canal Annonces
-      const channel = await prisma.channel.findUnique({ where: { id: channelId }, select: { type: true, nom: true } });
+      const channel = await prisma.channel.findUnique({
+        where: { id: channelId },
+        select: { type: true, nom: true },
+      });
       if (channel?.type === "annonce" && !["admin", "delegue"].includes(socket.user.role)) return;
 
       const message = await prisma.message.create({
