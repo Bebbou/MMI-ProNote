@@ -5,6 +5,7 @@ import crypto from "crypto";
 import rateLimit from "express-rate-limit";
 import { Resend } from "resend";
 import prisma from "../db.js";
+import { requireAuth } from "../middlewares/auth.js";
 
 // Clé factice en dev local : l'envoi échouera mais le serveur démarre
 const resend = new Resend(process.env.RESEND_API_KEY || "re_dev_placeholder");
@@ -75,6 +76,20 @@ router.post("/login", authLimiter, async (req, res) => {
 
   res.json({
     token,
+    user: { id: user.id, nom: user.nom, role: user.role, groupe: user.groupe.nom },
+  });
+});
+
+// GET /auth/me — infos fraîches de l'utilisateur connecté
+// Sert au client à vérifier que son token est toujours valable au démarrage
+router.get("/me", requireAuth, async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    include: { groupe: true },
+  });
+  if (!user) return res.status(404).json({ error: "Utilisateur introuvable." });
+
+  res.json({
     user: { id: user.id, nom: user.nom, role: user.role, groupe: user.groupe.nom },
   });
 });

@@ -1,4 +1,5 @@
 import "dotenv/config";
+import "express-async-errors";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -56,6 +57,15 @@ app.use("/notifications", notificationsRoutes);
 app.use("/chat", chatRoutes);
 app.use("/documents", documentsRoutes);
 app.use("/sondages", sondagesRoutes);
+
+// Gestion d'erreurs globale : toute erreur non attrapée dans une route
+// (y compris async, grâce à express-async-errors) atterrit ici au lieu
+// de laisser la requête en suspens ou de crasher le serveur
+app.use((err, req, res, next) => {
+  console.error(`[${req.method} ${req.path}]`, err.message);
+  if (res.headersSent) return next(err);
+  res.status(err.status || 500).json({ error: "Erreur serveur. Réessaie plus tard." });
+});
 
 // Socket.IO — auth + chat temps réel
 io.use((socket, next) => {
