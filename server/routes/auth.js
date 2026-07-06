@@ -2,19 +2,35 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import rateLimit from "express-rate-limit";
 import { Resend } from "resend";
 import prisma from "../db.js";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Clé factice en dev local : l'envoi échouera mais le serveur démarre
+const resend = new Resend(process.env.RESEND_API_KEY || "re_dev_placeholder");
 
 const router = Router();
 
+// Anti brute-force : 10 tentatives max par IP toutes les 15 minutes
+// sur les routes sensibles (login, register, mots de passe)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Trop de tentatives. Réessaie dans 15 minutes." },
+});
+
 // POST /auth/register — inscription
-router.post("/register", async (req, res) => {
+router.post("/register", authLimiter, async (req, res) => {
   const { nom, email, password, groupeNom } = req.body;
 
   if (!nom || !email || !password || !groupeNom) {
     return res.status(400).json({ error: "Tous les champs sont requis." });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: "Le mot de passe doit faire au moins 6 caractères." });
   }
 
   const groupe = await prisma.groupe.findUnique({ where: { nom: groupeNom } });
@@ -37,7 +53,7 @@ router.post("/register", async (req, res) => {
 });
 
 // POST /auth/login — connexion
-router.post("/login", async (req, res) => {
+router.post("/login", authLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   const user = await prisma.user.findUnique({
@@ -64,7 +80,7 @@ router.post("/login", async (req, res) => {
 });
 
 // POST /auth/forgot-password — envoie un email de réinitialisation
-router.post("/forgot-password", async (req, res) => {
+router.post("/forgot-password", authLimiter, async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email requis." });
 
@@ -107,7 +123,7 @@ router.post("/forgot-password", async (req, res) => {
 });
 
 // POST /auth/reset-password — réinitialise le mot de passe avec le token
-router.post("/reset-password", async (req, res) => {
+router.post("/reset-password", authLimiter, async (req, res) => {
   const { token, password } = req.body;
   if (!token || !password) return res.status(400).json({ error: "Champs manquants." });
   if (password.length < 6) return res.status(400).json({ error: "Le mot de passe doit faire au moins 6 caractères." });

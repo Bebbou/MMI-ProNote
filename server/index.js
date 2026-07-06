@@ -20,11 +20,21 @@ import { sendPushToAll } from "./utils/push.js";
 const app = express();
 const httpServer = createServer(app);
 
+// Origines autorisées : le front en prod (CLIENT_ORIGIN) + le dev local
+const allowedOrigins = [
+  process.env.CLIENT_ORIGIN,
+  "http://localhost:5173",
+].filter(Boolean);
+
 const io = new Server(httpServer, {
-  cors: { origin: true },
+  cors: { origin: allowedOrigins },
 });
 
-app.use(cors({ origin: true }));
+// Railway est derrière un proxy : nécessaire pour que le rate limiter
+// voie la vraie IP du client et pas celle du proxy
+app.set("trust proxy", 1);
+
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 app.use((req, res, next) => {
