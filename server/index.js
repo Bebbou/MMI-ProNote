@@ -22,8 +22,12 @@ import { sendPushToAll } from "./utils/push.js";
 const app = express();
 const httpServer = createServer(app);
 
-// Origines autorisées : le front en prod (CLIENT_ORIGIN) + le dev local
-const allowedOrigins = [process.env.CLIENT_ORIGIN, "http://localhost:5173"].filter(Boolean);
+// Origines autorisées : le(s) front(s) en prod (CLIENT_ORIGIN, séparées par des virgules
+// si plusieurs, ex. pendant une migration Vercel -> Netlify) + le dev local
+const allowedOrigins = [
+  ...(process.env.CLIENT_ORIGIN?.split(",").map((o) => o.trim()).filter(Boolean) ?? []),
+  "http://localhost:5173",
+];
 
 const io = new Server(httpServer, {
   cors: { origin: allowedOrigins },

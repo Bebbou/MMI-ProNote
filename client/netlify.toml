@@ -1,0 +1,23 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# Routing SPA : toute route inconnue retombe sur index.html (React Router gère la suite).
+# Les fichiers statiques existants (sw.js, manifest, icônes, assets buildés) sont servis
+# normalement et ne passent pas par cette redirection.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Le service worker ne doit jamais être mis en cache : sinon les navigateurs mettent du
+# temps à détecter les nouvelles versions après chaque déploiement.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"
