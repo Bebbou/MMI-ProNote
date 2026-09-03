@@ -23,7 +23,7 @@ const app = express();
 app.use(express.json());
 app.use("/auth", authRoutes);
 
-const GROUPE = { id: 1, nom: "TPA1" };
+const GROUPE = { id: 1, nom: "TDA1" };
 
 describe("POST /auth/register", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -38,7 +38,7 @@ describe("POST /auth/register", () => {
       nom: "Test",
       email: "a@b.c",
       password: "123",
-      groupeNom: "TPA1",
+      groupeNom: "TDA1",
     });
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/6 caractères/);
@@ -62,7 +62,7 @@ describe("POST /auth/register", () => {
       nom: "Test",
       email: "a@b.c",
       password: "motdepasse",
-      groupeNom: "TPA1",
+      groupeNom: "TDA1",
     });
     expect(res.status).toBe(400);
   });
@@ -76,7 +76,7 @@ describe("POST /auth/register", () => {
       nom: "Test",
       email: "nouveau@b.c",
       password: "motdepasse",
-      groupeNom: "TPA1",
+      groupeNom: "TDA1",
     });
 
     expect(res.status).toBe(201);
@@ -124,7 +124,7 @@ describe("POST /auth/login", () => {
     const res = await request(app).post("/auth/login").send({ email: USER.email, password: "bonmotdepasse" });
 
     expect(res.status).toBe(200);
-    expect(res.body.user).toEqual({ id: 1, nom: "Lino", role: "etudiant", groupe: "TPA1" });
+    expect(res.body.user).toEqual({ id: 1, nom: "Lino", role: "etudiant", groupe: "TDA1" });
 
     // Le token doit être signé avec notre secret et contenir les bonnes infos
     const payload = jwt.verify(res.body.token, process.env.JWT_SECRET);

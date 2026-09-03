@@ -29,8 +29,8 @@ router.get("/channels", async (req, res) => {
     where: { id: req.user.groupeId },
     select: { nom: true },
   });
-  // TA1/TA2 → TDA, TB1/TB2 → TDB
-  const tdNom = "TD" + userGroupe.nom[1];
+  // TDA1/TDA2 → TDA, TDB1/TDB2 → TDB (lettre juste avant le chiffre final)
+  const tdNom = "TD" + userGroupe.nom.slice(-2, -1);
   const channels = await prisma.channel.findMany({
     where: {
       OR: [

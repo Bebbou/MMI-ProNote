@@ -3,7 +3,7 @@ import Layout from "../components/Layout";
 import api from "../api/index.js";
 import styles from "./Admin.module.css";
 
-const GROUPES = ["TPA1", "TPA2", "TPB1", "TPB2"];
+const GROUPES = ["TDA1", "TDA2", "TDB1", "TDB2"];
 
 export default function Admin() {
   const [users, setUsers] = useState([]);

@@ -3,10 +3,10 @@ import api from "../api/index.js";
 import PasswordInput from "../components/PasswordInput";
 import styles from "./Login.module.css";
 
-const GROUPES = ["TPA1", "TPA2", "TPB1", "TPB2"];
+const GROUPES = ["TDA1", "TDA2", "TDB1", "TDB2"];
 
 export default function Register() {
-  const [form, setForm] = useState({ nom: "", email: "", password: "", groupeNom: "TPA1" });
+  const [form, setForm] = useState({ nom: "", email: "", password: "", groupeNom: "TDA1" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 

@@ -149,10 +149,10 @@ io.on("connection", (socket) => {
 async function seedChannels() {
   const defauts = [
     { nom: "général", description: "Canal ouvert à tous", type: "general" },
-    { nom: "TPA1", description: "Canal du groupe TPA1", type: "groupe" },
-    { nom: "TPA2", description: "Canal du groupe TPA2", type: "groupe" },
-    { nom: "TPB1", description: "Canal du groupe TPB1", type: "groupe" },
-    { nom: "TPB2", description: "Canal du groupe TPB2", type: "groupe" },
+    { nom: "TDA1", description: "Canal du groupe TDA1", type: "groupe" },
+    { nom: "TDA2", description: "Canal du groupe TDA2", type: "groupe" },
+    { nom: "TDB1", description: "Canal du groupe TDB1", type: "groupe" },
+    { nom: "TDB2", description: "Canal du groupe TDB2", type: "groupe" },
   ];
   for (const c of defauts) {
     await prisma.channel.upsert({ where: { nom: c.nom }, update: {}, create: c });
