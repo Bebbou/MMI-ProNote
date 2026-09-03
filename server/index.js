@@ -18,6 +18,7 @@ import chatRoutes from "./routes/chat.js";
 import documentsRoutes from "./routes/documents.js";
 import sondagesRoutes from "./routes/sondages.js";
 import { sendPushToAll } from "./utils/push.js";
+import { syncTousLesGroupes } from "./services/edtSync.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -166,6 +167,17 @@ async function seedChannels() {
 process.on("uncaughtException", (e) => console.error("uncaughtException:", e));
 process.on("unhandledRejection", (e) => console.error("unhandledRejection:", e));
 
+const UNE_HEURE_MS = 60 * 60 * 1000;
+
+async function syncEdt() {
+  try {
+    const resultats = await syncTousLesGroupes();
+    if (resultats.length) console.log("Sync EDT :", resultats);
+  } catch (e) {
+    console.warn("Sync EDT ignorée :", e.message);
+  }
+}
+
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, async () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);
@@ -174,4 +186,6 @@ httpServer.listen(PORT, async () => {
   } catch (e) {
     console.warn("seedChannels ignoré :", e.message);
   }
+  syncEdt();
+  setInterval(syncEdt, UNE_HEURE_MS);
 });

@@ -3,17 +3,43 @@ import Layout from "../components/Layout";
 import api from "../api/index.js";
 import styles from "./Admin.module.css";
 
-const GROUPES = ["TDA1", "TDA2", "TDB1", "TDB2"];
+const GROUPES = ["TDA1", "TDA2", "TDB1"];
 
 export default function Admin() {
   const [users, setUsers] = useState([]);
   const [editUser, setEditUser] = useState(null);
   const [editForm, setEditForm] = useState({ nom: "", email: "", groupeNom: "" });
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [groupes, setGroupes] = useState([]);
+  const [icalDrafts, setIcalDrafts] = useState({});
+  const [syncStatus, setSyncStatus] = useState({});
 
   useEffect(() => {
     api.get("/admin/users").then((res) => setUsers(res.data));
+    api.get("/admin/groupes").then((res) => {
+      setGroupes(res.data);
+      setIcalDrafts(Object.fromEntries(res.data.map((g) => [g.id, g.icalUrl ?? ""])));
+    });
   }, []);
+
+  async function handleSaveIcal(id) {
+    const { data } = await api.patch(`/admin/groupes/${id}`, { icalUrl: icalDrafts[id] });
+    setGroupes(groupes.map((g) => (g.id === id ? data : g)));
+    setSyncStatus({ ...syncStatus, [id]: "Enregistré." });
+  }
+
+  async function handleSyncNow(id) {
+    setSyncStatus({ ...syncStatus, [id]: "Synchronisation…" });
+    try {
+      const { data } = await api.post(`/admin/groupes/${id}/sync-edt`);
+      setSyncStatus({
+        ...syncStatus,
+        [id]: `${data.importes} cours importés, ${data.supprimes} retirés.`,
+      });
+    } catch (err) {
+      setSyncStatus({ ...syncStatus, [id]: err.response?.data?.error ?? "Erreur de synchronisation." });
+    }
+  }
 
   async function handleValider(id) {
     await api.patch(`/admin/users/${id}/valider`);
@@ -82,6 +108,39 @@ export default function Admin() {
             </div>
           </section>
         )}
+
+        <section>
+          <h2 className={styles.sectionTitle}>Emploi du temps — flux iCal par groupe</h2>
+          <div className={styles.list}>
+            {groupes.map((g) => (
+              <div key={g.id} className={styles.card}>
+                <div className={styles.info}>
+                  <span className={styles.nom}>{g.nom}</span>
+                  <input
+                    type="url"
+                    placeholder="Lien iCal (ADE)"
+                    value={icalDrafts[g.id] ?? ""}
+                    onChange={(e) => setIcalDrafts({ ...icalDrafts, [g.id]: e.target.value })}
+                    style={{ minWidth: "320px" }}
+                  />
+                  {syncStatus[g.id] && <span className={styles.email}>{syncStatus[g.id]}</span>}
+                </div>
+                <div className={styles.actions}>
+                  <button className={styles.editBtn} onClick={() => handleSaveIcal(g.id)}>
+                    Enregistrer
+                  </button>
+                  <button
+                    className={styles.validateBtn}
+                    onClick={() => handleSyncNow(g.id)}
+                    disabled={!g.icalUrl}
+                  >
+                    Synchroniser maintenant
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section>
           <h2 className={styles.sectionTitle}>Utilisateurs actifs ({valides.length})</h2>

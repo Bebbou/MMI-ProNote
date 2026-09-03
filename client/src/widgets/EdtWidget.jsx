@@ -4,7 +4,15 @@ import { Calendar } from "lucide-react";
 import api from "../api/index.js";
 import styles from "./Widget.module.css";
 
-const JOURS = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+function formatHeure(iso) {
+  return new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function estAujourdhui(iso) {
+  const a = new Date(iso);
+  const b = new Date();
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
 
 export default function EdtWidget() {
   const [cours, setCours] = useState([]);
@@ -16,10 +24,9 @@ export default function EdtWidget() {
       .catch(() => {});
   }, []);
 
-  const aujourdhui = JOURS[new Date().getDay()];
   const coursDuJour = cours
-    .filter((c) => c.jour === aujourdhui)
-    .sort((a, b) => a.heureDebut.localeCompare(b.heureDebut));
+    .filter((c) => estAujourdhui(c.dateDebut) && !c.annule)
+    .sort((a, b) => new Date(a.dateDebut) - new Date(b.dateDebut));
 
   return (
     <div className={styles.widget}>
@@ -34,7 +41,7 @@ export default function EdtWidget() {
         {coursDuJour.map((c) => (
           <div key={c.id} className={styles.item}>
             <div className={styles.itemMain}>
-              <span className={styles.tag}>{c.heureDebut}</span>
+              <span className={styles.tag}>{formatHeure(c.dateDebut)}</span>
               <span className={styles.itemTitle}>{c.matiere}</span>
               <span className={styles.itemDate}>{c.salle || ""}</span>
             </div>

@@ -36,6 +36,70 @@
   background: var(--accent-hover);
 }
 
+.weekNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.weekNav > button {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.45rem 1rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  white-space: nowrap;
+}
+
+.weekNav > button:hover {
+  border-color: var(--accent);
+}
+
+.weekLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.today {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-transform: none;
+}
+
+.badgeAnnule {
+  margin-left: 0.4rem;
+  background: var(--danger);
+  color: #fff;
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.coursAnnule {
+  opacity: 0.6;
+}
+
+.coursAnnule .coursMatiere {
+  text-decoration: line-through;
+}
+
 .form {
   background: var(--bg-card);
   border: 1px solid var(--border);

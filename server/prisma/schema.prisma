@@ -9,7 +9,8 @@ datasource db {
 
 model Groupe {
   id      Int      @id @default(autoincrement())
-  nom     String   @unique // TA1, TA2, TB1, TB2
+  nom     String   @unique // TDA1, TDA2, TDB1
+  icalUrl String? // flux iCal ADE du groupe, resynchronisé automatiquement (voir services/edtSync.js)
   users   User[]
   devoirs Devoir[]
   cours   Cours[]
@@ -128,16 +129,19 @@ model PasswordReset {
 }
 
 model Cours {
-  id         Int    @id @default(autoincrement())
-  matiere    String
-  jour       String
-  heureDebut String
-  heureFin   String
-  salle      String?
-  prof       String?
+  id        Int      @id @default(autoincrement())
+  matiere   String
+  dateDebut DateTime
+  dateFin   DateTime
+  salle     String?
+  prof      String?
+  annule    Boolean  @default(false)
+  uid       String?  @unique // identifiant de l'événement iCal (ADE) ; null pour un cours ajouté à la main
 
   groupe   Groupe @relation(fields: [groupeId], references: [id])
   groupeId Int
+
+  @@index([groupeId, dateDebut])
 }
 
 model Document {

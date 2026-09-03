@@ -4,28 +4,31 @@ import { requireAuth, requireRole } from "../middlewares/auth.js";
 
 const router = Router();
 
-// GET /edt — cours du groupe de l'utilisateur connecté
+// GET /edt — cours du groupe de l'utilisateur connecté (à partir d'il y a 7 jours,
+// pour garder un peu d'historique récent visible en plus du futur)
 router.get("/", requireAuth, async (req, res) => {
+  const depuis = new Date();
+  depuis.setDate(depuis.getDate() - 7);
+
   const cours = await prisma.cours.findMany({
-    where: { groupeId: req.user.groupeId },
-    orderBy: [{ jour: "asc" }, { heureDebut: "asc" }],
+    where: { groupeId: req.user.groupeId, dateFin: { gte: depuis } },
+    orderBy: { dateDebut: "asc" },
   });
   res.json(cours);
 });
 
-// POST /edt — ajoute un cours (admin seulement)
+// POST /edt — ajoute un cours à la main (admin seulement, en plus de la sync iCal)
 router.post("/", requireAuth, requireRole("admin"), async (req, res) => {
-  const { matiere, jour, heureDebut, heureFin, salle, prof, groupeId } = req.body;
-  if (!matiere || !jour || !heureDebut || !heureFin) {
-    return res.status(400).json({ error: "Matière, jour et horaires sont requis." });
+  const { matiere, dateDebut, dateFin, salle, prof, groupeId } = req.body;
+  if (!matiere || !dateDebut || !dateFin) {
+    return res.status(400).json({ error: "Matière, date de début et date de fin sont requises." });
   }
 
   const cours = await prisma.cours.create({
     data: {
       matiere,
-      jour,
-      heureDebut,
-      heureFin,
+      dateDebut: new Date(dateDebut),
+      dateFin: new Date(dateFin),
       salle: salle ?? null,
       prof: prof ?? null,
       groupeId: groupeId ?? req.user.groupeId,
