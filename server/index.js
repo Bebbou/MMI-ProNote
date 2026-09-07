@@ -19,6 +19,7 @@ import documentsRoutes from "./routes/documents.js";
 import sondagesRoutes from "./routes/sondages.js";
 import { sendPushToAll } from "./utils/push.js";
 import { syncTousLesGroupes } from "./services/edtSync.js";
+import { utilisateurPeutAccederAuCanal } from "./utils/chatAccess.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -84,12 +85,21 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
+  // Un utilisateur ne peut rejoindre que la room de SON PROPRE groupe (les
+  // événements temps réel de devoirs/EDT d'un autre groupe ne doivent pas fuiter)
   socket.on("rejoindreGroupe", (groupeId) => {
+    if (socket.user.role !== "admin" && Number(groupeId) !== socket.user.groupeId) return;
     socket.join(`groupe-${groupeId}`);
   });
 
-  socket.on("rejoindreChannel", (channelId) => {
-    socket.join(`channel-${channelId}`);
+  // Idem pour les canaux de chat : on vérifie que ce canal est bien accessible
+  // à ce groupe avant de rejoindre la room (sinon fuite des messages temps réel)
+  socket.on("rejoindreChannel", async (channelId) => {
+    try {
+      const channel = await prisma.channel.findUnique({ where: { id: Number(channelId) } });
+      if (!(await utilisateurPeutAccederAuCanal(socket.user, channel))) return;
+      socket.join(`channel-${channelId}`);
+    } catch {}
   });
 
   socket.on("quitterChannel", (channelId) => {
@@ -99,11 +109,9 @@ io.on("connection", (socket) => {
   socket.on("envoyerMessage", async ({ channelId, content, replyToId }) => {
     if (!content?.trim() || !channelId) return;
     try {
+      const channel = await prisma.channel.findUnique({ where: { id: channelId } });
+      if (!(await utilisateurPeutAccederAuCanal(socket.user, channel))) return;
       // Bloquer les étudiants sur le canal Annonces
-      const channel = await prisma.channel.findUnique({
-        where: { id: channelId },
-        select: { type: true, nom: true },
-      });
       if (channel?.type === "annonce" && !["admin", "delegue"].includes(socket.user.role)) return;
 
       const message = await prisma.message.create({
@@ -157,7 +165,6 @@ async function seedChannels() {
     { nom: "TDA1", description: "Canal du groupe TDA1", type: "groupe" },
     { nom: "TDA2", description: "Canal du groupe TDA2", type: "groupe" },
     { nom: "TDB1", description: "Canal du groupe TDB1", type: "groupe" },
-    { nom: "TDB2", description: "Canal du groupe TDB2", type: "groupe" },
   ];
   for (const c of defauts) {
     await prisma.channel.upsert({ where: { nom: c.nom }, update: {}, create: c });

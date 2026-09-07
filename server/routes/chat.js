@@ -1,6 +1,7 @@
 import { Router } from "express";
 import prisma from "../db.js";
 import { requireAuth, requireRole } from "../middlewares/auth.js";
+import { utilisateurPeutAccederAuCanal } from "../utils/chatAccess.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -73,6 +74,11 @@ router.get("/channels/:id/messages", async (req, res) => {
   const channelId = Number(req.params.id);
   const before = req.query.before ? Number(req.query.before) : undefined;
 
+  const channel = await prisma.channel.findUnique({ where: { id: channelId } });
+  if (!(await utilisateurPeutAccederAuCanal(req.user, channel))) {
+    return res.status(403).json({ error: "Accès refusé à ce canal." });
+  }
+
   const messages = await prisma.message.findMany({
     where: { channelId, ...(before ? { id: { lt: before } } : {}) },
     include: msgInclude,
@@ -103,6 +109,10 @@ router.patch("/messages/:id", async (req, res) => {
   if (message.auteurId != req.user.id && req.user.role !== "admin") {
     return res.status(403).json({ error: "Interdit." });
   }
+  const channel = await prisma.channel.findUnique({ where: { id: message.channelId } });
+  if (!(await utilisateurPeutAccederAuCanal(req.user, channel))) {
+    return res.status(403).json({ error: "Accès refusé à ce canal." });
+  }
   const updated = await prisma.message.update({
     where: { id: message.id },
     data: { content: content.trim(), editedAt: new Date() },
@@ -124,6 +134,11 @@ router.post("/messages/:id/reactions", async (req, res) => {
 
   const message = await prisma.message.findUnique({ where: { id: messageId } });
   if (!message) return res.status(404).json({ error: "Message introuvable." });
+
+  const channel = await prisma.channel.findUnique({ where: { id: message.channelId } });
+  if (!(await utilisateurPeutAccederAuCanal(req.user, channel))) {
+    return res.status(403).json({ error: "Accès refusé à ce canal." });
+  }
 
   const existing = await prisma.reaction.findUnique({
     where: { userId_messageId_emoji: { userId, messageId, emoji } },

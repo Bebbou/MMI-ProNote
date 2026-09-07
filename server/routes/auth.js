@@ -114,7 +114,10 @@ router.post("/forgot-password", authLimiter, async (req, res) => {
 
   await prisma.passwordReset.create({ data: { token, expiresAt, userId: user.id } });
 
-  const resetUrl = `${process.env.CLIENT_ORIGIN}/reset-password?token=${token}`;
+  // CLIENT_ORIGIN peut contenir plusieurs origines séparées par des virgules
+  // (migration Vercel -> Netlify) : on prend la première pour construire le lien.
+  const clientOrigin = process.env.CLIENT_ORIGIN?.split(",")[0]?.trim();
+  const resetUrl = `${clientOrigin}/reset-password?token=${token}`;
 
   await resend.emails.send({
     from: "Pronote-MMI <onboarding@resend.dev>",

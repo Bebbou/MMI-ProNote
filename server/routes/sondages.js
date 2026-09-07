@@ -1,6 +1,7 @@
 import { Router } from "express";
 import prisma from "../db.js";
 import { requireAuth, requireRole } from "../middlewares/auth.js";
+import { utilisateurPeutAccederAuCanal } from "../utils/chatAccess.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -17,6 +18,10 @@ const sondageInclude = {
 // GET /sondages/channel/:channelId
 router.get("/channel/:channelId", async (req, res) => {
   const channelId = Number(req.params.channelId);
+  const channel = await prisma.channel.findUnique({ where: { id: channelId } });
+  if (!(await utilisateurPeutAccederAuCanal(req.user, channel))) {
+    return res.status(403).json({ error: "Accès refusé à ce canal." });
+  }
   const sondages = await prisma.sondage.findMany({
     where: { channelId },
     include: sondageInclude,
@@ -33,6 +38,11 @@ router.post("/", requireRole("admin", "delegue"), async (req, res) => {
     return res.status(400).json({ error: "2 à 6 options requises." });
   }
   if (!channelId) return res.status(400).json({ error: "Canal requis." });
+
+  const channel = await prisma.channel.findUnique({ where: { id: Number(channelId) } });
+  if (!(await utilisateurPeutAccederAuCanal(req.user, channel))) {
+    return res.status(403).json({ error: "Accès refusé à ce canal." });
+  }
 
   const sondage = await prisma.sondage.create({
     data: {
@@ -59,6 +69,11 @@ router.post("/:id/vote", async (req, res) => {
   const sondage = await prisma.sondage.findUnique({ where: { id: sondageId } });
   if (!sondage) return res.status(404).json({ error: "Sondage introuvable." });
   if (sondage.clos) return res.status(403).json({ error: "Sondage clos." });
+
+  const channel = await prisma.channel.findUnique({ where: { id: sondage.channelId } });
+  if (!(await utilisateurPeutAccederAuCanal(req.user, channel))) {
+    return res.status(403).json({ error: "Accès refusé à ce canal." });
+  }
 
   const option = await prisma.optionSondage.findUnique({ where: { id: Number(optionId) } });
   if (!option || option.sondageId !== sondageId) {
