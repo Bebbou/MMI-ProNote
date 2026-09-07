@@ -71,6 +71,7 @@ export default function EDT() {
     const jourSemaine = new Date().getDay(); // 0 = dimanche, 1 = lundi...
     return jourSemaine >= 1 && jourSemaine <= 5 ? jourSemaine - 1 : 0;
   });
+  const [coursDetail, setCoursDetail] = useState(null); // cours cliqué, affiché dans une modale
 
   useEffect(() => {
     api.get("/edt").then((res) => setCours(res.data));
@@ -277,8 +278,9 @@ export default function EDT() {
                 const { top, hauteur } = positionBloc(c);
                 const largeur = 100 / nbColonnes;
                 return (
-                  <div
+                  <button
                     key={c.id}
+                    type="button"
                     className={`${styles.bloc} ${styles["couleur-" + couleurMatiere(c.matiere)]} ${c.annule ? styles.blocAnnule : ""}`}
                     style={{
                       top,
@@ -286,7 +288,7 @@ export default function EDT() {
                       left: `${colonne * largeur}%`,
                       width: `calc(${largeur}% - 4px)`,
                     }}
-                    title={`${c.matiere} · ${formatHeure(c.debutDate)}–${formatHeure(c.finDate)}${c.salle ? " · " + c.salle : ""}`}
+                    onClick={() => setCoursDetail(c)}
                   >
                     <span className={styles.blocHeure}>
                       {formatHeure(c.debutDate)}–{formatHeure(c.finDate)}
@@ -296,17 +298,63 @@ export default function EDT() {
                     {c.salle && <span className={styles.blocMeta}>{c.salle}</span>}
                     {c.prof && <span className={styles.blocMeta}>{c.prof}</span>}
                     {user?.role === "admin" && (
-                      <button className={styles.deleteBtn} onClick={() => handleDelete(c.id)}>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        className={styles.deleteBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(c.id);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            handleDelete(c.id);
+                          }
+                        }}
+                      >
                         ✕
-                      </button>
+                      </span>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>
           ))}
         </div>
       </div>
+
+      {coursDetail && (
+        <div className={styles.detailOverlay} onClick={() => setCoursDetail(null)}>
+          <div className={styles.detailModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.detailHeader}>
+              <span className={`${styles.detailPastille} ${styles["couleur-" + couleurMatiere(coursDetail.matiere)]}`} />
+              <h3 className={styles.detailTitre}>{coursDetail.matiere}</h3>
+              {coursDetail.annule && <span className={styles.badgeAnnule}>Annulé</span>}
+            </div>
+            <dl className={styles.detailList}>
+              <div className={styles.detailRow}>
+                <dt>Horaire</dt>
+                <dd>
+                  {formatHeure(new Date(coursDetail.dateDebut))}–{formatHeure(new Date(coursDetail.dateFin))}
+                </dd>
+              </div>
+              <div className={styles.detailRow}>
+                <dt>Salle</dt>
+                <dd>{coursDetail.salle || "Non renseignée"}</dd>
+              </div>
+              <div className={styles.detailRow}>
+                <dt>Professeur</dt>
+                <dd>{coursDetail.prof || "Non renseigné"}</dd>
+              </div>
+            </dl>
+            <button type="button" className={styles.detailClose} onClick={() => setCoursDetail(null)}>
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
