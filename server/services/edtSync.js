@@ -1,8 +1,11 @@
 // Synchronise l'emploi du temps de chaque groupe depuis son flux iCal ADE.
 //
 // Format ADE observé : un VEVENT à plat par séance (pas de RRULE), avec un UID stable
-// par séance. On upsert donc chaque événement par UID, puis on supprime les cours du
-// groupe dont l'UID n'apparaît plus dans le flux (créneau supprimé/déplacé côté ADE).
+// par séance. Important : cet UID n'est PAS unique par groupe — un cours partagé entre
+// plusieurs groupes (CM commun, TD partagé A/B...) porte le même UID dans le flux de
+// chacun des groupes qui y assistent. On upsert donc chaque événement par la paire
+// (groupe, UID), jamais par UID seul, sinon un seul groupe garde la ligne et les autres
+// ne voient jamais ce cours. Le nettoyage des créneaux disparus se fait aussi par groupe.
 //
 // La DESCRIPTION ADE n'a pas de format garanti ; l'extraction du prof est une
 // heuristique best-effort (une ligne "NOM   Prénom" tout en majuscules), pas fiable à 100%.
@@ -37,7 +40,7 @@ async function syncGroupe(groupe) {
     const annule = MOTS_ANNULATION.test(texte) || e.status === "CANCELLED";
 
     await prisma.cours.upsert({
-      where: { uid },
+      where: { groupeId_uid: { groupeId: groupe.id, uid } },
       create: {
         uid,
         matiere: e.summary ?? "Cours",

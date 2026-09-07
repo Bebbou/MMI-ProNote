@@ -136,12 +136,16 @@ model Cours {
   salle     String?
   prof      String?
   annule    Boolean  @default(false)
-  uid       String?  @unique // identifiant de l'événement iCal (ADE) ; null pour un cours ajouté à la main
+  uid       String? // identifiant de l'événement iCal (ADE) ; null pour un cours ajouté à la main
 
   groupe   Groupe @relation(fields: [groupeId], references: [id])
   groupeId Int
 
   @@index([groupeId, dateDebut])
+  // Unique par (groupe, uid) et non par uid seul : ADE réutilise le même UID pour un
+  // cours partagé entre plusieurs groupes (CM commun, TD partagé...). Chaque groupe qui
+  // y assiste doit obtenir sa propre ligne, sinon seul le premier groupe synchronisé le voit.
+  @@unique([groupeId, uid])
 }
 
 model Document {

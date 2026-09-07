@@ -337,7 +337,66 @@
   color: var(--danger);
 }
 
-@media (max-width: 900px) {
+/* --- Onglets jours : uniquement visibles en vue mobile (un seul jour à la fois) --- */
+
+.dayTabs {
+  display: none;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+}
+
+.dayTab {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.4rem 0.3rem;
+  font-family: inherit;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dayTabActive {
+  background: var(--tint-pink);
+  border-color: var(--accent);
+}
+
+.dayTabNom {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.dayTabActive .dayTabNom {
+  color: var(--accent);
+}
+
+.dayTabNum {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dayTabPoint {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.4rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-orange);
+}
+
+@media (max-width: 900px) and (min-width: 641px) {
   .timetable {
     grid-template-columns: 40px repeat(5, minmax(120px, 1fr));
     overflow-x: auto;
@@ -357,5 +416,32 @@
 
   .row {
     grid-template-columns: 1fr;
+  }
+}
+
+/* --- Vue mobile : un seul jour à la fois, piloté par les onglets ci-dessus --- */
+
+@media (max-width: 640px) {
+  .dayTabs {
+    display: flex;
+  }
+
+  .timetable {
+    grid-template-columns: 36px 1fr;
+  }
+
+  /* On masque les en-têtes et colonnes des jours qui ne correspondent pas au jour
+     sélectionné (data-i sur chaque cellule vs data-jour-mobile sur le conteneur). */
+  .timetable[data-jour-mobile="0"] .dayHeader:not([data-i="0"]),
+  .timetable[data-jour-mobile="0"] .dayColumn:not([data-i="0"]),
+  .timetable[data-jour-mobile="1"] .dayHeader:not([data-i="1"]),
+  .timetable[data-jour-mobile="1"] .dayColumn:not([data-i="1"]),
+  .timetable[data-jour-mobile="2"] .dayHeader:not([data-i="2"]),
+  .timetable[data-jour-mobile="2"] .dayColumn:not([data-i="2"]),
+  .timetable[data-jour-mobile="3"] .dayHeader:not([data-i="3"]),
+  .timetable[data-jour-mobile="3"] .dayColumn:not([data-i="3"]),
+  .timetable[data-jour-mobile="4"] .dayHeader:not([data-i="4"]),
+  .timetable[data-jour-mobile="4"] .dayColumn:not([data-i="4"]) {
+    display: none;
   }
 }

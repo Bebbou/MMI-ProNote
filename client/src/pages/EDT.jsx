@@ -65,6 +65,12 @@ export default function EDT() {
   const [semaineOffset, setSemaineOffset] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ matiere: "", dateDebut: "", dateFin: "", salle: "", prof: "" });
+  // Jour affiché seul sur mobile (0 = Lundi ... 4 = Vendredi). Par défaut, le jour
+  // d'aujourd'hui si on est en semaine, sinon Lundi.
+  const [jourMobile, setJourMobile] = useState(() => {
+    const jourSemaine = new Date().getDay(); // 0 = dimanche, 1 = lundi...
+    return jourSemaine >= 1 && jourSemaine <= 5 ? jourSemaine - 1 : 0;
+  });
 
   useEffect(() => {
     api.get("/edt").then((res) => setCours(res.data));
@@ -185,6 +191,21 @@ export default function EDT() {
           </button>
         </div>
 
+        <div className={styles.dayTabs}>
+          {jours.map(({ nom, date }, i) => (
+            <button
+              key={nom}
+              type="button"
+              className={`${styles.dayTab} ${i === jourMobile ? styles.dayTabActive : ""}`}
+              onClick={() => setJourMobile(i)}
+            >
+              <span className={styles.dayTabNom}>{nom.slice(0, 3)}</span>
+              <span className={styles.dayTabNum}>{date.getDate()}</span>
+              {memeJour(date, maintenant) && <span className={styles.dayTabPoint} />}
+            </button>
+          ))}
+        </div>
+
         {showForm && (
           <form className={styles.form} onSubmit={handleSubmit}>
             <input
@@ -221,10 +242,14 @@ export default function EDT() {
           </form>
         )}
 
-        <div className={styles.timetable}>
+        <div className={styles.timetable} data-jour-mobile={jourMobile}>
           <div className={styles.corner} />
-          {jours.map(({ nom, date }) => (
-            <div key={nom} className={`${styles.dayHeader} ${memeJour(date, maintenant) ? styles.dayHeaderToday : ""}`}>
+          {jours.map(({ nom, date }, i) => (
+            <div
+              key={nom}
+              data-i={i}
+              className={`${styles.dayHeader} ${memeJour(date, maintenant) ? styles.dayHeaderToday : ""}`}
+            >
               <span className={styles.dayName}>{nom}</span>
               <span className={styles.dayNum}>{date.getDate()}</span>
             </div>
@@ -239,7 +264,7 @@ export default function EDT() {
           </div>
 
           {jours.map(({ date }, i) => (
-            <div key={i} className={styles.dayColumn} style={{ height: hauteurGrille }}>
+            <div key={i} data-i={i} className={styles.dayColumn} style={{ height: hauteurGrille }}>
               {heures.map((h) => (
                 <div key={h} className={styles.hourLine} style={{ height: HAUTEUR_HEURE }} />
               ))}
