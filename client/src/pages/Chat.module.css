@@ -1,6 +1,6 @@
 .page {
   display: flex;
-  height: calc(100vh - 4rem);
+  height: 100vh;
   gap: 0;
   margin: -2rem;
   overflow: hidden;
