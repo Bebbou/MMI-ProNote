@@ -32,7 +32,7 @@ Petit mentions honorable qui me donner des idées de feature !
 
 ## Outils et services
 
-- **[Vercel](https://vercel.com/)** — hébergement du frontend
+- **[Netlify](https://netlify.com/)** — hébergement du frontend
 - **[Railway](https://railway.app/)** — hébergement du backend et de la base PostgreSQL
 - Développé avec l'aide de l'intelligence artificielle (voir [README](README.md))
 
