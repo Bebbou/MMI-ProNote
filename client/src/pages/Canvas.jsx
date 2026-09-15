@@ -167,13 +167,13 @@ export default function Canvas() {
           )}
         </div>
 
-        <Link to="/dashboard" className={styles.backBtn}>
+        <Link to="/dashboard" className={styles.backBtn} title="Vue classique">
           <ArrowLeft size={12} strokeWidth={1.5} />
-          Vue classique
+          <span className={styles.btnLabel}>Vue classique</span>
         </Link>
-        <button className={styles.logout} onClick={handleLogout}>
+        <button className={styles.logout} onClick={handleLogout} title="Déconnexion">
           <LogOut size={12} strokeWidth={1.5} />
-          Déconnexion
+          <span className={styles.btnLabel}>Déconnexion</span>
         </button>
       </div>
 
