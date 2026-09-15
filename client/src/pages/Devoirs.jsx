@@ -179,7 +179,7 @@ export default function Devoirs() {
           <div className={styles.list}>
             {devoirsAffiches.length === 0 && (
               <p className={styles.empty}>
-                {onglet === "aRendre" ? "Rien à rendre pour l'instant 🎉" : "Aucun devoir pour l'instant"}
+                {onglet === "aRendre" ? "Rien à rendre pour l'instant" : "Aucun devoir pour l'instant"}
               </p>
             )}
             {devoirsAffiches.map((devoir) => {
