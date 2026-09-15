@@ -38,6 +38,7 @@ model User {
   commentairesDocs   CommentaireDoc[]   @relation("AuteurCommentaireDoc")
   sondages           Sondage[]          @relation("AuteurSondage")
   votes              VoteSondage[]
+  devoirsRendus      DevoirRendu[]
 }
 
 model PushSubscription {
@@ -63,6 +64,23 @@ model Devoir {
 
   auteur   User @relation("AuteurDevoir", fields: [auteurId], references: [id])
   auteurId Int
+
+  rendus DevoirRendu[]
+}
+
+// Suivi "j'ai rendu ce devoir" par étudiant (état personnel, pas partagé avec le groupe).
+// Une ligne = un étudiant a coché ce devoir comme rendu.
+model DevoirRendu {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  devoir   Devoir @relation(fields: [devoirId], references: [id], onDelete: Cascade)
+  devoirId Int
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  @@unique([devoirId, userId])
 }
 
 model Note {
