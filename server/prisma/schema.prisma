@@ -170,7 +170,9 @@ model Document {
   id          Int      @id @default(autoincrement())
   titre       String
   description String?
-  matiere     String
+  matiere     String // ressource (ex. "CMS avancé")
+  prof        String? // enseignant (ex. "Talleux")
+  type        String   @default("Autre") // CM | TD | TP | Projet | Autre
   fileName    String
   fileSize    Int
   fileData    Bytes
