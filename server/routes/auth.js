@@ -23,11 +23,22 @@ const authLimiter = rateLimit({
   skip: () => process.env.NODE_ENV === "test",
 });
 
+// GET /auth/groupes — liste publique des groupes (id, nom, promo), pour le
+// formulaire d'inscription. Le nom seul ne suffit plus à identifier un groupe
+// depuis qu'il est réutilisé d'une promo à l'autre (MMI2, MMI3...).
+router.get("/groupes", async (req, res) => {
+  const groupes = await prisma.groupe.findMany({
+    select: { id: true, nom: true, promo: true },
+    orderBy: [{ promo: "asc" }, { nom: "asc" }],
+  });
+  res.json(groupes);
+});
+
 // POST /auth/register — inscription
 router.post("/register", authLimiter, async (req, res) => {
-  const { nom, email, password, groupeNom } = req.body;
+  const { nom, email, password, groupeId } = req.body;
 
-  if (!nom || !email || !password || !groupeNom) {
+  if (!nom || !email || !password || !groupeId) {
     return res.status(400).json({ error: "Tous les champs sont requis." });
   }
 
@@ -35,7 +46,7 @@ router.post("/register", authLimiter, async (req, res) => {
     return res.status(400).json({ error: "Le mot de passe doit faire au moins 6 caractères." });
   }
 
-  const groupe = await prisma.groupe.findUnique({ where: { nom: groupeNom } });
+  const groupe = await prisma.groupe.findUnique({ where: { id: Number(groupeId) } });
   if (!groupe) {
     return res.status(400).json({ error: "Groupe invalide." });
   }
@@ -69,13 +80,15 @@ router.post("/login", authLimiter, async (req, res) => {
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) return res.status(401).json({ error: "Identifiants invalides." });
 
-  const token = jwt.sign({ id: user.id, role: user.role, groupeId: user.groupeId }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+  const token = jwt.sign(
+    { id: user.id, role: user.role, groupeId: user.groupeId, promo: user.groupe.promo },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
 
   res.json({
     token,
-    user: { id: user.id, nom: user.nom, role: user.role, groupe: user.groupe.nom },
+    user: { id: user.id, nom: user.nom, role: user.role, groupe: user.groupe.nom, promo: user.groupe.promo },
   });
 });
 
@@ -89,7 +102,7 @@ router.get("/me", requireAuth, async (req, res) => {
   if (!user) return res.status(404).json({ error: "Utilisateur introuvable." });
 
   res.json({
-    user: { id: user.id, nom: user.nom, role: user.role, groupe: user.groupe.nom },
+    user: { id: user.id, nom: user.nom, role: user.role, groupe: user.groupe.nom, promo: user.groupe.promo },
   });
 });
 

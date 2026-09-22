@@ -4,11 +4,13 @@ import { requireAuth, requireRole } from "../middlewares/auth.js";
 
 const router = Router();
 
-// GET /edt/groupes — liste des groupes (id + nom), pour choisir quel EDT consulter
+// GET /edt/groupes — liste des groupes (id + nom + promo), pour choisir quel EDT
+// consulter. La promo est nécessaire pour distinguer deux groupes de même nom
+// dans des promos différentes (ex. TDA1 en MMI2 et TDA1 en MMI3).
 router.get("/groupes", requireAuth, async (req, res) => {
   const groupes = await prisma.groupe.findMany({
-    select: { id: true, nom: true },
-    orderBy: { nom: "asc" },
+    select: { id: true, nom: true, promo: true },
+    orderBy: [{ promo: "asc" }, { nom: "asc" }],
   });
   res.json(groupes);
 });

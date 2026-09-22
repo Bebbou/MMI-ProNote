@@ -9,11 +9,14 @@ datasource db {
 
 model Groupe {
   id      Int      @id @default(autoincrement())
-  nom     String   @unique // TDA1, TDA2, TDB1
+  nom     String // TDA1, TDA2, TDB1, TDB2 — pas unique seul : réutilisé d'une promo à l'autre
+  promo   String // "MMI2", "MMI3"... distingue les groupes de même nom entre promos
   icalUrl String? // flux iCal ADE du groupe, resynchronisé automatiquement (voir services/edtSync.js)
   users   User[]
   devoirs Devoir[]
   cours   Cours[]
+
+  @@unique([nom, promo])
 }
 
 model User {
@@ -96,12 +99,15 @@ model Note {
 
 model Channel {
   id          Int       @id @default(autoincrement())
-  nom         String    @unique
+  nom         String
   description String?
-  type        String    @default("custom") // general | groupe | custom
+  type        String    @default("custom") // general | annonce | custom
+  promo       String? // null = visible à tous ; sinon propre à une promo (ex. Annonces)
   createdAt   DateTime  @default(now())
   messages    Message[]
   sondages    Sondage[]
+
+  @@unique([nom, promo])
 }
 
 model Message {

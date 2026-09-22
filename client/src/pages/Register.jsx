@@ -1,14 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../api/index.js";
 import PasswordInput from "../components/PasswordInput";
 import styles from "./Login.module.css";
 
-const GROUPES = ["TDA1", "TDA2", "TDB1"];
-
 export default function Register() {
-  const [form, setForm] = useState({ nom: "", email: "", password: "", groupeNom: "TDA1" });
+  const [groupes, setGroupes] = useState([]);
+  const [form, setForm] = useState({ nom: "", email: "", password: "", groupeId: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // Liste publique des groupes (id + nom + promo) : le nom seul ne suffit plus à
+  // choisir un groupe depuis qu'il est réutilisé d'une promo à l'autre (MMI2, MMI3...)
+  useEffect(() => {
+    api.get("/auth/groupes").then((res) => {
+      setGroupes(res.data);
+      if (res.data.length > 0) setForm((f) => ({ ...f, groupeId: res.data[0].id }));
+    });
+  }, []);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -41,6 +49,12 @@ export default function Register() {
     );
   }
 
+  // Regroupe les options par promo pour l'affichage (optgroup)
+  const groupesParPromo = groupes.reduce((acc, g) => {
+    (acc[g.promo] ??= []).push(g);
+    return acc;
+  }, {});
+
   return (
     <div className={styles.page}>
       <div className={styles.card}>
@@ -63,9 +77,15 @@ export default function Register() {
             onChange={handleChange}
             required
           />
-          <select name="groupeNom" value={form.groupeNom} onChange={handleChange}>
-            {GROUPES.map((g) => (
-              <option key={g}>{g}</option>
+          <select name="groupeId" value={form.groupeId} onChange={handleChange}>
+            {Object.entries(groupesParPromo).map(([promo, gs]) => (
+              <optgroup key={promo} label={promo}>
+                {gs.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.nom}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
           {error && <p className={styles.error}>{error}</p>}

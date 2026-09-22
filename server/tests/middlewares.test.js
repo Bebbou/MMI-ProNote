@@ -48,7 +48,13 @@ describe("requireAuth", () => {
   it("accepte un token valide et recharge le rôle depuis la base", async () => {
     const token = jwt.sign({ id: 1, role: "etudiant", groupeId: 1 }, process.env.JWT_SECRET);
     // En base, l'utilisateur est devenu délégué depuis l'émission du token
-    prisma.user.findUnique.mockResolvedValue({ id: 1, role: "delegue", groupeId: 2, valide: true });
+    prisma.user.findUnique.mockResolvedValue({
+      id: 1,
+      role: "delegue",
+      groupeId: 2,
+      valide: true,
+      groupe: { promo: "MMI2" },
+    });
 
     const req = { headers: { authorization: `Bearer ${token}` } };
     const res = mockRes();
@@ -58,7 +64,7 @@ describe("requireAuth", () => {
 
     expect(next).toHaveBeenCalled();
     // C'est bien le rôle de la BASE qui fait foi, pas celui du token
-    expect(req.user).toEqual({ id: 1, role: "delegue", groupeId: 2 });
+    expect(req.user).toEqual({ id: 1, role: "delegue", groupeId: 2, promo: "MMI2" });
   });
 
   it("refuse un compte supprimé même avec un token valide", async () => {

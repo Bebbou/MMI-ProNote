@@ -45,12 +45,12 @@ router.patch("/users/:id/role", async (req, res) => {
 
 // PATCH /admin/users/:id — modifie nom, email, groupe d'un utilisateur
 router.patch("/users/:id", async (req, res) => {
-  const { nom, email, groupeNom } = req.body;
+  const { nom, email, groupeId } = req.body;
   const data = {};
   if (nom) data.nom = nom;
   if (email) data.email = email;
-  if (groupeNom) {
-    const groupe = await prisma.groupe.findUnique({ where: { nom: groupeNom } });
+  if (groupeId) {
+    const groupe = await prisma.groupe.findUnique({ where: { id: Number(groupeId) } });
     if (!groupe) return res.status(400).json({ error: "Groupe introuvable." });
     data.groupeId = groupe.id;
   }

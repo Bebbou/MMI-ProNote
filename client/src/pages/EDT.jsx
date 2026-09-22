@@ -79,7 +79,8 @@ export default function EDT() {
   useEffect(() => {
     api.get("/edt/groupes").then((res) => {
       setGroupes(res.data);
-      const mien = res.data.find((g) => g.nom === user?.groupe);
+      // Le nom seul ne suffit pas : plusieurs promos peuvent avoir un groupe "TDA1"
+      const mien = res.data.find((g) => g.nom === user?.groupe && g.promo === user?.promo);
       setGroupeId(mien ? mien.id : (res.data[0]?.id ?? null));
     });
   }, [user]);
@@ -197,11 +198,20 @@ export default function EDT() {
               value={groupeId ?? ""}
               onChange={(e) => setGroupeId(Number(e.target.value))}
             >
-              {groupes.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.nom}
-                  {g.nom === user?.groupe ? " (moi)" : ""}
-                </option>
+              {Object.entries(
+                groupes.reduce((acc, g) => {
+                  (acc[g.promo] ??= []).push(g);
+                  return acc;
+                }, {})
+              ).map(([promo, gs]) => (
+                <optgroup key={promo} label={promo}>
+                  {gs.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.nom}
+                      {g.nom === user?.groupe && g.promo === user?.promo ? " (moi)" : ""}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>

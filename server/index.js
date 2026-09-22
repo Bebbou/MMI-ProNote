@@ -159,15 +159,22 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {});
 });
 
+// "général" est unique et partagé par tous. "Annonces" existe une fois par promo
+// (une nouvelle promo qui apparaît dans Groupe en obtient une automatiquement).
 async function seedChannels() {
-  const defauts = [
-    { nom: "général", description: "Canal ouvert à tous", type: "general" },
-    { nom: "TDA1", description: "Canal du groupe TDA1", type: "groupe" },
-    { nom: "TDA2", description: "Canal du groupe TDA2", type: "groupe" },
-    { nom: "TDB1", description: "Canal du groupe TDB1", type: "groupe" },
-  ];
-  for (const c of defauts) {
-    await prisma.channel.upsert({ where: { nom: c.nom }, update: {}, create: c });
+  await prisma.channel.upsert({
+    where: { nom_promo: { nom: "général", promo: null } },
+    update: {},
+    create: { nom: "général", description: "Canal ouvert à tous", type: "general", promo: null },
+  });
+
+  const promos = await prisma.groupe.findMany({ distinct: ["promo"], select: { promo: true } });
+  for (const { promo } of promos) {
+    await prisma.channel.upsert({
+      where: { nom_promo: { nom: "Annonces", promo } },
+      update: {},
+      create: { nom: "Annonces", description: `Annonces ${promo}`, type: "annonce", promo },
+    });
   }
 }
 
