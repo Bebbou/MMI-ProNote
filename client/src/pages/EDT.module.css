@@ -36,6 +36,36 @@
   background: var(--accent-hover);
 }
 
+.groupeSelect {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.groupeSelect label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+
+.groupeSelect select {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.groupeSelect select:focus {
+  border-color: var(--accent);
+}
+
 .weekNav {
   display: flex;
   align-items: center;

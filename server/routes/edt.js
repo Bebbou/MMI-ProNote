@@ -4,14 +4,27 @@ import { requireAuth, requireRole } from "../middlewares/auth.js";
 
 const router = Router();
 
-// GET /edt — cours du groupe de l'utilisateur connecté (à partir d'il y a 7 jours,
-// pour garder un peu d'historique récent visible en plus du futur)
+// GET /edt/groupes — liste des groupes (id + nom), pour choisir quel EDT consulter
+router.get("/groupes", requireAuth, async (req, res) => {
+  const groupes = await prisma.groupe.findMany({
+    select: { id: true, nom: true },
+    orderBy: { nom: "asc" },
+  });
+  res.json(groupes);
+});
+
+// GET /edt?groupeId=X — cours du groupe demandé (celui de l'utilisateur par défaut),
+// à partir d'il y a 7 jours pour garder un peu d'historique récent visible en plus du
+// futur. L'EDT n'est pas une donnée sensible : n'importe quel groupe peut consulter
+// l'EDT d'un autre (ex. voir quand des amis dans un autre groupe finissent leurs cours).
 router.get("/", requireAuth, async (req, res) => {
+  const groupeId = req.query.groupeId ? Number(req.query.groupeId) : req.user.groupeId;
+
   const depuis = new Date();
   depuis.setDate(depuis.getDate() - 7);
 
   const cours = await prisma.cours.findMany({
-    where: { groupeId: req.user.groupeId, dateFin: { gte: depuis } },
+    where: { groupeId, dateFin: { gte: depuis } },
     orderBy: { dateDebut: "asc" },
   });
   res.json(cours);
