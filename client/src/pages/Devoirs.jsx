@@ -30,6 +30,9 @@ export default function Devoirs() {
   const [showForm, setShowForm] = useState(false);
   const [toDelete, setToDelete] = useState(null);
   const [onglet, setOnglet] = useState("aRendre"); // "aRendre" | "historique"
+  // Devoirs qu'on vient de cocher, encore affichés le temps de l'animation de sortie
+  // avant de vraiment quitter la liste "À rendre" (sinon la carte disparaît d'un coup)
+  const [sortants, setSortants] = useState(new Set());
 
   const fetchDevoirs = useCallback(() => {
     setLoading(true);
@@ -81,8 +84,23 @@ export default function Devoirs() {
   }
 
   async function handleToggleRendu(devoir) {
+    const nouvelEtat = !devoir.rendu;
+
+    // On coche dans "À rendre" : on laisse la carte affichée le temps de l'animation
+    // (case cochée + texte barré visibles un instant) avant qu'elle ne quitte la liste
+    if (onglet === "aRendre" && nouvelEtat) {
+      setSortants((prev) => new Set(prev).add(devoir.id));
+      setTimeout(() => {
+        setSortants((prev) => {
+          const next = new Set(prev);
+          next.delete(devoir.id);
+          return next;
+        });
+      }, 450);
+    }
+
     // Optimiste : on bascule tout de suite dans l'UI, on annule si le serveur refuse
-    setDevoirs((prev) => prev.map((d) => (d.id === devoir.id ? { ...d, rendu: !d.rendu } : d)));
+    setDevoirs((prev) => prev.map((d) => (d.id === devoir.id ? { ...d, rendu: nouvelEtat } : d)));
     try {
       await api.post(`/devoirs/${devoir.id}/rendu`);
     } catch {
@@ -108,7 +126,7 @@ export default function Devoirs() {
 
   const devoirsAffiches =
     onglet === "aRendre"
-      ? devoirs.filter((d) => !d.rendu)
+      ? devoirs.filter((d) => !d.rendu || sortants.has(d.id))
       : [...devoirs].sort((a, b) => new Date(b.dateLimite) - new Date(a.dateLimite));
 
   return (
@@ -187,7 +205,7 @@ export default function Devoirs() {
               return (
                 <div
                   key={devoir.id}
-                  className={`${styles.card} ${enRetard ? styles.cardLate : ""} ${devoir.rendu ? styles.cardRendu : ""}`}
+                  className={`${styles.card} ${enRetard ? styles.cardLate : ""} ${devoir.rendu ? styles.cardRendu : ""} ${onglet === "aRendre" && sortants.has(devoir.id) ? styles.cardSortant : ""}`}
                 >
                   <div className={styles.cardHeader}>
                     <span className={styles.matiere}>{devoir.matiere}</span>
@@ -210,7 +228,7 @@ export default function Devoirs() {
                         checked={!!devoir.rendu}
                         onChange={() => handleToggleRendu(devoir)}
                       />
-                      J'ai rendu ce devoir
+                      {devoir.rendu ? "Rendu" : "J'ai rendu ce devoir"}
                     </label>
                     <div className={styles.cardFooterRight}>
                       <span className={styles.auteur}>Ajouté par {devoir.auteur?.nom}</span>
