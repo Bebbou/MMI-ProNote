@@ -151,6 +151,16 @@
   color: var(--accent);
   font-weight: 600;
 }
+.filterBtnType.filterActive {
+  background: var(--tint-blue);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+.filterBtnProf.filterActive {
+  background: var(--tint-orange);
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+}
 
 /* ── Liste ── */
 .list {
@@ -201,7 +211,8 @@
 .cardMeta {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
   margin-bottom: 0.25rem;
 }
 .matiereBadge {
@@ -209,6 +220,22 @@
   color: var(--accent);
   font-size: 0.7rem;
   font-weight: 700;
+  border-radius: 20px;
+  padding: 0.15rem 0.6rem;
+}
+.typeBadge {
+  background: var(--tint-blue);
+  color: var(--accent-blue);
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 20px;
+  padding: 0.15rem 0.6rem;
+}
+.profBadge {
+  background: var(--tint-orange);
+  color: var(--accent-orange);
+  font-size: 0.7rem;
+  font-weight: 600;
   border-radius: 20px;
   padding: 0.15rem 0.6rem;
 }
@@ -282,6 +309,23 @@
 .downloadBtn:hover {
   background: var(--accent-hover);
 }
+.editBtn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-faint);
+  padding: 0.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+.editBtn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
 .deleteBtn {
   background: none;
   border: 1px solid var(--border);
@@ -298,6 +342,51 @@
 .deleteBtn:hover {
   color: var(--danger);
   border-color: var(--danger);
+}
+
+/* ── Modale d'édition ── */
+.editOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.editModal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.editActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+.cancelBtn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.cancelBtn:hover {
+  border-color: var(--text-faint);
 }
 
 /* ── Commentaires ── */

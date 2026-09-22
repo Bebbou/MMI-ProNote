@@ -5,14 +5,39 @@ import { sendPushToGroup } from "../utils/push.js";
 
 const router = Router();
 
-// GET /devoirs — liste les devoirs du groupe de l'utilisateur connecté
+// GET /devoirs — liste les devoirs du groupe de l'utilisateur connecté, avec
+// pour chacun si LUI (pas le groupe) l'a marqué comme rendu
 router.get("/", requireAuth, async (req, res) => {
   const devoirs = await prisma.devoir.findMany({
     where: { groupeId: req.user.groupeId },
     orderBy: { dateLimite: "asc" },
-    include: { auteur: { select: { nom: true } } },
+    include: {
+      auteur: { select: { nom: true } },
+      rendus: { where: { userId: req.user.id }, select: { id: true } },
+    },
   });
-  res.json(devoirs);
+  res.json(devoirs.map(({ rendus, ...d }) => ({ ...d, rendu: rendus.length > 0 })));
+});
+
+// POST /devoirs/:id/rendu — bascule "j'ai rendu ce devoir" pour l'utilisateur connecté
+// (état personnel : ne touche pas aux autres membres du groupe)
+router.post("/:id/rendu", requireAuth, async (req, res) => {
+  const devoirId = Number(req.params.id);
+  const devoir = await prisma.devoir.findUnique({ where: { id: devoirId } });
+  if (!devoir) return res.status(404).json({ error: "Devoir introuvable." });
+  if (devoir.groupeId !== req.user.groupeId) return res.status(403).json({ error: "Accès refusé." });
+
+  const existant = await prisma.devoirRendu.findUnique({
+    where: { devoirId_userId: { devoirId, userId: req.user.id } },
+  });
+
+  if (existant) {
+    await prisma.devoirRendu.delete({ where: { id: existant.id } });
+    return res.json({ rendu: false });
+  }
+
+  await prisma.devoirRendu.create({ data: { devoirId, userId: req.user.id } });
+  res.json({ rendu: true });
 });
 
 // POST /devoirs — crée un devoir (admin ou délégué seulement)

@@ -31,6 +31,11 @@ router.patch("/users/:id/role", async (req, res) => {
   if (!["etudiant", "delegue", "admin"].includes(role)) {
     return res.status(400).json({ error: "Rôle invalide." });
   }
+  // Un admin ne peut pas se rétrograder lui-même : ça pourrait laisser
+  // l'application sans aucun admin pour gérer les comptes (issue #27)
+  if (Number(req.params.id) === req.user.id) {
+    return res.status(400).json({ error: "Tu ne peux pas modifier ton propre rôle." });
+  }
   const user = await prisma.user.update({
     where: { id: Number(req.params.id) },
     data: { role },
@@ -40,12 +45,12 @@ router.patch("/users/:id/role", async (req, res) => {
 
 // PATCH /admin/users/:id — modifie nom, email, groupe d'un utilisateur
 router.patch("/users/:id", async (req, res) => {
-  const { nom, email, groupeNom } = req.body;
+  const { nom, email, groupeId } = req.body;
   const data = {};
   if (nom) data.nom = nom;
   if (email) data.email = email;
-  if (groupeNom) {
-    const groupe = await prisma.groupe.findUnique({ where: { nom: groupeNom } });
+  if (groupeId) {
+    const groupe = await prisma.groupe.findUnique({ where: { id: Number(groupeId) } });
     if (!groupe) return res.status(400).json({ error: "Groupe introuvable." });
     data.groupeId = groupe.id;
   }
@@ -59,6 +64,11 @@ router.patch("/users/:id", async (req, res) => {
 
 // DELETE /admin/users/:id — supprime un utilisateur
 router.delete("/users/:id", async (req, res) => {
+  // Un admin ne peut pas se supprimer lui-même : ça pourrait laisser
+  // l'application sans aucun admin pour gérer les comptes (issue #27)
+  if (Number(req.params.id) === req.user.id) {
+    return res.status(400).json({ error: "Tu ne peux pas supprimer ton propre compte." });
+  }
   await prisma.user.delete({ where: { id: Number(req.params.id) } });
   res.json({ message: "Utilisateur supprimé." });
 });

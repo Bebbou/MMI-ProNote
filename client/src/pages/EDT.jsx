@@ -72,10 +72,23 @@ export default function EDT() {
     return jourSemaine >= 1 && jourSemaine <= 5 ? jourSemaine - 1 : 0;
   });
   const [coursDetail, setCoursDetail] = useState(null); // cours cliqué, affiché dans une modale
+  const [groupes, setGroupes] = useState([]);
+  const [groupeId, setGroupeId] = useState(null); // groupe dont on consulte l'EDT (le sien par défaut)
+
+  // Charge la liste des groupes, puis présélectionne le sien
+  useEffect(() => {
+    api.get("/edt/groupes").then((res) => {
+      setGroupes(res.data);
+      // Le nom seul ne suffit pas : plusieurs promos peuvent avoir un groupe "TDA1"
+      const mien = res.data.find((g) => g.nom === user?.groupe && g.promo === user?.promo);
+      setGroupeId(mien ? mien.id : (res.data[0]?.id ?? null));
+    });
+  }, [user]);
 
   useEffect(() => {
-    api.get("/edt").then((res) => setCours(res.data));
-  }, []);
+    if (groupeId === null) return;
+    api.get("/edt", { params: { groupeId } }).then((res) => setCours(res.data));
+  }, [groupeId]);
 
   const lundi = useMemo(() => {
     const base = lundiDeLaSemaine(new Date());
@@ -152,7 +165,9 @@ export default function EDT() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const { data } = await api.post("/edt", form);
+    // Le cours est ajouté au groupe actuellement consulté (utile si un admin
+    // regarde l'EDT d'un autre groupe que le sien)
+    const { data } = await api.post("/edt", { ...form, groupeId });
     setCours([...cours, data]);
     setForm({ matiere: "", dateDebut: "", dateFin: "", salle: "", prof: "" });
     setShowForm(false);
@@ -174,6 +189,33 @@ export default function EDT() {
             </button>
           )}
         </div>
+
+        {groupes.length > 1 && (
+          <div className={styles.groupeSelect}>
+            <label htmlFor="groupe-edt">EDT de</label>
+            <select
+              id="groupe-edt"
+              value={groupeId ?? ""}
+              onChange={(e) => setGroupeId(Number(e.target.value))}
+            >
+              {Object.entries(
+                groupes.reduce((acc, g) => {
+                  (acc[g.promo] ??= []).push(g);
+                  return acc;
+                }, {})
+              ).map(([promo, gs]) => (
+                <optgroup key={promo} label={promo}>
+                  {gs.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.nom}
+                      {g.nom === user?.groupe && g.promo === user?.promo ? " (moi)" : ""}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className={styles.weekNav}>
           <button type="button" onClick={() => setSemaineOffset(semaineOffset - 1)}>

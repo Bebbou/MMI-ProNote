@@ -23,7 +23,7 @@ const app = express();
 app.use(express.json());
 app.use("/auth", authRoutes);
 
-const GROUPE = { id: 1, nom: "TDA1" };
+const GROUPE = { id: 1, nom: "TDA1", promo: "MMI2" };
 
 describe("POST /auth/register", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -38,7 +38,7 @@ describe("POST /auth/register", () => {
       nom: "Test",
       email: "a@b.c",
       password: "123",
-      groupeNom: "TDA1",
+      groupeId: 1,
     });
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/6 caractères/);
@@ -50,7 +50,7 @@ describe("POST /auth/register", () => {
       nom: "Test",
       email: "a@b.c",
       password: "motdepasse",
-      groupeNom: "FAUX",
+      groupeId: 999,
     });
     expect(res.status).toBe(400);
   });
@@ -62,7 +62,7 @@ describe("POST /auth/register", () => {
       nom: "Test",
       email: "a@b.c",
       password: "motdepasse",
-      groupeNom: "TDA1",
+      groupeId: 1,
     });
     expect(res.status).toBe(400);
   });
@@ -76,7 +76,7 @@ describe("POST /auth/register", () => {
       nom: "Test",
       email: "nouveau@b.c",
       password: "motdepasse",
-      groupeNom: "TDA1",
+      groupeId: 1,
     });
 
     expect(res.status).toBe(201);
@@ -124,7 +124,13 @@ describe("POST /auth/login", () => {
     const res = await request(app).post("/auth/login").send({ email: USER.email, password: "bonmotdepasse" });
 
     expect(res.status).toBe(200);
-    expect(res.body.user).toEqual({ id: 1, nom: "Lino", role: "etudiant", groupe: "TDA1" });
+    expect(res.body.user).toEqual({
+      id: 1,
+      nom: "Lino",
+      role: "etudiant",
+      groupe: "TDA1",
+      promo: "MMI2",
+    });
 
     // Le token doit être signé avec notre secret et contenir les bonnes infos
     const payload = jwt.verify(res.body.token, process.env.JWT_SECRET);
@@ -145,7 +151,7 @@ describe("GET /auth/me", () => {
     const token = jwt.sign({ id: 1, role: "etudiant", groupeId: 1 }, process.env.JWT_SECRET);
     // Premier appel : requireAuth vérifie le compte. Second : la route charge le profil complet.
     prisma.user.findUnique
-      .mockResolvedValueOnce({ id: 1, role: "delegue", groupeId: 1, valide: true })
+      .mockResolvedValueOnce({ id: 1, role: "delegue", groupeId: 1, valide: true, groupe: GROUPE })
       .mockResolvedValueOnce({ id: 1, nom: "Lino", role: "delegue", groupe: GROUPE });
 
     const res = await request(app).get("/auth/me").set("Authorization", `Bearer ${token}`);

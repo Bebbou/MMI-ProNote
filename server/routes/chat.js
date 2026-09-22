@@ -20,38 +20,27 @@ const msgInclude = {
   },
 };
 
-// GET /chat/channels
+// GET /chat/channels — général et custom sont ouverts à tous, "annonce" est propre
+// à la promo de l'utilisateur (voir chatAccess.js)
 router.get("/channels", async (req, res) => {
   if (req.user.role === "admin") {
     const channels = await prisma.channel.findMany({ orderBy: { createdAt: "asc" } });
     return res.json(channels);
   }
-  const userGroupe = await prisma.groupe.findUnique({
-    where: { id: req.user.groupeId },
-    select: { nom: true },
-  });
-  // TDA1/TDA2 → TDA, TDB1/TDB2 → TDB (lettre juste avant le chiffre final)
-  const tdNom = "TD" + userGroupe.nom.slice(-2, -1);
   const channels = await prisma.channel.findMany({
     where: {
-      OR: [
-        { type: "general" },
-        { type: "annonce" },
-        { type: "custom" },
-        { type: "groupe", nom: userGroupe.nom },
-        { nom: tdNom },
-      ],
+      OR: [{ type: "general" }, { type: "custom" }, { type: "annonce", promo: req.user.promo }],
     },
     orderBy: { createdAt: "asc" },
   });
   res.json(channels);
 });
 
-// POST /chat/channels (admin)
+// POST /chat/channels (admin) — canal "custom", ouvert à tous
 router.post("/channels", requireRole("admin"), async (req, res) => {
   const { nom, description } = req.body;
   if (!nom) return res.status(400).json({ error: "Nom requis." });
-  const existing = await prisma.channel.findUnique({ where: { nom } });
+  const existing = await prisma.channel.findFirst({ where: { nom, promo: null } });
   if (existing) return res.status(400).json({ error: "Ce canal existe déjà." });
   const channel = await prisma.channel.create({ data: { nom, description, type: "custom" } });
   req.io.emit("nouveauChannel", channel);

@@ -9,11 +9,14 @@ datasource db {
 
 model Groupe {
   id      Int      @id @default(autoincrement())
-  nom     String   @unique // TDA1, TDA2, TDB1
+  nom     String // TDA1, TDA2, TDB1, TDB2 — pas unique seul : réutilisé d'une promo à l'autre
+  promo   String // "MMI2", "MMI3"... distingue les groupes de même nom entre promos
   icalUrl String? // flux iCal ADE du groupe, resynchronisé automatiquement (voir services/edtSync.js)
   users   User[]
   devoirs Devoir[]
   cours   Cours[]
+
+  @@unique([nom, promo])
 }
 
 model User {
@@ -38,6 +41,7 @@ model User {
   commentairesDocs   CommentaireDoc[]   @relation("AuteurCommentaireDoc")
   sondages           Sondage[]          @relation("AuteurSondage")
   votes              VoteSondage[]
+  devoirsRendus      DevoirRendu[]
 }
 
 model PushSubscription {
@@ -63,6 +67,23 @@ model Devoir {
 
   auteur   User @relation("AuteurDevoir", fields: [auteurId], references: [id])
   auteurId Int
+
+  rendus DevoirRendu[]
+}
+
+// Suivi "j'ai rendu ce devoir" par étudiant (état personnel, pas partagé avec le groupe).
+// Une ligne = un étudiant a coché ce devoir comme rendu.
+model DevoirRendu {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  devoir   Devoir @relation(fields: [devoirId], references: [id], onDelete: Cascade)
+  devoirId Int
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  @@unique([devoirId, userId])
 }
 
 model Note {
@@ -78,12 +99,15 @@ model Note {
 
 model Channel {
   id          Int       @id @default(autoincrement())
-  nom         String    @unique
+  nom         String
   description String?
-  type        String    @default("custom") // general | groupe | custom
+  type        String    @default("custom") // general | annonce | custom
+  promo       String? // null = visible à tous ; sinon propre à une promo (ex. Annonces)
   createdAt   DateTime  @default(now())
   messages    Message[]
   sondages    Sondage[]
+
+  @@unique([nom, promo])
 }
 
 model Message {
@@ -152,7 +176,9 @@ model Document {
   id          Int      @id @default(autoincrement())
   titre       String
   description String?
-  matiere     String
+  matiere     String // ressource (ex. "CMS avancé")
+  prof        String? // enseignant (ex. "Talleux")
+  type        String   @default("Autre") // CM | TD | TP | Projet | Autre
   fileName    String
   fileSize    Int
   fileData    Bytes

@@ -36,6 +36,38 @@
   background: var(--accent-hover);
 }
 
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.tab {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  padding: 0.4rem 1rem;
+  font-size: 0.825rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: 20px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+
+.tab:hover {
+  color: var(--text-muted);
+}
+
+.tabActive {
+  background: var(--tint-pink);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .form {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -118,7 +150,16 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  transition: box-shadow 0.15s;
+  max-height: 400px;
+  overflow: hidden;
+  transition:
+    box-shadow 0.15s,
+    opacity 0.4s ease,
+    transform 0.4s ease,
+    max-height 0.4s ease,
+    margin 0.4s ease,
+    padding 0.4s ease,
+    border-width 0.4s ease;
 }
 
 .card:hover {
@@ -161,12 +202,111 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 0.25rem;
+}
+
+.cardFooterRight {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .auteur {
   font-size: 0.75rem;
   color: var(--text-faint);
+}
+
+.renduCheck {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Case à cocher personnalisée : carré arrondi qui se remplit avec un check animé,
+   plus agréable et plus visible que la checkbox par défaut du navigateur */
+.renduCheck input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-input);
+  cursor: pointer;
+  position: relative;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.1s;
+}
+
+.renduCheck input:hover {
+  border-color: var(--accent);
+}
+
+.renduCheck input:active {
+  transform: scale(0.88);
+}
+
+.renduCheck input:checked {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.renduCheck input:checked::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 4px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  animation: renduCheckPop 0.18s 0.02s ease forwards;
+}
+
+@keyframes renduCheckPop {
+  to {
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+.cardRendu {
+  opacity: 0.6;
+  border-color: var(--success);
+}
+
+.cardRendu h3 {
+  text-decoration: line-through;
+  color: var(--text-faint);
+}
+
+.cardRendu .renduCheck {
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* Transition de sortie quand on coche un devoir dans "À rendre" : la carte reste
+   visible un instant (case cochée + barré) avant de se replier hors de la liste,
+   plutôt que de disparaître d'un coup */
+.cardSortant {
+  opacity: 0;
+  transform: scale(0.97);
+  max-height: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
 }
 
 .deleteBtn {

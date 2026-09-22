@@ -16,11 +16,17 @@ const upload = multer({
   },
 });
 
+// Types de séance reconnus (issue #37). "Autre" reste la valeur par défaut pour
+// les anciens documents importés avant l'ajout de ce champ.
+const TYPES = ["CM", "TD", "TP", "Projet", "Autre"];
+
 const docSelect = {
   id: true,
   titre: true,
   description: true,
   matiere: true,
+  prof: true,
+  type: true,
   fileName: true,
   fileSize: true,
   createdAt: true,
@@ -49,13 +55,16 @@ router.get("/:id/download", async (req, res) => {
 // POST /documents (admin)
 router.post("/", requireRole("admin"), upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "Fichier PDF requis." });
-  const { titre, description, matiere } = req.body;
+  const { titre, description, matiere, prof, type } = req.body;
   if (!titre || !matiere) return res.status(400).json({ error: "Titre et matière requis." });
+  if (type && !TYPES.includes(type)) return res.status(400).json({ error: "Type invalide." });
   const doc = await prisma.document.create({
     data: {
       titre,
       description: description || null,
       matiere,
+      prof: prof?.trim() || null,
+      type: type || "Autre",
       fileName: req.file.originalname,
       fileSize: req.file.size,
       fileData: req.file.buffer,
@@ -71,6 +80,26 @@ router.post("/", requireRole("admin"), upload.single("file"), async (req, res) =
   });
 
   res.status(201).json(doc);
+});
+
+// PATCH /documents/:id (admin) — modifie les tags (ressource/prof/type) et les infos
+// d'un document déjà publié, sans avoir à ré-uploader le fichier (issue #37)
+router.patch("/:id", requireRole("admin"), async (req, res) => {
+  const doc = await prisma.document.findUnique({ where: { id: Number(req.params.id) } });
+  if (!doc) return res.status(404).json({ error: "Document introuvable." });
+
+  const { titre, description, matiere, prof, type } = req.body;
+  if (type && !TYPES.includes(type)) return res.status(400).json({ error: "Type invalide." });
+
+  const data = {};
+  if (titre) data.titre = titre;
+  if (description !== undefined) data.description = description || null;
+  if (matiere) data.matiere = matiere;
+  if (prof !== undefined) data.prof = prof?.trim() || null;
+  if (type) data.type = type;
+
+  const updated = await prisma.document.update({ where: { id: doc.id }, data, select: docSelect });
+  res.json(updated);
 });
 
 // DELETE /documents/:id (admin)

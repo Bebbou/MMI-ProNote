@@ -20,14 +20,14 @@ export async function requireAuth(req, res, next) {
   try {
     const user = await prisma.user.findUnique({
       where: { id: payload.id },
-      select: { id: true, role: true, groupeId: true, valide: true },
+      select: { id: true, role: true, groupeId: true, valide: true, groupe: { select: { promo: true } } },
     });
 
     if (!user || !user.valide) {
       return res.status(401).json({ error: "Compte introuvable ou désactivé." });
     }
 
-    req.user = { id: user.id, role: user.role, groupeId: user.groupeId };
+    req.user = { id: user.id, role: user.role, groupeId: user.groupeId, promo: user.groupe.promo };
     next();
   } catch {
     res.status(500).json({ error: "Erreur serveur." });

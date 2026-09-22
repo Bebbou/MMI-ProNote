@@ -9,6 +9,17 @@ import { toast } from "../components/Toast";
 import api from "../api/index.js";
 import styles from "./Devoirs.module.css";
 
+const UN_JOUR_MS = 24 * 60 * 60 * 1000;
+
+// Le badge rouge "En retard" ne reste affiché que 24h après l'échéance : passé ce délai,
+// un signal d'alerte qui ne disparaît jamais perd son sens (issue #36). Le devoir reste
+// visible dans "À rendre" tant qu'il n'est pas coché, juste sans l'alerte visuelle.
+function estRecemmentEnRetard(devoir, maintenant) {
+  if (devoir.rendu) return false;
+  const retardMs = maintenant - new Date(devoir.dateLimite);
+  return retardMs > 0 && retardMs < UN_JOUR_MS;
+}
+
 export default function Devoirs() {
   const { user } = useAuth();
   const socket = useSocket();
@@ -18,6 +29,10 @@ export default function Devoirs() {
   const [form, setForm] = useState({ titre: "", matiere: "", description: "", dateLimite: "" });
   const [showForm, setShowForm] = useState(false);
   const [toDelete, setToDelete] = useState(null);
+  const [onglet, setOnglet] = useState("aRendre"); // "aRendre" | "historique"
+  // Devoirs qu'on vient de cocher, encore affichés le temps de l'animation de sortie
+  // avant de vraiment quitter la liste "À rendre" (sinon la carte disparaît d'un coup)
+  const [sortants, setSortants] = useState(new Set());
 
   const fetchDevoirs = useCallback(() => {
     setLoading(true);
@@ -68,6 +83,32 @@ export default function Devoirs() {
     }
   }
 
+  async function handleToggleRendu(devoir) {
+    const nouvelEtat = !devoir.rendu;
+
+    // On coche dans "À rendre" : on laisse la carte affichée le temps de l'animation
+    // (case cochée + texte barré visibles un instant) avant qu'elle ne quitte la liste
+    if (onglet === "aRendre" && nouvelEtat) {
+      setSortants((prev) => new Set(prev).add(devoir.id));
+      setTimeout(() => {
+        setSortants((prev) => {
+          const next = new Set(prev);
+          next.delete(devoir.id);
+          return next;
+        });
+      }, 450);
+    }
+
+    // Optimiste : on bascule tout de suite dans l'UI, on annule si le serveur refuse
+    setDevoirs((prev) => prev.map((d) => (d.id === devoir.id ? { ...d, rendu: nouvelEtat } : d)));
+    try {
+      await api.post(`/devoirs/${devoir.id}/rendu`);
+    } catch {
+      setDevoirs((prev) => prev.map((d) => (d.id === devoir.id ? { ...d, rendu: devoir.rendu } : d)));
+      toast("Impossible de mettre à jour le devoir", "error");
+    }
+  }
+
   async function confirmDelete() {
     const id = toDelete;
     setToDelete(null);
@@ -83,14 +124,34 @@ export default function Devoirs() {
   const canCreate = user?.role === "admin" || user?.role === "delegue";
   const now = new Date();
 
+  const devoirsAffiches =
+    onglet === "aRendre"
+      ? devoirs.filter((d) => !d.rendu || sortants.has(d.id))
+      : [...devoirs].sort((a, b) => new Date(b.dateLimite) - new Date(a.dateLimite));
+
   return (
     <Layout>
       <div className={styles.page}>
         <div className={styles.header}>
-          <PageTitle>Devoirs à venir</PageTitle>
+          <PageTitle>Devoirs</PageTitle>
           {canCreate && (
             <button onClick={() => setShowForm(!showForm)}>{showForm ? "Annuler" : "+ Ajouter"}</button>
           )}
+        </div>
+
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tab} ${onglet === "aRendre" ? styles.tabActive : ""}`}
+            onClick={() => setOnglet("aRendre")}
+          >
+            À rendre
+          </button>
+          <button
+            className={`${styles.tab} ${onglet === "historique" ? styles.tabActive : ""}`}
+            onClick={() => setOnglet("historique")}
+          >
+            Historique
+          </button>
         </div>
 
         {showForm && (
@@ -134,15 +195,22 @@ export default function Devoirs() {
 
         {!loading && !loadError && (
           <div className={styles.list}>
-            {devoirs.length === 0 && <p className={styles.empty}>Aucun devoir à venir</p>}
-            {devoirs.map((devoir) => {
-              const isLate = new Date(devoir.dateLimite) < now;
+            {devoirsAffiches.length === 0 && (
+              <p className={styles.empty}>
+                {onglet === "aRendre" ? "Rien à rendre pour l'instant" : "Aucun devoir pour l'instant"}
+              </p>
+            )}
+            {devoirsAffiches.map((devoir) => {
+              const enRetard = estRecemmentEnRetard(devoir, now);
               return (
-                <div key={devoir.id} className={`${styles.card} ${isLate ? styles.cardLate : ""}`}>
+                <div
+                  key={devoir.id}
+                  className={`${styles.card} ${enRetard ? styles.cardLate : ""} ${devoir.rendu ? styles.cardRendu : ""} ${onglet === "aRendre" && sortants.has(devoir.id) ? styles.cardSortant : ""}`}
+                >
                   <div className={styles.cardHeader}>
                     <span className={styles.matiere}>{devoir.matiere}</span>
-                    <span className={isLate ? styles.dateLate : styles.date}>
-                      {isLate && <span className={styles.lateBadge}>En retard</span>}
+                    <span className={enRetard ? styles.dateLate : styles.date}>
+                      {enRetard && <span className={styles.lateBadge}>En retard</span>}
                       {new Date(devoir.dateLimite).toLocaleDateString("fr-FR", {
                         day: "numeric",
                         month: "long",
@@ -154,12 +222,22 @@ export default function Devoirs() {
                   <h3>{devoir.titre}</h3>
                   {devoir.description && <p>{devoir.description}</p>}
                   <div className={styles.cardFooter}>
-                    <span className={styles.auteur}>Ajouté par {devoir.auteur?.nom}</span>
-                    {canCreate && (
-                      <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)}>
-                        Supprimer
-                      </button>
-                    )}
+                    <label className={styles.renduCheck}>
+                      <input
+                        type="checkbox"
+                        checked={!!devoir.rendu}
+                        onChange={() => handleToggleRendu(devoir)}
+                      />
+                      {devoir.rendu ? "Rendu" : "J'ai rendu ce devoir"}
+                    </label>
+                    <div className={styles.cardFooterRight}>
+                      <span className={styles.auteur}>Ajouté par {devoir.auteur?.nom}</span>
+                      {canCreate && (
+                        <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)}>
+                          Supprimer
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

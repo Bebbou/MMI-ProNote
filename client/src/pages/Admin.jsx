@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 import api from "../api/index.js";
 import styles from "./Admin.module.css";
 
-const GROUPES = ["TDA1", "TDA2", "TDB1"];
-
 export default function Admin() {
+  const { user: moi } = useAuth();
   const [users, setUsers] = useState([]);
   const [editUser, setEditUser] = useState(null);
-  const [editForm, setEditForm] = useState({ nom: "", email: "", groupeNom: "" });
+  const [editForm, setEditForm] = useState({ nom: "", email: "", groupeId: "" });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [groupes, setGroupes] = useState([]);
   const [icalDrafts, setIcalDrafts] = useState({});
@@ -53,7 +53,7 @@ export default function Admin() {
 
   function openEdit(u) {
     setEditUser(u);
-    setEditForm({ nom: u.nom, email: u.email, groupeNom: u.groupe?.nom ?? "" });
+    setEditForm({ nom: u.nom, email: u.email, groupeId: u.groupe?.id ?? "" });
   }
 
   async function handleEdit(e) {
@@ -90,7 +90,7 @@ export default function Admin() {
                   <div className={styles.info}>
                     <span className={styles.nom}>{u.nom}</span>
                     <span className={styles.email}>{u.email}</span>
-                    <span className={styles.groupe}>{u.groupe?.nom}</span>
+                    <span className={styles.groupe}>{u.groupe?.nom} · {u.groupe?.promo}</span>
                   </div>
                   <div className={styles.actions}>
                     <button className={styles.validateBtn} onClick={() => handleValider(u.id)}>
@@ -150,12 +150,14 @@ export default function Admin() {
                 <div className={styles.info}>
                   <span className={styles.nom}>{u.nom}</span>
                   <span className={styles.email}>{u.email}</span>
-                  <span className={styles.groupe}>{u.groupe?.nom}</span>
+                  <span className={styles.groupe}>{u.groupe?.nom} · {u.groupe?.promo}</span>
                 </div>
                 <div className={styles.actions}>
                   <select
                     className={styles.roleSelect}
                     value={u.role}
+                    disabled={u.id === moi?.id}
+                    title={u.id === moi?.id ? "Tu ne peux pas modifier ton propre rôle" : undefined}
                     onChange={(e) => handleRole(u.id, e.target.value)}
                   >
                     <option value="etudiant">Étudiant</option>
@@ -165,9 +167,11 @@ export default function Admin() {
                   <button className={styles.editBtn} onClick={() => openEdit(u)}>
                     Modifier
                   </button>
-                  <button className={styles.deleteBtn} onClick={() => setConfirmDelete(u)}>
-                    Supprimer
-                  </button>
+                  {u.id !== moi?.id && (
+                    <button className={styles.deleteBtn} onClick={() => setConfirmDelete(u)}>
+                      Supprimer
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -201,11 +205,22 @@ export default function Admin() {
               <label>
                 Groupe
                 <select
-                  value={editForm.groupeNom}
-                  onChange={(e) => setEditForm({ ...editForm, groupeNom: e.target.value })}
+                  value={editForm.groupeId}
+                  onChange={(e) => setEditForm({ ...editForm, groupeId: Number(e.target.value) })}
                 >
-                  {GROUPES.map((g) => (
-                    <option key={g}>{g}</option>
+                  {Object.entries(
+                    groupes.reduce((acc, g) => {
+                      (acc[g.promo] ??= []).push(g);
+                      return acc;
+                    }, {})
+                  ).map(([promo, gs]) => (
+                    <optgroup key={promo} label={promo}>
+                      {gs.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.nom}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </label>
