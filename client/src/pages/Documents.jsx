@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import styles from "./Documents.module.css";
 
-const MATIERES = ["Comment savoir ?", "Test", "SdV", "Avenir", "autres"]; // faudrat changer ici
 const TYPES = ["CM", "TD", "TP", "Projet", "Autre"];
 
 function formatSize(bytes) {
@@ -49,7 +48,7 @@ export default function Documents() {
   const [form, setForm] = useState({
     titre: "",
     description: "",
-    matiere: MATIERES[0],
+    matiere: "",
     prof: "",
     type: TYPES[0],
   });
@@ -166,7 +165,7 @@ export default function Documents() {
       fd.append("file", file);
       const r = await api.post("/documents", fd, { headers: { "Content-Type": "multipart/form-data" } });
       setDocs((prev) => [r.data, ...prev]);
-      setForm({ titre: "", description: "", matiere: MATIERES[0], prof: "", type: TYPES[0] });
+      setForm({ titre: "", description: "", matiere: "", prof: "", type: TYPES[0] });
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";
       setShowUpload(false);
@@ -184,6 +183,15 @@ export default function Documents() {
   return (
     <Layout>
       <div className={styles.page}>
+        {/* Suggestions de matières déjà utilisées, sans jamais bloquer la saisie libre */}
+        <datalist id="matieres-existantes">
+          {matieres
+            .filter((m) => m !== "Toutes")
+            .map((m) => (
+              <option key={m} value={m} />
+            ))}
+        </datalist>
+
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>Cours & Ressources</h1>
@@ -215,14 +223,13 @@ export default function Documents() {
               </div>
               <div className={styles.field}>
                 <label>Matière *</label>
-                <select
+                <input
+                  list="matieres-existantes"
                   value={form.matiere}
                   onChange={(e) => setForm((f) => ({ ...f, matiere: e.target.value }))}
-                >
-                  {MATIERES.map((m) => (
-                    <option key={m}>{m}</option>
-                  ))}
-                </select>
+                  placeholder="Ex: CMS avancé"
+                  required
+                />
               </div>
               <div className={styles.field}>
                 <label>Enseignant</label>
@@ -447,14 +454,13 @@ export default function Documents() {
               </div>
               <div className={styles.field}>
                 <label>Matière *</label>
-                <select
+                <input
+                  list="matieres-existantes"
                   value={editForm.matiere}
                   onChange={(e) => setEditForm((f) => ({ ...f, matiere: e.target.value }))}
-                >
-                  {Array.from(new Set([editForm.matiere, ...MATIERES])).map((m) => (
-                    <option key={m}>{m}</option>
-                  ))}
-                </select>
+                  placeholder="Ex: CMS avancé"
+                  required
+                />
               </div>
               <div className={styles.field}>
                 <label>Enseignant</label>
