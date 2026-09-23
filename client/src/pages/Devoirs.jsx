@@ -73,7 +73,13 @@ export default function Devoirs() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const { data } = await api.post("/devoirs", form);
+      // <input type="datetime-local"> renvoie une heure "nue" sans fuseau ; on la
+      // convertit en UTC explicite dans le fuseau du navigateur avant l'envoi, sinon
+      // le serveur (en UTC sur Railway) la prend à tort pour de l'UTC (issue #44).
+      const { data } = await api.post("/devoirs", {
+        ...form,
+        dateLimite: new Date(form.dateLimite).toISOString(),
+      });
       setDevoirs([...devoirs, data]);
       setForm({ titre: "", matiere: "", description: "", dateLimite: "" });
       setShowForm(false);
@@ -124,10 +130,15 @@ export default function Devoirs() {
   const canCreate = user?.role === "admin" || user?.role === "delegue";
   const now = new Date();
 
+  // "Historique" ne doit montrer que ce qui appartient vraiment au passé : un devoir
+  // rendu (peu importe la date), ou un devoir dont l'échéance est dépassée. Un devoir
+  // à venir et pas encore rendu n'a rien à faire ici, il reste dans "À rendre" (issue #42).
   const devoirsAffiches =
     onglet === "aRendre"
       ? devoirs.filter((d) => !d.rendu || sortants.has(d.id))
-      : [...devoirs].sort((a, b) => new Date(b.dateLimite) - new Date(a.dateLimite));
+      : devoirs
+          .filter((d) => d.rendu || new Date(d.dateLimite) < now)
+          .sort((a, b) => new Date(b.dateLimite) - new Date(a.dateLimite));
 
   return (
     <Layout>
