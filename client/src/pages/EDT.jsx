@@ -167,7 +167,17 @@ export default function EDT() {
     e.preventDefault();
     // Le cours est ajouté au groupe actuellement consulté (utile si un admin
     // regarde l'EDT d'un autre groupe que le sien)
-    const { data } = await api.post("/edt", { ...form, groupeId });
+    //
+    // <input type="datetime-local"> renvoie une heure "nue" sans fuseau (ex. "12:00"),
+    // que le serveur (en UTC sur Railway) interpréterait à tort comme de l'UTC. On la
+    // convertit ici en UTC explicite, pendant qu'on est encore dans le fuseau du
+    // navigateur (donc le bon fuseau, celui de l'utilisateur) — issue #44.
+    const { data } = await api.post("/edt", {
+      ...form,
+      dateDebut: new Date(form.dateDebut).toISOString(),
+      dateFin: new Date(form.dateFin).toISOString(),
+      groupeId,
+    });
     setCours([...cours, data]);
     setForm({ matiere: "", dateDebut: "", dateFin: "", salle: "", prof: "" });
     setShowForm(false);

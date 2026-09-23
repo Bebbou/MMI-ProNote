@@ -34,11 +34,13 @@ export default function Dashboard() {
   const roleLabel = ROLE_LABELS[user?.role] ?? user?.role ?? "";
   const groupe = user?.groupe ?? "";
 
-  // ── Devoirs : combien a venir, prochain ──
+  // ── Devoirs : combien restent à rendre, prochain ──
+  // Le compteur ne doit refléter que ce qu'il reste à faire : "rendu" prime sur la
+  // date, sinon cocher un devoir ne fait jamais bouger le chiffre (issue #43).
   const now = new Date();
-  const aVenir = devoirs?.filter((d) => new Date(d.dateLimite) >= now) ?? [];
+  const aRendre = devoirs?.filter((d) => !d.rendu) ?? [];
   const prochainDevoir =
-    aVenir.length > 0 ? [...aVenir].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite))[0] : null;
+    aRendre.length > 0 ? [...aRendre].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite))[0] : null;
 
   // ── Notes : moyenne + derniere ──
   const moyenne =
@@ -62,9 +64,9 @@ export default function Dashboard() {
   const cards = [
     {
       to: "/devoirs",
-      label: "Devoirs à venir",
+      label: "Devoirs à rendre",
       icon: BookOpen,
-      stat: devoirs === null ? "..." : `${aVenir.length} devoir${aVenir.length > 1 ? "s" : ""} à rendre`,
+      stat: devoirs === null ? "..." : `${aRendre.length} devoir${aRendre.length > 1 ? "s" : ""} à rendre`,
       detail: prochainDevoir
         ? `Prochain : ${prochainDevoir.titre} (${new Date(prochainDevoir.dateLimite).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })})`
         : devoirs !== null
