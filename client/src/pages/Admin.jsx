@@ -13,6 +13,11 @@ export default function Admin() {
   const [groupes, setGroupes] = useState([]);
   const [icalDrafts, setIcalDrafts] = useState({});
   const [syncStatus, setSyncStatus] = useState({});
+  const [newGroupe, setNewGroupe] = useState({ nom: "", promo: "" });
+  const [newGroupeError, setNewGroupeError] = useState("");
+  const [confirmDeleteGroupe, setConfirmDeleteGroupe] = useState(null);
+  const [filtrePromo, setFiltrePromo] = useState("Toutes");
+  const [filtreGroupeId, setFiltreGroupeId] = useState("Tous");
 
   useEffect(() => {
     api.get("/admin/users").then((res) => setUsers(res.data));
@@ -26,6 +31,29 @@ export default function Admin() {
     const { data } = await api.patch(`/admin/groupes/${id}`, { icalUrl: icalDrafts[id] });
     setGroupes(groupes.map((g) => (g.id === id ? data : g)));
     setSyncStatus({ ...syncStatus, [id]: "Enregistré." });
+  }
+
+  async function handleCreateGroupe(e) {
+    e.preventDefault();
+    setNewGroupeError("");
+    try {
+      const { data } = await api.post("/admin/groupes", newGroupe);
+      setGroupes([...groupes, data].sort((a, b) => a.promo.localeCompare(b.promo) || a.nom.localeCompare(b.nom)));
+      setIcalDrafts({ ...icalDrafts, [data.id]: "" });
+      setNewGroupe({ nom: "", promo: "" });
+    } catch (err) {
+      setNewGroupeError(err.response?.data?.error ?? "Impossible de créer le groupe.");
+    }
+  }
+
+  async function handleDeleteGroupe(id) {
+    try {
+      await api.delete(`/admin/groupes/${id}`);
+      setGroupes(groupes.filter((g) => g.id !== id));
+    } catch (err) {
+      alert(err.response?.data?.error ?? "Impossible de supprimer ce groupe.");
+    }
+    setConfirmDeleteGroupe(null);
   }
 
   async function handleSyncNow(id) {
@@ -73,13 +101,60 @@ export default function Admin() {
     setConfirmDelete(null);
   }
 
-  const enAttente = users.filter((u) => !u.valide);
-  const valides = users.filter((u) => u.valide);
+  // Filtres par promo (MMI2/MMI3...) et par groupe — issue #46, utile une fois
+  // plusieurs promos mélangées dans la liste des utilisateurs
+  const promos = ["Toutes", ...Array.from(new Set(groupes.map((g) => g.promo)))];
+  const groupesDeLaPromo = filtrePromo === "Toutes" ? groupes : groupes.filter((g) => g.promo === filtrePromo);
+
+  function handleFiltrePromo(promo) {
+    setFiltrePromo(promo);
+    setFiltreGroupeId("Tous"); // le groupe sélectionné peut ne plus être dans cette promo
+  }
+
+  const usersFiltres = users.filter((u) => {
+    if (filtrePromo !== "Toutes" && u.groupe?.promo !== filtrePromo) return false;
+    if (filtreGroupeId !== "Tous" && u.groupe?.id !== Number(filtreGroupeId)) return false;
+    return true;
+  });
+
+  const enAttente = usersFiltres.filter((u) => !u.valide);
+  const valides = usersFiltres.filter((u) => u.valide);
 
   return (
     <Layout>
       <div className={styles.page}>
         <h1>Panel Admin</h1>
+
+        <div className={styles.filters}>
+          <label className={styles.filterLabel}>
+            Promo
+            <select value={filtrePromo} onChange={(e) => handleFiltrePromo(e.target.value)}>
+              {promos.map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </select>
+          </label>
+          <label className={styles.filterLabel}>
+            Groupe
+            <select value={filtreGroupeId} onChange={(e) => setFiltreGroupeId(e.target.value)}>
+              <option value="Tous">Tous</option>
+              {groupesDeLaPromo.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.nom}
+                </option>
+              ))}
+            </select>
+          </label>
+          {(filtrePromo !== "Toutes" || filtreGroupeId !== "Tous") && (
+            <button
+              type="button"
+              className={styles.clearFiltersBtn}
+              onClick={() => handleFiltrePromo("Toutes")}
+            >
+              Réinitialiser
+            </button>
+          )}
+        </div>
 
         {enAttente.length > 0 && (
           <section>
@@ -110,12 +185,40 @@ export default function Admin() {
         )}
 
         <section>
-          <h2 className={styles.sectionTitle}>Emploi du temps — flux iCal par groupe</h2>
+          <h2 className={styles.sectionTitle}>Groupes et flux iCal</h2>
+
+          <form className={styles.modalForm} onSubmit={handleCreateGroupe} style={{ marginBottom: "1rem" }}>
+            <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+              <label style={{ flex: 1, minWidth: "140px" }}>
+                Nom du groupe
+                <input
+                  placeholder="Ex: TDA1"
+                  value={newGroupe.nom}
+                  onChange={(e) => setNewGroupe({ ...newGroupe, nom: e.target.value })}
+                  required
+                />
+              </label>
+              <label style={{ flex: 1, minWidth: "140px" }}>
+                Promo
+                <input
+                  placeholder="Ex: MMI3"
+                  value={newGroupe.promo}
+                  onChange={(e) => setNewGroupe({ ...newGroupe, promo: e.target.value })}
+                  required
+                />
+              </label>
+              <button type="submit">+ Créer le groupe</button>
+            </div>
+            {newGroupeError && <p className={styles.error}>{newGroupeError}</p>}
+          </form>
+
           <div className={styles.list}>
-            {groupes.map((g) => (
+            {groupesDeLaPromo.map((g) => (
               <div key={g.id} className={styles.card}>
                 <div className={styles.info}>
-                  <span className={styles.nom}>{g.nom}</span>
+                  <span className={styles.nom}>
+                    {g.nom} · {g.promo}
+                  </span>
                   <input
                     type="url"
                     placeholder="Lien iCal (ADE)"
@@ -135,6 +238,9 @@ export default function Admin() {
                     disabled={!g.icalUrl}
                   >
                     Synchroniser maintenant
+                  </button>
+                  <button className={styles.deleteBtn} onClick={() => setConfirmDeleteGroupe(g)}>
+                    Supprimer
                   </button>
                 </div>
               </div>
@@ -248,6 +354,35 @@ export default function Admin() {
                 Annuler
               </button>
               <button className={styles.confirmDeleteBtn} onClick={() => handleDelete(confirmDelete.id)}>
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal confirmation suppression de groupe */}
+      {confirmDeleteGroupe && (
+        <div className={styles.modalOverlay} onClick={() => setConfirmDeleteGroupe(null)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h2>
+              Supprimer {confirmDeleteGroupe.nom} ({confirmDeleteGroupe.promo}) ?
+            </h2>
+            <p className={styles.modalWarning}>
+              Impossible si des comptes, devoirs ou cours y sont encore rattachés.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.cancelBtn}
+                onClick={() => setConfirmDeleteGroupe(null)}
+              >
+                Annuler
+              </button>
+              <button
+                className={styles.confirmDeleteBtn}
+                onClick={() => handleDeleteGroupe(confirmDeleteGroupe.id)}
+              >
                 Supprimer
               </button>
             </div>
