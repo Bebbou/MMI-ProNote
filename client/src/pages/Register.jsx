@@ -38,7 +38,7 @@ export default function Register() {
       <div className={styles.page}>
         <div className={styles.card}>
           <h1>Pronote-MMI</h1>
-          <p className={styles.subtitle}>Inscription envoyée ✅</p>
+          <p className={styles.subtitle}>Inscription envoyée</p>
           <p style={{ color: "#94a3b8", fontSize: "0.9rem" }}>
             Ton compte est en attente de validation par un administrateur. Tu recevras accès dès qu'il sera
             approuvé.
