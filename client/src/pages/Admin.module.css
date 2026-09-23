@@ -284,6 +284,73 @@
   opacity: 0.85;
 }
 
+.error {
+  color: var(--danger);
+  font-size: 0.825rem;
+  margin-top: 0.5rem;
+}
+
+/* ── Filtres promo/groupe (issue #46) ── */
+.filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.filterLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.filterLabel select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  min-width: 140px;
+  transition: border-color 0.15s;
+}
+
+.filterLabel select:focus {
+  border-color: var(--accent);
+}
+
+.clearFiltersBtn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.clearFiltersBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 @media (max-width: 768px) {
   .card {
     flex-direction: column;
@@ -295,5 +362,14 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.3rem;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filterLabel select {
+    width: 100%;
   }
 }

@@ -74,6 +74,30 @@ router.post("/", requireAuth, requireRole("admin", "delegue"), async (req, res) 
   res.status(201).json(devoir);
 });
 
+// PATCH /devoirs/:id — modifie un devoir (admin ou délégué du groupe, pas seulement
+// son auteur — même règle que la suppression, pour rester cohérent)
+router.patch("/:id", requireAuth, requireRole("admin", "delegue"), async (req, res) => {
+  const id = Number(req.params.id);
+  const devoir = await prisma.devoir.findUnique({ where: { id } });
+  if (!devoir) return res.status(404).json({ error: "Devoir introuvable." });
+  if (devoir.groupeId !== req.user.groupeId) return res.status(403).json({ error: "Accès refusé." });
+
+  const { titre, matiere, description, dateLimite } = req.body;
+  if (!titre || !matiere || !dateLimite) {
+    return res.status(400).json({ error: "Titre, matière et date limite sont requis." });
+  }
+
+  const updated = await prisma.devoir.update({
+    where: { id },
+    data: { titre, matiere, description, dateLimite: new Date(dateLimite) },
+    include: { auteur: { select: { nom: true } } },
+  });
+
+  req.io.to(`groupe-${req.user.groupeId}`).emit("devoirModifie", updated);
+
+  res.json(updated);
+});
+
 // DELETE /devoirs/:id — supprime un devoir (admin ou délégué seulement)
 router.delete("/:id", requireAuth, requireRole("admin", "delegue"), async (req, res) => {
   const devoir = await prisma.devoir.findUnique({ where: { id: Number(req.params.id) } });

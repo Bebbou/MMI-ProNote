@@ -20,6 +20,14 @@ function estRecemmentEnRetard(devoir, maintenant) {
   return retardMs > 0 && retardMs < UN_JOUR_MS;
 }
 
+// Convertit une date ISO (UTC) en chaîne compatible <input type="datetime-local">,
+// dans le fuseau du navigateur (donc le bon fuseau, celui de l'utilisateur)
+function versDatetimeLocal(iso) {
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default function Devoirs() {
   const { user } = useAuth();
   const socket = useSocket();
@@ -29,9 +37,13 @@ export default function Devoirs() {
   const [form, setForm] = useState({ titre: "", matiere: "", description: "", dateLimite: "" });
   const [showForm, setShowForm] = useState(false);
   const [toDelete, setToDelete] = useState(null);
+  const [editingDevoir, setEditingDevoir] = useState(null);
+  const [editForm, setEditForm] = useState(null);
   const [onglet, setOnglet] = useState("aRendre"); // "aRendre" | "historique"
-  // Devoirs qu'on vient de cocher, encore affichés le temps de l'animation de sortie
-  // avant de vraiment quitter la liste "À rendre" (sinon la carte disparaît d'un coup)
+  // Devoirs qu'on vient de (dé)cocher et qui vont quitter la vue actuelle : encore
+  // affichés le temps de l'animation de sortie avant de disparaître pour de bon (sinon
+  // la carte disparaît d'un coup). Clés au format "onglet-id" pour ne pas appliquer
+  // l'animation dans le mauvais onglet si l'utilisateur change de vue entre-temps.
   const [sortants, setSortants] = useState(new Set());
 
   const fetchDevoirs = useCallback(() => {
@@ -60,9 +72,16 @@ export default function Devoirs() {
       setDevoirs((prev) => prev.filter((d) => d.id !== id));
     });
 
+    // Le serveur ne renvoie pas "rendu" (c'est un état personnel, propre à chaque
+    // utilisateur) : on fusionne pour ne jamais écraser sa propre coche
+    socket.on("devoirModifie", (devoir) => {
+      setDevoirs((prev) => prev.map((d) => (d.id === devoir.id ? { ...d, ...devoir } : d)));
+    });
+
     return () => {
       socket.off("nouveauDevoir");
       socket.off("devoirSupprime");
+      socket.off("devoirModifie");
     };
   }, [socket]);
 
@@ -89,17 +108,51 @@ export default function Devoirs() {
     }
   }
 
+  function openEditDevoir(devoir) {
+    setEditingDevoir(devoir);
+    setEditForm({
+      titre: devoir.titre,
+      matiere: devoir.matiere,
+      description: devoir.description ?? "",
+      dateLimite: versDatetimeLocal(devoir.dateLimite),
+    });
+  }
+
+  async function handleEditSubmit(e) {
+    e.preventDefault();
+    try {
+      const { data } = await api.patch(`/devoirs/${editingDevoir.id}`, {
+        ...editForm,
+        dateLimite: new Date(editForm.dateLimite).toISOString(),
+      });
+      setDevoirs((prev) => prev.map((d) => (d.id === data.id ? { ...d, ...data } : d)));
+      setEditingDevoir(null);
+      toast("Devoir modifié");
+    } catch {
+      toast("Impossible de modifier le devoir", "error");
+    }
+  }
+
   async function handleToggleRendu(devoir) {
     const nouvelEtat = !devoir.rendu;
 
-    // On coche dans "À rendre" : on laisse la carte affichée le temps de l'animation
-    // (case cochée + texte barré visibles un instant) avant qu'elle ne quitte la liste
-    if (onglet === "aRendre" && nouvelEtat) {
-      setSortants((prev) => new Set(prev).add(devoir.id));
+    // La carte va-t-elle quitter la vue actuellement affichée ? Cocher dans "À rendre",
+    // ou décocher dans "Historique" (sauf si le devoir reste dans l'historique parce
+    // qu'il est de toute façon dépassé — dans ce cas rien ne change à l'affichage).
+    const vaQuitterVueActuelle =
+      (onglet === "aRendre" && nouvelEtat) ||
+      (onglet === "historique" && !nouvelEtat && new Date(devoir.dateLimite) >= now);
+
+    if (vaQuitterVueActuelle) {
+      // Clé incluant l'onglet : si l'utilisateur change d'onglet avant la fin de
+      // l'animation, on ne doit pas appliquer à tort le style "sortant" dans l'autre
+      // onglet, où la carte est censée s'afficher normalement.
+      const cle = `${onglet}-${devoir.id}`;
+      setSortants((prev) => new Set(prev).add(cle));
       setTimeout(() => {
         setSortants((prev) => {
           const next = new Set(prev);
-          next.delete(devoir.id);
+          next.delete(cle);
           return next;
         });
       }, 450);
@@ -135,9 +188,9 @@ export default function Devoirs() {
   // à venir et pas encore rendu n'a rien à faire ici, il reste dans "À rendre" (issue #42).
   const devoirsAffiches =
     onglet === "aRendre"
-      ? devoirs.filter((d) => !d.rendu || sortants.has(d.id))
+      ? devoirs.filter((d) => !d.rendu || sortants.has(`aRendre-${d.id}`))
       : devoirs
-          .filter((d) => d.rendu || new Date(d.dateLimite) < now)
+          .filter((d) => d.rendu || new Date(d.dateLimite) < now || sortants.has(`historique-${d.id}`))
           .sort((a, b) => new Date(b.dateLimite) - new Date(a.dateLimite));
 
   return (
@@ -216,7 +269,7 @@ export default function Devoirs() {
               return (
                 <div
                   key={devoir.id}
-                  className={`${styles.card} ${enRetard ? styles.cardLate : ""} ${devoir.rendu ? styles.cardRendu : ""} ${onglet === "aRendre" && sortants.has(devoir.id) ? styles.cardSortant : ""}`}
+                  className={`${styles.card} ${enRetard ? styles.cardLate : ""} ${devoir.rendu ? styles.cardRendu : ""} ${sortants.has(`${onglet}-${devoir.id}`) ? styles.cardSortant : ""}`}
                 >
                   <div className={styles.cardHeader}>
                     <span className={styles.matiere}>{devoir.matiere}</span>
@@ -244,6 +297,11 @@ export default function Devoirs() {
                     <div className={styles.cardFooterRight}>
                       <span className={styles.auteur}>Ajouté par {devoir.auteur?.nom}</span>
                       {canCreate && (
+                        <button className={styles.editBtn} onClick={() => openEditDevoir(devoir)}>
+                          Modifier
+                        </button>
+                      )}
+                      {canCreate && (
                         <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)}>
                           Supprimer
                         </button>
@@ -256,6 +314,46 @@ export default function Devoirs() {
           </div>
         )}
       </div>
+
+      {editingDevoir && (
+        <div className={styles.editOverlay} onClick={() => setEditingDevoir(null)}>
+          <form className={styles.editModal} onClick={(e) => e.stopPropagation()} onSubmit={handleEditSubmit}>
+            <h2 className={styles.editModalTitle}>Modifier le devoir</h2>
+            <input
+              placeholder="Titre"
+              value={editForm.titre}
+              onChange={(e) => setEditForm({ ...editForm, titre: e.target.value })}
+              required
+            />
+            <input
+              placeholder="Matière"
+              value={editForm.matiere}
+              onChange={(e) => setEditForm({ ...editForm, matiere: e.target.value })}
+              required
+            />
+            <input
+              placeholder="Description (optionnel)"
+              value={editForm.description}
+              onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+            />
+            <label className={styles.dateLabel}>
+              Date limite
+              <input
+                type="datetime-local"
+                value={editForm.dateLimite}
+                onChange={(e) => setEditForm({ ...editForm, dateLimite: e.target.value })}
+                required
+              />
+            </label>
+            <div className={styles.editModalActions}>
+              <button type="button" className={styles.cancelBtn} onClick={() => setEditingDevoir(null)}>
+                Annuler
+              </button>
+              <button type="submit">Enregistrer</button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <ConfirmModal
         open={toDelete !== null}
