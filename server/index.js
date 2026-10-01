@@ -5,6 +5,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import compression from "compression";
+import rateLimit from "express-rate-limit";
 import jwt from "jsonwebtoken";
 import prisma from "./db.js";
 import authRoutes from "./routes/auth.js";
@@ -20,6 +21,7 @@ import sondagesRoutes from "./routes/sondages.js";
 import { sendPushToAll } from "./utils/push.js";
 import { syncTousLesGroupes } from "./services/edtSync.js";
 import { utilisateurPeutAccederAuCanal } from "./utils/chatAccess.js";
+import { compteRequetes, lireStats } from "./utils/stats.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -40,6 +42,28 @@ const io = new Server(httpServer, {
 app.set("trust proxy", 1);
 
 app.use(compression()); // réponses compressées en gzip : moins de données, plus rapide
+
+// Compteur de requêtes pour le dashboard Pulse : placé avant les routes pour tout voir
+app.use(compteRequetes);
+
+// Chiffres agrégés, rien de sensible. Lus depuis un autre site (le dashboard), donc CORS
+// ouvert ici. Déclaré AVANT le cors() global ci-dessous, qui ne laisse passer que le front
+app.get(
+  "/stats",
+  rateLimit({
+    windowMs: 60 * 1000,
+    max: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: () => process.env.NODE_ENV === "test",
+  }),
+  cors({ origin: "*" }),
+  (req, res) => {
+    res.set("Cache-Control", "no-store");
+    res.json(lireStats(io));
+  }
+);
+
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
