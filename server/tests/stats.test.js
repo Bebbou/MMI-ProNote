@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { EventEmitter } from "events";
-import { compteRequetes, lireStats, reinitialiserStats } from "../utils/stats.js";
+import {
+  compteRequetes,
+  lireStats,
+  reinitialiserStats,
+  fluxEvenements,
+  signalerConnexion,
+} from "../utils/stats.js";
 
 // Simule le cycle d'une requête : le middleware s'abonne à "finish", on l'émet ensuite
 function requete({ method = "GET", path = "/devoirs", statusCode = 200 } = {}) {
@@ -51,5 +57,65 @@ describe("compteur de requêtes", () => {
   it("expose le nombre d'utilisateurs connectés en temps réel", () => {
     expect(lireStats({ engine: { clientsCount: 7 } }).sockets).toBe(7);
     expect(lireStats(null).sockets).toBe(0);
+  });
+});
+
+describe("flux en direct (SSE)", () => {
+  beforeEach(() => {
+    reinitialiserStats();
+    vi.useFakeTimers();
+  });
+  afterEach(() => vi.useRealTimers());
+
+  // Abonne un faux client au flux et retourne de quoi l'observer
+  function abonne() {
+    const req = new EventEmitter();
+    const res = { set: vi.fn(), flushHeaders: vi.fn(), write: vi.fn(), status: vi.fn().mockReturnThis(), json: vi.fn() };
+    fluxEvenements(req, res);
+    const messages = () => res.write.mock.calls.map(([texte]) => texte);
+    return { req, res, messages };
+  }
+
+  it("ouvre un flux text/event-stream sans compression", () => {
+    const { res } = abonne();
+    const entetes = res.set.mock.calls[0][0];
+    expect(entetes["Content-Type"]).toBe("text/event-stream");
+    expect(entetes["Cache-Control"]).toContain("no-transform");
+    expect(res.flushHeaders).toHaveBeenCalled();
+  });
+
+  it("regroupe les requêtes d'un même instant en un seul message", () => {
+    const { messages } = abonne();
+    requete();
+    requete();
+    requete();
+    vi.advanceTimersByTime(150);
+
+    const donnees = messages().filter((m) => m.startsWith("data:"));
+    expect(donnees).toHaveLength(1);
+    expect(JSON.parse(donnees[0].slice(5))).toEqual({ type: "requete", n: 3 });
+  });
+
+  it("signale une connexion temps réel à part des requêtes", () => {
+    const { messages } = abonne();
+    signalerConnexion();
+    vi.advanceTimersByTime(150);
+
+    const donnees = messages().filter((m) => m.startsWith("data:"));
+    expect(JSON.parse(donnees[0].slice(5))).toEqual({ type: "connexion", n: 1 });
+  });
+
+  it("n'envoie rien quand le client s'est déconnecté", () => {
+    const { req, messages } = abonne();
+    req.emit("close");
+    requete();
+    vi.advanceTimersByTime(150);
+
+    expect(messages().filter((m) => m.startsWith("data:"))).toHaveLength(0);
+  });
+
+  it("ne diffuse rien (et ne crée aucun minuteur) quand personne n'écoute", () => {
+    requete();
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

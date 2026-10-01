@@ -26,14 +26,76 @@ function seauCourant(maintenant = Date.now()) {
 // On ignore la page d'accueil, /stats (le dashboard ne se compte pas lui-même) et les
 // requêtes OPTIONS (préflight CORS), qui ne sont pas du vrai trafic.
 export function compteRequetes(req, res, next) {
-  if (req.method === "OPTIONS" || req.path === "/" || req.path === "/stats") return next();
+  const estStats = req.path === "/stats" || req.path.startsWith("/stats/");
+  if (req.method === "OPTIONS" || req.path === "/" || estStats) return next();
   res.on("finish", () => {
     const seau = seauCourant();
     seau.requetes++;
     total++;
     if (res.statusCode >= 500) seau.erreurs++;
+    diffuser("requete");
   });
   next();
+}
+
+// ---------------------------------------------------------------------------
+// Flux en direct (Server-Sent Events) : le dashboard Pulse s'y abonne pour faire
+// "battre" son tracé à chaque événement réel. Seuls un type et un nombre sont envoyés,
+// jamais de chemin d'URL, d'IP ni d'identité.
+// ---------------------------------------------------------------------------
+
+const MAX_CLIENTS = 100;
+const clients = new Set();
+const enAttente = { requete: 0, connexion: 0 };
+let minuteur = null;
+
+// Regroupe les événements sur 150 ms : un pic de trafic ne noie pas les clients
+function diffuser(type) {
+  if (!clients.size) return; // personne n'écoute : rien à faire
+  enAttente[type]++;
+  if (minuteur) return;
+  minuteur = setTimeout(() => {
+    minuteur = null;
+    for (const t of Object.keys(enAttente)) {
+      const n = enAttente[t];
+      if (!n) continue;
+      enAttente[t] = 0;
+      const message = `data: ${JSON.stringify({ type: t, n })}\n\n`;
+      for (const envoyer of clients) envoyer(message);
+    }
+  }, 150);
+}
+
+// Un utilisateur vient de se connecter en temps réel (Socket.IO)
+export function signalerConnexion() {
+  diffuser("connexion");
+}
+
+export function fluxEvenements(req, res) {
+  if (clients.size >= MAX_CLIENTS) {
+    return res.status(503).json({ error: "Trop de connexions en direct." });
+  }
+  // no-transform : empêche compression() de mettre le flux en mémoire tampon
+  res.set({
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache, no-transform",
+    "X-Accel-Buffering": "no",
+  });
+  res.flushHeaders();
+
+  const envoyer = (texte) => {
+    res.write(texte);
+    res.flush?.();
+  };
+  envoyer("retry: 5000\n\n"); // en cas de coupure, le navigateur retente après 5 s
+  clients.add(envoyer);
+
+  // Un commentaire toutes les 25 s garde la connexion ouverte à travers les proxys
+  const maintien = setInterval(() => envoyer(": ping\n\n"), 25 * 1000);
+  req.on("close", () => {
+    clearInterval(maintien);
+    clients.delete(envoyer);
+  });
 }
 
 export function lireStats(io, maintenant = Date.now()) {
@@ -59,4 +121,9 @@ export function lireStats(io, maintenant = Date.now()) {
 export function reinitialiserStats() {
   total = 0;
   parHeure.clear();
+  clients.clear();
+  enAttente.requete = 0;
+  enAttente.connexion = 0;
+  if (minuteur) clearTimeout(minuteur);
+  minuteur = null;
 }

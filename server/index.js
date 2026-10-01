@@ -21,7 +21,7 @@ import sondagesRoutes from "./routes/sondages.js";
 import { sendPushToAll } from "./utils/push.js";
 import { syncTousLesGroupes } from "./services/edtSync.js";
 import { utilisateurPeutAccederAuCanal } from "./utils/chatAccess.js";
-import { compteRequetes, lireStats } from "./utils/stats.js";
+import { compteRequetes, lireStats, fluxEvenements, signalerConnexion } from "./utils/stats.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -62,6 +62,20 @@ app.get(
     res.set("Cache-Control", "no-store");
     res.json(lireStats(io));
   }
+);
+
+// Flux en direct (SSE) lu par le dashboard : un battement par requête ou connexion réelle
+app.get(
+  "/stats/stream",
+  rateLimit({
+    windowMs: 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: () => process.env.NODE_ENV === "test",
+  }),
+  cors({ origin: "*" }),
+  fluxEvenements
 );
 
 app.use(cors({ origin: allowedOrigins }));
@@ -109,6 +123,8 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
+  signalerConnexion(); // fait "battre" le dashboard Pulse
+
   // Un utilisateur ne peut rejoindre que la room de SON PROPRE groupe (les
   // événements temps réel de devoirs/EDT d'un autre groupe ne doivent pas fuiter)
   socket.on("rejoindreGroupe", (groupeId) => {
