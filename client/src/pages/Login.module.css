@@ -63,7 +63,7 @@
 }
 
 .card form > button {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -77,7 +77,7 @@
 }
 
 .card form > button:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 .card a {

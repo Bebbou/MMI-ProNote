@@ -245,7 +245,7 @@
 }
 
 .modalActions > button[type="submit"] {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -258,7 +258,7 @@
 }
 
 .modalActions > button[type="submit"]:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 .modalWarning {

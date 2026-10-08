@@ -32,7 +32,7 @@
 
 .backBtn {
   margin-top: 0.75rem;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   padding: 0.65rem 1.5rem;
   border-radius: 8px;
@@ -43,5 +43,5 @@
 }
 
 .backBtn:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }

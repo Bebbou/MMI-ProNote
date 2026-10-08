@@ -226,7 +226,7 @@
 
 .canvasBtn:hover,
 .canvasBtnActive {
-  background: var(--accent);
+  background: var(--accent-solid);
   border-color: var(--accent);
   color: #fff;
 }

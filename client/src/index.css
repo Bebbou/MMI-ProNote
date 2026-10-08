@@ -9,6 +9,10 @@
   --border: #e4e2dd;
   --accent: #fe7db6;
   --accent-hover: #e05a9a;
+  /* Fond des boutons pleins (texte blanc dessus). Identique à --accent sauf dans les
+     thèmes sombres, où l'accent clair sert au texte et un ton plus profond au fond. */
+  --accent-solid: var(--accent);
+  --accent-solid-hover: var(--accent-hover);
   --accent-blue: #29abe2;
   --accent-orange: #f26419;
   --tint-pink: #fff0f7;
@@ -25,16 +29,20 @@
 }
 
 [data-theme="dark"] {
-  --bg-page: #0d0d0d;
-  --bg-card: #111111;
+  /* Rendu "mode sombre auto" de Comet : fond, cartes et barre latérale à plat,
+     séparés uniquement par les bordures */
+  --bg-page: #0e0e0e;
+  --bg-card: #0e0e0e;
   --bg-input: #0a0a0a;
-  --bg-dark: #0d0d0d;
+  --bg-dark: #0e0e0e;
   --border: #2a2a2a;
   --accent: #fe7db6;
   --accent-hover: #e05a9a;
+  --accent-solid: #80013a;
+  --accent-solid-hover: #a00248;
   --accent-blue: #29abe2;
   --accent-orange: #f26419;
-  --tint-pink: #2a0f1a;
+  --tint-pink: #220c16;
   --tint-blue: #0a1e2a;
   --tint-orange: #2a1205;
   --text: #e0e0e0;
@@ -94,16 +102,19 @@
 }
 
 [data-theme="obsidian"] {
-  --bg-page: #13111a;
-  --bg-card: #1c1928;
-  --bg-input: #100e18;
-  --bg-dark: #1a1726;
+  /* Rendu "mode sombre auto" de Comet : fond, cartes et barre latérale à plat */
+  --bg-page: #161420;
+  --bg-card: #161420;
+  --bg-input: #14121e;
+  --bg-dark: #161420;
   --border: #2e2a40;
   --accent: #9b7fe8;
   --accent-hover: #7c5fd4;
+  --accent-solid: #2f1677;
+  --accent-solid-hover: #3d1d94;
   --accent-blue: #29abe2;
   --accent-orange: #f26419;
-  --tint-pink: #251e3e;
+  --tint-pink: #201a32;
   --tint-blue: #0a1e2a;
   --tint-orange: #2a1205;
   --text: #e2dff5;

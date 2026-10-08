@@ -16,7 +16,7 @@
 
 .segPink {
   flex: 2;
-  background: var(--accent);
+  background: var(--accent-solid);
   border-radius: 3px;
 }
 

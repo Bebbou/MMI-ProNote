@@ -54,7 +54,7 @@
 }
 
 .addBtn:hover {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border-color: var(--accent);
 }
@@ -86,7 +86,7 @@
 }
 
 .submitBtn {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -100,7 +100,7 @@
 }
 
 .submitBtn:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 .list {
