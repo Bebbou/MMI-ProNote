@@ -21,6 +21,8 @@ import ChatPanel from "./ChatPanel";
 import MmiDecor from "./MmiDecor";
 import { Toaster } from "./Toast";
 import PwaPrompts from "./PwaPrompts";
+import NotificationsBell from "./NotificationsBell";
+import { useNotifications } from "../hooks/useNotifications";
 import logoMmi from "../assets/logo_mmi.jpg";
 import styles from "./Layout.module.css";
 
@@ -55,6 +57,7 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme } = useTheme();
+  const notifs = useNotifications(!!user);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
@@ -100,6 +103,11 @@ export default function Layout({ children }) {
           <span className={styles.userGroupe}>{user?.groupe}</span>
         </div>
         <nav className={styles.nav}>
+          <NotificationsBell
+            variant="nav"
+            {...notifs}
+            classes={{ bouton: styles.navLink, label: styles.navLabel }}
+          />
           {allNavItems.map((item) => (
             <NavLink
               key={item.to}
@@ -166,31 +174,34 @@ export default function Layout({ children }) {
             <Menu size={20} strokeWidth={1.5} />
           </button>
           <span className={styles.mobileTitle}>Pronote-MMI</span>
-          <div className={styles.mobileThemePicker} ref={mobileThemeRef}>
-            <button
-              className={`${styles.themeIconBtn} ${themeOpen ? styles.themeIconBtnOpen : ""}`}
-              onClick={() => setThemeOpen((v) => !v)}
-              aria-label="Changer de thème"
-            >
-              <Sun size={18} strokeWidth={1.5} />
-            </button>
-            {themeOpen && (
-              <div className={styles.mobileThemeDropdown}>
-                {THEMES.map((t) => (
-                  <button
-                    key={t.id}
-                    className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
-                    onClick={() => {
-                      setTheme(t.id);
-                      setThemeOpen(false);
-                    }}
-                  >
-                    <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className={styles.headerActions}>
+            <NotificationsBell variant="header" {...notifs} />
+            <div className={styles.mobileThemePicker} ref={mobileThemeRef}>
+              <button
+                className={`${styles.themeIconBtn} ${themeOpen ? styles.themeIconBtnOpen : ""}`}
+                onClick={() => setThemeOpen((v) => !v)}
+                aria-label="Changer de thème"
+              >
+                <Sun size={18} strokeWidth={1.5} />
+              </button>
+              {themeOpen && (
+                <div className={styles.mobileThemeDropdown}>
+                  {THEMES.map((t) => (
+                    <button
+                      key={t.id}
+                      className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
+                      onClick={() => {
+                        setTheme(t.id);
+                        setThemeOpen(false);
+                      }}
+                    >
+                      <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

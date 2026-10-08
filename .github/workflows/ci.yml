@@ -1,0 +1,93 @@
+name: CI
+
+# À chaque push et chaque pull request : tests du serveur, lint et build du client, et une
+# vérification de bout en bout sur une vraie base PostgreSQL jetable (mêmes contrôles que
+# `npm run smoke` en local).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  serveur:
+    name: Serveur · tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm test
+
+  client:
+    name: Client · lint et build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  base-de-donnees:
+    name: Base de données · schéma, données de test et routes
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: dev
+          POSTGRES_DB: pronote_mmi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:dev@localhost:5432/pronote_mmi
+      JWT_SECRET: secret-de-ci
+      CLIENT_ORIGIN: http://localhost:5173
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      # Valide que le schéma Prisma se construit sur une base vide
+      - run: npm run db:push
+      - run: npm run seed
+      - name: Démarrer le serveur
+        run: |
+          node index.js > /tmp/serveur.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000/ > /dev/null && exit 0
+            sleep 1
+          done
+          echo "Le serveur n'a pas démarré :" && cat /tmp/serveur.log && exit 1
+      - run: npm run smoke
+      - name: Journal du serveur (en cas d'échec)
+        if: failure()
+        run: cat /tmp/serveur.log

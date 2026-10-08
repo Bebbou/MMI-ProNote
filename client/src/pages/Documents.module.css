@@ -508,3 +508,9 @@
     justify-content: center;
   }
 }
+
+/* Stockage presque plein : on prévient avant que l'upload soit refusé */
+.stockageAlerte {
+  color: var(--danger);
+  font-weight: 600;
+}

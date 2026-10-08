@@ -132,11 +132,25 @@ router.post("/forgot-password", authLimiter, async (req, res) => {
   const clientOrigin = process.env.CLIENT_ORIGIN?.split(",")[0]?.trim();
   const resetUrl = `${clientOrigin}/reset-password?token=${token}`;
 
-  await resend.emails.send({
-    from: "Pronote-MMI <onboarding@resend.dev>",
-    to: email,
-    subject: "Réinitialisation de ton mot de passe",
-    html: `
+  // Un échec d'envoi (clé absente, domaine non vérifié, panne Resend) ne doit jamais se
+  // voir côté client : une réponse différente pour un email qui existe révélerait quels
+  // comptes existent. On journalise l'erreur et on répond toujours la même chose.
+  if (!process.env.RESEND_API_KEY) {
+    // Développement local sans clé Resend : le lien s'affiche dans la console du serveur.
+    // Jamais en production : un jeton de réinitialisation ne doit pas finir dans les logs.
+    if (clientOrigin?.includes("localhost")) {
+      console.log(`[forgot-password] lien de réinitialisation pour ${email} : ${resetUrl}`);
+    }
+    return res.json({ message: "Si cet email existe, un lien a été envoyé." });
+  }
+
+  try {
+    // Le SDK Resend ne lève pas d'exception : il renvoie { data, error }
+    const { error } = await resend.emails.send({
+      from: "Pronote-MMI <onboarding@resend.dev>",
+      to: email,
+      subject: "Réinitialisation de ton mot de passe",
+      html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 2rem;">
         <h2 style="color: #fe7db6;">Pronote-MMI</h2>
         <p>Bonjour ${user.nom},</p>
@@ -147,7 +161,11 @@ router.post("/forgot-password", authLimiter, async (req, res) => {
         <p style="color:#94a3b8;font-size:0.85rem;">Si tu n'es pas à l'origine de cette demande, ignore cet email.</p>
       </div>
     `,
-  });
+    });
+    if (error) console.error("[forgot-password] envoi refusé par Resend :", error.message);
+  } catch (err) {
+    console.error("[forgot-password] envoi impossible :", err.message);
+  }
 
   res.json({ message: "Si cet email existe, un lien a été envoyé." });
 });

@@ -4,6 +4,8 @@ import Layout from "../components/Layout";
 import api from "../api/index.js";
 import styles from "./Admin.module.css";
 
+const TAILLE_PAGE = 25;
+
 export default function Admin() {
   const { user: moi } = useAuth();
   const [users, setUsers] = useState([]);
@@ -18,6 +20,10 @@ export default function Admin() {
   const [confirmDeleteGroupe, setConfirmDeleteGroupe] = useState(null);
   const [filtrePromo, setFiltrePromo] = useState("Toutes");
   const [filtreGroupeId, setFiltreGroupeId] = useState("Tous");
+  // Recherche, rôle et pagination : la liste devient longue avec plusieurs promos
+  const [recherche, setRecherche] = useState("");
+  const [filtreRole, setFiltreRole] = useState("Tous");
+  const [limite, setLimite] = useState(TAILLE_PAGE);
 
   useEffect(() => {
     api.get("/admin/users").then((res) => setUsers(res.data));
@@ -114,9 +120,13 @@ export default function Admin() {
     setFiltreGroupeId("Tous"); // le groupe sélectionné peut ne plus être dans cette promo
   }
 
+  const requete = recherche.trim().toLowerCase();
+
   const usersFiltres = users.filter((u) => {
     if (filtrePromo !== "Toutes" && u.groupe?.promo !== filtrePromo) return false;
     if (filtreGroupeId !== "Tous" && u.groupe?.id !== Number(filtreGroupeId)) return false;
+    if (filtreRole !== "Tous" && u.role !== filtreRole) return false;
+    if (requete && !`${u.nom} ${u.email}`.toLowerCase().includes(requete)) return false;
     return true;
   });
 
@@ -148,11 +158,45 @@ export default function Admin() {
               ))}
             </select>
           </label>
-          {(filtrePromo !== "Toutes" || filtreGroupeId !== "Tous") && (
+          <label className={styles.filterLabel}>
+            Rôle
+            <select
+              value={filtreRole}
+              onChange={(e) => {
+                setFiltreRole(e.target.value);
+                setLimite(TAILLE_PAGE);
+              }}
+            >
+              <option value="Tous">Tous</option>
+              <option value="etudiant">Étudiant</option>
+              <option value="delegue">Délégué</option>
+              <option value="professeur">Professeur</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+          <label className={styles.filterLabel}>
+            Recherche
+            <input
+              type="search"
+              className={styles.filterSearch}
+              placeholder="Nom ou email"
+              value={recherche}
+              onChange={(e) => {
+                setRecherche(e.target.value);
+                setLimite(TAILLE_PAGE);
+              }}
+            />
+          </label>
+          {(filtrePromo !== "Toutes" || filtreGroupeId !== "Tous" || filtreRole !== "Tous" || recherche) && (
             <button
               type="button"
               className={styles.clearFiltersBtn}
-              onClick={() => handleFiltrePromo("Toutes")}
+              onClick={() => {
+                handleFiltrePromo("Toutes");
+                setFiltreRole("Tous");
+                setRecherche("");
+                setLimite(TAILLE_PAGE);
+              }}
             >
               Réinitialiser
             </button>
@@ -256,7 +300,7 @@ export default function Admin() {
         <section>
           <h2 className={styles.sectionTitle}>Utilisateurs actifs ({valides.length})</h2>
           <div className={styles.list}>
-            {valides.map((u) => (
+            {valides.slice(0, limite).map((u) => (
               <div key={u.id} className={styles.card}>
                 <div className={styles.info}>
                   <span className={styles.nom}>{u.nom}</span>
@@ -290,6 +334,15 @@ export default function Admin() {
               </div>
             ))}
           </div>
+          {valides.length > limite && (
+            <button
+              type="button"
+              className={styles.moreBtn}
+              onClick={() => setLimite((l) => l + TAILLE_PAGE)}
+            >
+              Afficher plus ({valides.length - limite} restants)
+            </button>
+          )}
         </section>
       </div>
 

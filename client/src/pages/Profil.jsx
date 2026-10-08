@@ -11,6 +11,7 @@ import PasswordInput from "../components/PasswordInput";
 import PageTitle from "../components/PageTitle";
 import AppFooter from "../components/AppFooter";
 import MesOptions from "../components/MesOptions";
+import PreferencesNotifications from "../components/PreferencesNotifications";
 import styles from "./Profil.module.css";
 
 const THEME_DOTS = {
@@ -170,6 +171,7 @@ export default function Profil() {
               </button>
             )}
           </div>
+          <PreferencesNotifications />
         </div>
 
         <div className={styles.section}>

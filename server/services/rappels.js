@@ -1,5 +1,5 @@
 import prisma from "../db.js";
-import { sendPushToDevoir } from "../utils/push.js";
+import { notifier, ciblesDevoir } from "../utils/notifier.js";
 
 // Rappel automatique : quand l'échéance d'un devoir passe sous les 24h, on prévient ceux
 // qui ne l'ont pas encore marqué comme rendu. Un seul rappel par devoir (`rappelEnvoye`).
@@ -47,7 +47,26 @@ export async function envoyerRappels(now = new Date()) {
       data: { rappelEnvoye: true },
     });
     if (reserve.count === 0) continue;
-    await sendPushToDevoir(devoir, payloadRappel(devoir, now));
+    // Seulement ceux qui n'ont pas encore rendu le devoir (et pas les enseignants)
+    await notifier({
+      where: {
+        ...ciblesDevoir(devoir),
+        role: { in: ["etudiant", "delegue"] },
+        devoirsRendus: { none: { devoirId: devoir.id } },
+      },
+      categorie: "rappel",
+      payload: payloadRappel(devoir, now),
+    });
   }
   return devoirs.length;
+}
+
+// L'historique de la cloche ne garde que 30 jours : au-delà, ça n'intéresse plus personne
+const CONSERVATION_MS = 30 * 24 * 60 * 60 * 1000;
+
+export async function purgerAnciennesNotifications(now = new Date()) {
+  const { count } = await prisma.notification.deleteMany({
+    where: { createdAt: { lt: new Date(now.getTime() - CONSERVATION_MS) } },
+  });
+  return count;
 }

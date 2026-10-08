@@ -44,6 +44,30 @@ model User {
   devoirsRendus       DevoirRendu[]
   commentairesDevoirs CommentaireDevoir[] @relation("AuteurCommentaireDevoir")
   options             UserOption[]
+
+  // Préférences de notification (Profil) : une case par catégorie, tout activé par défaut
+  notifDevoirs  Boolean        @default(true)
+  notifRappels  Boolean        @default(true)
+  notifCours    Boolean        @default(true)
+  notifAnnonces Boolean        @default(true)
+  notifications Notification[]
+}
+
+// Historique des notifications affiché dans la cloche de l'application. Existe même sans
+// push : un élève qui n'a pas activé les notifications (ou sur iPhone non installé) les voit ici.
+model Notification {
+  id        Int       @id @default(autoincrement())
+  categorie String // devoir | rappel | cours | annonce
+  titre     String
+  corps     String
+  url       String    @default("/")
+  luAt      DateTime?
+  createdAt DateTime  @default(now())
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  @@index([userId, createdAt])
 }
 
 model PushSubscription {

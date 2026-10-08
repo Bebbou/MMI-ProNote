@@ -5,6 +5,58 @@ import { sendPushToUsers } from "../utils/push.js";
 
 const router = Router();
 
+// Préférences exposées au client -> colonnes en base
+const CHAMPS_PREFS = {
+  devoirs: "notifDevoirs",
+  rappels: "notifRappels",
+  cours: "notifCours",
+  annonces: "notifAnnonces",
+};
+
+// GET /notifications — les 30 dernières de l'utilisateur et le nombre de non lues
+router.get("/", requireAuth, async (req, res) => {
+  const [items, nonLues] = await Promise.all([
+    prisma.notification.findMany({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      select: { id: true, categorie: true, titre: true, corps: true, url: true, luAt: true, createdAt: true },
+    }),
+    prisma.notification.count({ where: { userId: req.user.id, luAt: null } }),
+  ]);
+  res.json({ items, nonLues });
+});
+
+// POST /notifications/lues — marque tout comme lu
+router.post("/lues", requireAuth, async (req, res) => {
+  await prisma.notification.updateMany({
+    where: { userId: req.user.id, luAt: null },
+    data: { luAt: new Date() },
+  });
+  res.json({ nonLues: 0 });
+});
+
+// GET /notifications/preferences
+router.get("/preferences", requireAuth, async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: Object.fromEntries(Object.values(CHAMPS_PREFS).map((c) => [c, true])),
+  });
+  res.json(Object.fromEntries(Object.entries(CHAMPS_PREFS).map(([cle, col]) => [cle, user[col]])));
+});
+
+// PUT /notifications/preferences — { devoirs?: bool, rappels?: bool, cours?: bool, annonces?: bool }
+router.put("/preferences", requireAuth, async (req, res) => {
+  const data = {};
+  for (const [cle, col] of Object.entries(CHAMPS_PREFS)) {
+    if (typeof req.body[cle] === "boolean") data[col] = req.body[cle];
+  }
+  if (Object.keys(data).length === 0) return res.status(400).json({ error: "Aucune préférence valide." });
+
+  await prisma.user.update({ where: { id: req.user.id }, data });
+  res.json({ message: "Préférences enregistrées." });
+});
+
 // GET /notifications/vapid-public-key — clé publique pour le client
 router.get("/vapid-public-key", (req, res) => {
   const key = process.env.VAPID_PUBLIC_KEY;

@@ -17,17 +17,20 @@ En bref, si vous me dites : "Aaahh, c'est de l'IA", je répondrai que, pour la m
 
 ## Fonctionnalités
 
-- **Devoirs** — création, modification et suppression par les délégués et admins, mise à jour en temps réel pour tout le groupe via Socket.IO
+- **Devoirs et évaluations** — créés par les délégués, professeurs et admins, avec consignes, commentaires et mise à jour en temps réel (Socket.IO). Agenda regroupé par échéance (dépassée, aujourd'hui, demain...), filtres par type, matière et audience, recherche
+- **Audience d'un devoir** — son groupe, une **option** transversale aux groupes (ex. « Anglais renforcé » : des élèves répartis dans plusieurs TD), ou, pour un professeur ou un admin, toute une promo ou un autre groupe
+- **Options** — chaque élève choisit les siennes dans son Profil ; les admins créent et suppriment les options de la promo
 - **Notes** — saisie personnelle de notes avec coefficient et calcul de moyenne par matière
 - **Emploi du temps** — vrai calendrier daté, synchronisé automatiquement (toutes les heures) depuis le flux iCal ADE de chaque groupe ; vue navigable semaine par semaine, un jour à la fois sur mobile, détail d'un cours (salle, prof) au clic ; les URLs des flux se configurent par groupe dans le panel Admin
 - **Chat** — messagerie temps réel par canaux (général, groupe, filière, personnalisés), réactions aux messages, accès aux canaux vérifié côté serveur (pas seulement filtré à l'affichage)
-- **Documents** — partage de fichiers de cours (PDF) avec commentaires
+- **Documents** — cours (PDF) avec commentaires, **cloisonnés par promo** : une promo ne voit que ses propres cours. Publiés par les professeurs (qui gèrent les leurs) et les admins ; espace de stockage plafonné
 - **Sondages** — création par les délégués/admins, vote en temps réel
-- **Notifications push** — alertes navigateur/mobile même app fermée (PWA installable)
-- **Profil** — consultation des informations de son compte, changement de mot de passe
+- **Notifications** — cloche dans l'application (historique de 30 jours, même sans push), alertes push navigateur/mobile app fermée, **rappel automatique la veille d'une échéance** pour ceux qui n'ont pas rendu, préférences par catégorie (devoirs, rappels, cours, annonces)
+- **Application installable (PWA)** — invitation à l'installation (indispensable sur iPhone pour recevoir les notifications) et à l'activation des notifications
+- **Profil** — informations du compte, options, notifications (état, test, préférences), thème, changement de mot de passe
 - **Thèmes** — 5 thèmes visuels au choix (MMI, Sombre, Bleu, Pastel, Obsidian), sauvegardés par utilisateur
 - **MMIparty** — raccourci vers [MMIparty](https://play.mmiparty.fr/), le projet d'une étudiante de la promo
-- **Admin** — validation des comptes, changement de rôles, suppression d'utilisateurs, configuration des flux iCal de l'EDT
+- **Admin** — validation des comptes, changement de rôles, suppression d'utilisateurs (avec recherche, filtres par promo, groupe et rôle, pagination), configuration des flux iCal de l'EDT
 - **Authentification** — inscription avec validation manuelle par un admin, connexion par JWT, réinitialisation de mot de passe par email
 
 ---
@@ -36,7 +39,7 @@ En bref, si vous me dites : "Aaahh, c'est de l'IA", je répondrai que, pour la m
 
 | Côté | Technologies |
 |------|-------------|
-| Frontend | React 19, React Router, Axios, CSS Modules, Vite, @xyflow/react |
+| Frontend | React 19, React Router, Axios, CSS Modules, Vite (PWA) |
 | Backend | Node.js, Express, Socket.IO |
 | Base de données | PostgreSQL via Prisma ORM |
 | Auth | JWT (jsonwebtoken) + bcryptjs |
@@ -56,40 +59,62 @@ En bref, si vous me dites : "Aaahh, c'est de l'IA", je répondrai que, pour la m
 ## Prérequis
 
 - [Node.js](https://nodejs.org) v18 ou supérieur
-- Une base PostgreSQL (locale ou hébergée, ex. Railway)
+- [Docker](https://www.docker.com/products/docker-desktop/) pour la base PostgreSQL locale (ou n'importe quelle base PostgreSQL)
 - npm évidemment
 
 ---
 
-## Installation
+## Installation (développement local)
 
-### 1. Cloner le dépôt
+La base de développement est **locale** : elle n'a aucun lien avec la production (Railway), on peut donc créer et casser des données sans risque.
+
+### 1. Cloner le dépôt et lancer la base
 
 ```bash
 git clone https://github.com/Bebbou/MMI-ProNote.git
-cd Pronote-MMI
+cd MMI-ProNote
+docker compose up -d
 ```
 
-### 2. Configurer le serveur
+### 2. Configurer et lancer le serveur
 
 ```bash
 cd server
 cp .env.example .env
-# Remplir DATABASE_URL, JWT_SECRET et les clés VAPID dans .env
+# Dans .env : DATABASE_URL="postgresql://postgres:dev@localhost:5432/pronote_mmi" et un JWT_SECRET
 npm install
-npx prisma migrate dev --name init
-node index.js
+npm run db:push     # crée les tables d'après le schéma
+npm run seed        # comptes et données de test (voir ci-dessous)
+npm run dev
 ```
 
-### 3. Configurer le client
+> **`db:push` et non `migrate`** : l'historique de migrations suppose que les tables de base existent déjà (il ne construit pas une base vide). `prisma migrate deploy` ne sert qu'en production. **Ne lance jamais `prisma migrate dev`** sur la base de production : il peut proposer de la réinitialiser.
+
+### 3. Lancer le client
 
 ```bash
-cd ../client
+cd client
 npm install
 npm run dev
 ```
 
 Le client tourne sur `http://localhost:5173`, le serveur sur `http://localhost:3000`.
+
+### Comptes de test
+
+`npm run seed` crée un compte par rôle, tous avec le mot de passe défini dans [`server/scripts/seed.js`](server/scripts/seed.js) : `admin@test.local`, `delegue@test.local`, `prof@test.local`, `eleve.a1@test.local`, `eleve.a2@test.local`, `eleve.b1@test.local` (MMI2) et `eleve.mmi3@test.local` (MMI3), avec une option, des devoirs ciblés différemment et deux cours de promos différentes. Le script refuse de tourner si `DATABASE_URL` ne pointe pas vers la machine locale.
+
+Sans clé Resend, le lien de « mot de passe oublié » s'affiche dans la console du serveur.
+
+### Vérifier que tout fonctionne
+
+```bash
+cd server
+npm test            # tests unitaires et de routes (base simulée)
+npm run smoke       # vérifications de bout en bout sur la base locale (serveur lancé)
+```
+
+La CI GitHub (`.github/workflows/ci.yml`) rejoue les tests, le lint, le build du client et ces vérifications sur une base PostgreSQL jetable.
 
 ---
 
@@ -105,7 +130,8 @@ Fichier `server/.env` (copie de `.env.example`) :
 | `VAPID_EMAIL` | Email de contact pour les notifications push | `ton@email.com` |
 | `VAPID_PUBLIC_KEY` | Clé publique VAPID (`npx web-push generate-vapid-keys`) | — |
 | `VAPID_PRIVATE_KEY` | Clé privée VAPID | — |
-| `RESEND_API_KEY` | Clé API [Resend](https://resend.com) pour l'envoi des emails de réinitialisation de mot de passe | `re_xxxxxxxx` |
+| `RESEND_API_KEY` | Clé API [Resend](https://resend.com) pour les emails de réinitialisation de mot de passe. L'envoi à d'autres adresses que la tienne exige un nom de domaine vérifié chez Resend | `re_xxxxxxxx` |
+| `MAX_DOCS_MB` | Plafond de stockage des cours (PDF), en Mo — optionnel, 350 par défaut (le volume Railway fait 500 Mo) | `350` |
 
 ---
 
@@ -120,19 +146,25 @@ Pronote-MMI/
 │       ├── components/          # Composants partagés (Layout, PageTitle,
 │       │                        #   MmiDecor, Toast, ConfirmModal, Skeleton...)
 │       ├── context/             # AuthContext (état global auth)
-│       ├── hooks/                # useSocket, useTheme, usePushNotifications
+│       ├── hooks/                # useSocket, useTheme, usePushNotifications, useNotifications,
+│       │                        #   useInstallPrompt, useOptions
 │       ├── pages/                # Une page par route
-│       └── sw.js                 # Service worker (notifications push)
+│       ├── utils/                # echeance (agenda des devoirs), pwa, temps
+│       └── sw.js                 # Service worker (cache hors-ligne, notifications push)
 ├── server/                     # Backend Express
 │   ├── middlewares/             # requireAuth, requireRole
-│   ├── routes/                  # auth, admin, devoirs, notes, edt, profil,
+│   ├── routes/                  # auth, admin, devoirs, options, notes, edt, profil,
 │   │                            #   chat, documents, sondages, notifications
-│   ├── services/                # edtSync (synchronisation des flux iCal ADE)
-│   ├── utils/                   # push (notifications), chatAccess (autorisation par canal)
+│   ├── services/                # edtSync (flux iCal ADE), rappels (rappel la veille d'une échéance)
+│   ├── scripts/                 # seed (données de test), smoke (vérifications de bout en bout)
+│   ├── tests/                   # tests unitaires et de routes (Vitest + supertest)
+│   ├── utils/                   # notifier (envoi central), push, devoirAccess, documentAccess,
+│   │                            #   chatAccess : règles de visibilité et d'accès
 │   ├── prisma/
 │   │   ├── schema.prisma        # Modèles de la base de données
 │   │   └── migrations/          # Historique des migrations SQL
 │   └── index.js                 # Point d'entrée du serveur
+├── docker-compose.yml          # Base PostgreSQL locale
 └── README.md
 ```
 
@@ -142,11 +174,12 @@ Pronote-MMI/
 
 | Rôle | Droits |
 |------|--------|
-| `etudiant` | Lecture devoirs/EDT, gestion de ses propres notes, chat, vote aux sondages |
-| `delegue` | + Création/modification/suppression de devoirs, création de sondages et annonces |
-| `admin` | Accès complet, gestion des comptes, des rôles et de l'EDT |
+| `etudiant` | Lecture des devoirs, cours de sa promo et EDT, gestion de ses propres notes, chat, vote aux sondages, choix de ses options |
+| `delegue` | + Création/modification/suppression de devoirs (pour son groupe ou une option, hors devoirs d'un professeur), sondages et annonces |
+| `professeur` | Publie des cours (pour la promo de son choix) et crée des devoirs et évaluations pour un groupe, une promo entière ou une option ; ne gère que ses propres contenus |
+| `admin` | Accès complet, gestion des comptes, des rôles, des options, des groupes et de l'EDT |
 
-> Les nouveaux comptes sont en attente de validation par un admin avant de pouvoir se connecter.
+> Les nouveaux comptes sont en attente de validation par un admin avant de pouvoir se connecter. Un professeur s'inscrit comme un élève ; l'admin lui attribue ensuite le rôle dans le panel Admin.
 
 ---
 

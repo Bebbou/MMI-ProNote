@@ -261,6 +261,13 @@
   z-index: 1;
 }
 
+/* Cloche + choix du thème, côte à côte dans l'en-tête mobile */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 /* ── Mobile header (caché sur desktop) ── */
 .mobileHeader {
   display: none;

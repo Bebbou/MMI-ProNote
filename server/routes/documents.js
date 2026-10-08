@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import prisma from "../db.js";
 import { requireAuth, requireRole } from "../middlewares/auth.js";
-import { sendPushToPromo } from "../utils/push.js";
+import { notifierSansBloquer } from "../utils/notifier.js";
 import { peutVoirDocument, peutGererDocument } from "../utils/documentAccess.js";
 
 const router = Router();
@@ -20,6 +20,16 @@ const upload = multer({
 // Types de séance reconnus (issue #37). "Autre" reste la valeur par défaut pour
 // les anciens documents importés avant l'ajout de ce champ.
 const TYPES = ["CM", "TD", "TP", "Projet", "Autre"];
+
+// Les PDF sont stockés dans PostgreSQL, dont le volume est limité (500 Mo sur Railway) :
+// au-delà d'un plafond on refuse les nouveaux cours plutôt que de saturer la base, ce qui
+// ferait tomber toute l'application. Réglable avec MAX_DOCS_MB.
+const MAX_DOCS_OCTETS = (Number(process.env.MAX_DOCS_MB) || 350) * 1024 * 1024;
+
+async function stockageUtilise() {
+  const { _sum } = await prisma.document.aggregate({ _sum: { fileSize: true } });
+  return _sum.fileSize ?? 0;
+}
 
 const docSelect = {
   id: true,
@@ -76,6 +86,11 @@ router.get("/", async (req, res) => {
   res.json(docs);
 });
 
+// GET /documents/stockage — espace utilisé par les cours (pour ceux qui publient)
+router.get("/stockage", requireRole("admin", "professeur"), async (req, res) => {
+  res.json({ utilise: await stockageUtilise(), limite: MAX_DOCS_OCTETS });
+});
+
 // GET /documents/:id/download
 router.get("/:id/download", async (req, res) => {
   const doc = await chargerDoc(req, res);
@@ -88,6 +103,11 @@ router.get("/:id/download", async (req, res) => {
 // POST /documents (admin ou professeur)
 router.post("/", requireRole("admin", "professeur"), upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "Fichier PDF requis." });
+  if ((await stockageUtilise()) + req.file.size > MAX_DOCS_OCTETS) {
+    return res
+      .status(507)
+      .json({ error: "Espace de stockage des cours plein : supprime d'anciens cours avant d'en ajouter." });
+  }
   const { titre, description, matiere, prof, type } = req.body;
   if (!titre || !matiere) return res.status(400).json({ error: "Titre et matière requis." });
   if (type && !TYPES.includes(type)) return res.status(400).json({ error: "Type invalide." });
@@ -108,11 +128,16 @@ router.post("/", requireRole("admin", "professeur"), upload.single("file"), asyn
     },
     select: docSelect,
   });
-  sendPushToPromo(doc.promo, req.user.id, {
-    title: `Nouveau cours · ${doc.matiere}`,
-    body: `${doc.titre}${doc.description ? ` — ${doc.description}` : ""}`,
-    url: "/documents",
-    tag: `document-${doc.id}`,
+  notifierSansBloquer({
+    where: { groupe: { promo: doc.promo } },
+    categorie: "cours",
+    exclureUserId: req.user.id,
+    payload: {
+      title: `Nouveau cours · ${doc.matiere}`,
+      body: `${doc.titre}${doc.description ? ` — ${doc.description}` : ""}`,
+      url: "/documents",
+      tag: `document-${doc.id}`,
+    },
   });
 
   res.status(201).json(doc);

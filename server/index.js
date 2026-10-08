@@ -19,9 +19,9 @@ import chatRoutes from "./routes/chat.js";
 import documentsRoutes from "./routes/documents.js";
 import sondagesRoutes from "./routes/sondages.js";
 import optionsRoutes from "./routes/options.js";
-import { sendPushToAll } from "./utils/push.js";
+import { notifierSansBloquer } from "./utils/notifier.js";
 import { syncTousLesGroupes } from "./services/edtSync.js";
-import { envoyerRappels } from "./services/rappels.js";
+import { envoyerRappels, purgerAnciennesNotifications } from "./services/rappels.js";
 import { utilisateurPeutAccederAuCanal } from "./utils/chatAccess.js";
 import { compteRequetes, lireStats, fluxEvenements, signalerConnexion } from "./utils/stats.js";
 
@@ -193,11 +193,16 @@ io.on("connection", (socket) => {
 
       // Notif push pour les annonces
       if (channel?.type === "annonce") {
-        sendPushToAll(socket.user.id, {
-          title: `Annonce · ${message.auteur.nom}`,
-          body: message.content.slice(0, 120),
-          url: "/chat",
-          tag: `annonce-${message.id}`,
+        notifierSansBloquer({
+          where: { groupe: { promo: channel.promo } },
+          categorie: "annonce",
+          exclureUserId: socket.user.id,
+          payload: {
+            title: `Annonce · ${message.auteur.nom}`,
+            body: message.content.slice(0, 120),
+            url: "/chat",
+            tag: `annonce-${message.id}`,
+          },
         });
       }
     } catch {}
@@ -260,6 +265,7 @@ async function rappels() {
   try {
     const n = await envoyerRappels();
     if (n) console.log(`Rappels de devoirs : ${n} devoir(s) traité(s)`);
+    await purgerAnciennesNotifications();
   } catch (e) {
     console.warn("Rappels ignorés :", e.message);
   }

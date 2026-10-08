@@ -1,7 +1,7 @@
 import { Router } from "express";
 import prisma from "../db.js";
 import { requireAuth, requireRole } from "../middlewares/auth.js";
-import { sendPushToGroup, sendPushToOption, sendPushToPromo } from "../utils/push.js";
+import { notifierSansBloquer, ciblesDevoir } from "../utils/notifier.js";
 import {
   peutCiblerLibrement,
   peutGererDevoir,
@@ -129,9 +129,12 @@ router.post("/", requireAuth, requireRole("admin", "delegue", "professeur"), asy
     url: "/devoirs",
     tag: `devoir-${devoir.id}`,
   };
-  if (devoir.optionId) sendPushToOption(devoir.optionId, req.user.id, payload);
-  else if (devoir.promoCible) sendPushToPromo(devoir.promoCible, req.user.id, payload);
-  else sendPushToGroup(devoir.groupeId, req.user.id, payload);
+  notifierSansBloquer({
+    where: ciblesDevoir(devoir),
+    categorie: "devoir",
+    payload,
+    exclureUserId: req.user.id,
+  });
 
   res.status(201).json(devoir);
 });

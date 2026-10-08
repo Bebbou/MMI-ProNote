@@ -1,0 +1,90 @@
+.bloc {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.titre {
+  padding: 0.7rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-faint);
+  border-bottom: 1px solid var(--border);
+}
+
+.ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.ligne:last-child {
+  border-bottom: none;
+}
+
+.texte {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.nom {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.detail {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+/* Interrupteur : une case à cocher habillée, accessible au clavier et au lecteur d'écran */
+.interrupteur {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.interrupteur::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+
+.interrupteur:checked {
+  background: var(--accent-solid);
+}
+
+.interrupteur:checked::after {
+  transform: translateX(16px);
+}
+
+.interrupteur:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

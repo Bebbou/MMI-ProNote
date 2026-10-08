@@ -44,6 +44,7 @@ export default function Documents() {
   // Les autres utilisateurs ne reçoivent de toute façon que les cours de leur promo.
   const [filtrePromo, setFiltrePromo] = useState(user?.promo ?? "Toutes");
   const [promos, setPromos] = useState([]);
+  const [stockage, setStockage] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
   const [commentaires, setCommentaires] = useState({});
   const [commentInput, setCommentInput] = useState({});
@@ -67,6 +68,10 @@ export default function Documents() {
 
   useEffect(() => {
     if (!peutPublier) return;
+    api
+      .get("/documents/stockage")
+      .then((r) => setStockage(r.data))
+      .catch(() => {});
     api.get("/auth/groupes").then((r) => setPromos(Array.from(new Set(r.data.map((g) => g.promo))).sort()));
   }, [peutPublier]);
 
@@ -220,6 +225,14 @@ export default function Documents() {
             <h1 className={styles.title}>Cours & Ressources</h1>
             <p className={styles.subtitle}>
               {docs.length} document{docs.length !== 1 ? "s" : ""} disponible{docs.length !== 1 ? "s" : ""}
+              {stockage && (
+                <>
+                  {" · "}
+                  <span className={stockage.utilise > stockage.limite * 0.85 ? styles.stockageAlerte : ""}>
+                    stockage {formatSize(stockage.utilise)} / {formatSize(stockage.limite)}
+                  </span>
+                </>
+              )}
             </p>
           </div>
           {peutPublier && (

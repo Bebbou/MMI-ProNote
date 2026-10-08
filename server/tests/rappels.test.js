@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 
-// Mock de Prisma et des push : aucune vraie base ni notification
+// Mock de Prisma et de l'envoi : aucune vraie base ni notification
 vi.mock("../db.js", () => ({ default: {} }));
-vi.mock("../utils/push.js", () => ({ sendPushToDevoir: vi.fn() }));
+vi.mock("../utils/notifier.js", () => ({ notifier: vi.fn(), ciblesDevoir: vi.fn() }));
 
 import { dansLaFenetre, quandLibelle, payloadRappel } from "../services/rappels.js";
 
