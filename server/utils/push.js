@@ -38,6 +38,28 @@ export async function sendPushToGroup(groupeId, excludeUserId, payload) {
   await sendToSubs(subs, payload);
 }
 
+// Les destinataires d'un devoir qui ne l'ont pas encore marqué comme rendu (rappels).
+// Même audience que la visibilité du devoir : option, promo entière ou groupe.
+export async function sendPushToDevoir(devoir, payload) {
+  if (!process.env.VAPID_PUBLIC_KEY) return;
+  let audience;
+  if (devoir.optionId) audience = { options: { some: { optionId: devoir.optionId } } };
+  else if (devoir.promoCible) audience = { groupe: { promo: devoir.promoCible } };
+  else audience = { groupeId: devoir.groupeId };
+
+  const subs = await prisma.pushSubscription.findMany({
+    where: {
+      user: {
+        ...audience,
+        valide: true,
+        role: { in: ["etudiant", "delegue"] },
+        devoirsRendus: { none: { devoirId: devoir.id } },
+      },
+    },
+  });
+  await sendToSubs(subs, payload);
+}
+
 // Tous les élèves d'une promo (ex. nouveau cours : les autres promos n'y ont pas accès)
 export async function sendPushToPromo(promo, excludeUserId, payload) {
   if (!process.env.VAPID_PUBLIC_KEY) return;

@@ -80,6 +80,9 @@ model Devoir {
   // quel que soit le groupe. null = devoir de groupe (groupeId) ou d'option.
   promoCible String?
 
+  // true une fois le rappel "à rendre sous 24h" envoyé (un seul rappel par devoir)
+  rappelEnvoye Boolean @default(false)
+
   rendus       DevoirRendu[]
   commentaires CommentaireDevoir[]
 

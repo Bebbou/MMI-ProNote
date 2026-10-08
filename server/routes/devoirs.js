@@ -110,6 +110,7 @@ router.post("/", requireAuth, requireRole("admin", "delegue", "professeur"), asy
       type,
       optionId,
       promoCible,
+      rappelEnvoye: new Date(dateLimite) - Date.now() <= 24 * 60 * 60 * 1000,
       dateLimite: new Date(dateLimite),
       groupeId,
       auteurId: req.user.id,
@@ -138,7 +139,10 @@ router.post("/", requireAuth, requireRole("admin", "delegue", "professeur"), asy
 // PATCH /devoirs/:id — modifie un devoir (admin ou délégué qui le voit, pas seulement
 // son auteur — même règle que la suppression, pour rester cohérent)
 router.patch("/:id", requireAuth, requireRole("admin", "delegue", "professeur"), async (req, res) => {
-  const devoir = await chargerDevoirVisible(req, res, Number(req.params.id), { type: true });
+  const devoir = await chargerDevoirVisible(req, res, Number(req.params.id), {
+    type: true,
+    dateLimite: true,
+  });
   if (!devoir) return;
   if (!peutGererDevoir(req.user, devoir)) {
     return res.status(403).json({ error: "Tu ne peux pas modifier ce devoir." });
@@ -160,7 +164,18 @@ router.patch("/:id", requireAuth, requireRole("admin", "delegue", "professeur"),
 
   const updated = await prisma.devoir.update({
     where: { id: devoir.id },
-    data: { titre, matiere, description, type, ...audience, dateLimite: new Date(dateLimite) },
+    data: {
+      titre,
+      matiere,
+      description,
+      type,
+      ...audience,
+      dateLimite: new Date(dateLimite),
+      // Échéance déplacée : le rappel redevient possible (sauf si elle est déjà sous 24h)
+      ...(new Date(dateLimite).getTime() !== devoir.dateLimite.getTime()
+        ? { rappelEnvoye: new Date(dateLimite) - Date.now() <= 24 * 60 * 60 * 1000 }
+        : {}),
+    },
     include: includeDevoir,
   });
 

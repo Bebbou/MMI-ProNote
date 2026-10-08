@@ -20,6 +20,7 @@ import { useState, useEffect, useRef } from "react";
 import ChatPanel from "./ChatPanel";
 import MmiDecor from "./MmiDecor";
 import { Toaster } from "./Toast";
+import PwaPrompts from "./PwaPrompts";
 import logoMmi from "../assets/logo_mmi.jpg";
 import styles from "./Layout.module.css";
 
@@ -195,6 +196,7 @@ export default function Layout({ children }) {
 
         <MmiDecor />
         <Toaster />
+        <PwaPrompts />
         <main className={styles.main}>{children}</main>
         {showChatPanel && <ChatPanel open={chatOpen} onToggle={() => setChatOpen((v) => !v)} />}
 

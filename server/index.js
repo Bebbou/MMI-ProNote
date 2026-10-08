@@ -21,6 +21,7 @@ import sondagesRoutes from "./routes/sondages.js";
 import optionsRoutes from "./routes/options.js";
 import { sendPushToAll } from "./utils/push.js";
 import { syncTousLesGroupes } from "./services/edtSync.js";
+import { envoyerRappels } from "./services/rappels.js";
 import { utilisateurPeutAccederAuCanal } from "./utils/chatAccess.js";
 import { compteRequetes, lireStats, fluxEvenements, signalerConnexion } from "./utils/stats.js";
 
@@ -253,6 +254,17 @@ async function syncEdt() {
   }
 }
 
+const QUINZE_MINUTES_MS = 15 * 60 * 1000;
+
+async function rappels() {
+  try {
+    const n = await envoyerRappels();
+    if (n) console.log(`Rappels de devoirs : ${n} devoir(s) traité(s)`);
+  } catch (e) {
+    console.warn("Rappels ignorés :", e.message);
+  }
+}
+
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, async () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);
@@ -263,4 +275,6 @@ httpServer.listen(PORT, async () => {
   }
   syncEdt();
   setInterval(syncEdt, UNE_HEURE_MS);
+  rappels();
+  setInterval(rappels, QUINZE_MINUTES_MS);
 });
