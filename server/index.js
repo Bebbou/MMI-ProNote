@@ -18,6 +18,7 @@ import notificationsRoutes from "./routes/notifications.js";
 import chatRoutes from "./routes/chat.js";
 import documentsRoutes from "./routes/documents.js";
 import sondagesRoutes from "./routes/sondages.js";
+import optionsRoutes from "./routes/options.js";
 import { sendPushToAll } from "./utils/push.js";
 import { syncTousLesGroupes } from "./services/edtSync.js";
 import { utilisateurPeutAccederAuCanal } from "./utils/chatAccess.js";
@@ -100,6 +101,7 @@ app.use("/notifications", notificationsRoutes);
 app.use("/chat", chatRoutes);
 app.use("/documents", documentsRoutes);
 app.use("/sondages", sondagesRoutes);
+app.use("/options", optionsRoutes);
 
 // Gestion d'erreurs globale : toute erreur non attrapée dans une route
 // (y compris async, grâce à express-async-errors) atterrit ici au lieu
@@ -122,8 +124,24 @@ io.use((socket, next) => {
   }
 });
 
+async function joindreRoomsOptions(socket) {
+  const user = await prisma.user.findUnique({
+    where: { id: socket.user.id },
+    select: { role: true, groupe: { select: { promo: true } }, options: { select: { optionId: true } } },
+  });
+  if (!user) return;
+  socket.join(`user-${socket.user.id}`);
+  for (const { optionId } of user.options) socket.join(`option-${optionId}`);
+  if (["admin", "delegue"].includes(user.role)) socket.join(`gestion-${user.groupe.promo}`);
+}
+
 io.on("connection", (socket) => {
   signalerConnexion(); // fait "battre" le dashboard Pulse
+
+  // Rooms propres à l'utilisateur, calculées côté serveur depuis la base (jamais depuis
+  // le client) : "user-X" pour le cibler, "option-X" pour ses options (issue #51) et
+  // "gestion-PROMO" pour les admins/délégués, qui suivent toutes les options de leur promo
+  joindreRoomsOptions(socket).catch((e) => console.warn("Rooms options ignorées :", e.message));
 
   // Un utilisateur ne peut rejoindre que la room de SON PROPRE groupe (les
   // événements temps réel de devoirs/EDT d'un autre groupe ne doivent pas fuiter)

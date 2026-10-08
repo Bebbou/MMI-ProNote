@@ -7,6 +7,7 @@ import { useTheme, THEMES } from "../hooks/useTheme.js";
 import PasswordInput from "../components/PasswordInput";
 import PageTitle from "../components/PageTitle";
 import AppFooter from "../components/AppFooter";
+import MesOptions from "../components/MesOptions";
 import styles from "./Profil.module.css";
 
 const THEME_DOTS = {
@@ -68,6 +69,11 @@ export default function Profil() {
             <span className={styles.label}>Role</span>
             <span className={styles.role}>{user?.role}</span>
           </div>
+        </div>
+
+        <div className={styles.section}>
+          <h2>Mes options</h2>
+          <MesOptions />
         </div>
 
         <div className={styles.section}>

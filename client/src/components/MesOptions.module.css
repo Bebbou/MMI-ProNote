@@ -1,0 +1,144 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.aide,
+.vide {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  line-height: 1.5;
+}
+
+.liste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.option:hover {
+  border-color: var(--accent);
+}
+
+.optionActive {
+  background: var(--tint-pink);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.coche {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border);
+  border-radius: 5px;
+  color: #fff;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.optionActive .coche {
+  background: var(--accent-solid);
+  border-color: var(--accent-solid);
+}
+
+.nom {
+  flex: 1;
+  font-weight: 600;
+}
+
+.nb {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+.suppr {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-faint);
+  padding: 0.5rem;
+  display: flex;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.suppr:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.ajout {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ajout input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.ajout input:focus {
+  border-color: var(--accent);
+}
+
+.ajout button {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--accent-solid);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ajout button:hover {
+  background: var(--accent-solid-hover);
+}

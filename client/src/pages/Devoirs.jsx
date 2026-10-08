@@ -1,5 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, X, Pencil, Trash2, MessageSquare, ChevronDown, ChevronUp, Send } from "lucide-react";
+import {
+  Plus,
+  X,
+  Pencil,
+  Trash2,
+  MessageSquare,
+  ChevronDown,
+  ChevronUp,
+  Send,
+  Check,
+  Search,
+  PartyPopper,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../hooks/useSocket";
 import Layout from "../components/Layout";
@@ -7,19 +19,10 @@ import PageTitle from "../components/PageTitle";
 import ConfirmModal from "../components/ConfirmModal";
 import { SkeletonCards } from "../components/Skeleton";
 import { toast } from "../components/Toast";
+import { useOptions } from "../hooks/useOptions";
 import api from "../api/index.js";
+import { GROUPES, groupeEcheance, urgenceEcheance, libelleEcheance } from "../utils/echeance";
 import styles from "./Devoirs.module.css";
-
-const UN_JOUR_MS = 24 * 60 * 60 * 1000;
-
-// Le badge rouge "En retard" ne reste affiché que 24h après l'échéance : passé ce délai,
-// un signal d'alerte qui ne disparaît jamais perd son sens (issue #36). Le devoir reste
-// visible dans "À rendre" tant qu'il n'est pas coché, juste sans l'alerte visuelle.
-function estRecemmentEnRetard(devoir, maintenant) {
-  if (devoir.rendu) return false;
-  const retardMs = maintenant - new Date(devoir.dateLimite);
-  return retardMs > 0 && retardMs < UN_JOUR_MS;
-}
 
 // Convertit une date ISO (UTC) en chaîne compatible <input type="datetime-local">,
 // dans le fuseau du navigateur (donc le bon fuseau, celui de l'utilisateur)
@@ -34,7 +37,7 @@ const TYPES = [
   { id: "Evaluation", label: "Évaluation" },
 ];
 
-const FORM_VIDE = { titre: "", matiere: "", description: "", dateLimite: "", type: "Devoir" };
+const FORM_VIDE = { titre: "", matiere: "", description: "", dateLimite: "", type: "Devoir", optionId: "" };
 
 function formatDateCommentaire(iso) {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -45,9 +48,28 @@ function formatDateCommentaire(iso) {
   });
 }
 
+// Consignes repliées sur 3 lignes : une longue description ne doit pas pousser les autres
+// devoirs hors de l'écran, mais reste lisible en un clic
+function Consignes({ texte }) {
+  const [ouvert, setOuvert] = useState(false);
+  const longue = texte.length > 160 || texte.split("\n").length > 3;
+
+  return (
+    <div>
+      <p className={`${styles.consignes} ${longue && !ouvert ? styles.consignesReplie : ""}`}>{texte}</p>
+      {longue && (
+        <button className={styles.voirPlus} onClick={() => setOuvert((v) => !v)}>
+          {ouvert ? "Réduire" : "Voir la suite"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function Devoirs() {
   const { user } = useAuth();
   const socket = useSocket();
+  const { options } = useOptions();
   const [devoirs, setDevoirs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -60,6 +82,8 @@ export default function Devoirs() {
   // Filtres de l'"agenda de rendu" (issue #51)
   const [filtreType, setFiltreType] = useState("Tous");
   const [filtreMatiere, setFiltreMatiere] = useState("Toutes");
+  const [recherche, setRecherche] = useState("");
+  const [filtreAudience, setFiltreAudience] = useState("tous"); // "tous" | "groupe" | id d'option
   // Commentaires : un seul devoir déplié à la fois, chargés à la demande
   const [expandedId, setExpandedId] = useState(null);
   const [commentaires, setCommentaires] = useState({});
@@ -89,7 +113,11 @@ export default function Devoirs() {
     if (!socket) return;
 
     socket.on("nouveauDevoir", (devoir) => {
-      setDevoirs((prev) => [...prev, devoir].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)));
+      setDevoirs((prev) =>
+        [...prev.filter((d) => d.id !== devoir.id), devoir].sort(
+          (a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)
+        )
+      );
     });
 
     socket.on("devoirSupprime", ({ id }) => {
@@ -109,6 +137,14 @@ export default function Devoirs() {
     };
   }, [socket]);
 
+  // Échap ferme la modale d'édition
+  useEffect(() => {
+    if (!editingDevoir) return;
+    const onKey = (e) => e.key === "Escape" && setEditingDevoir(null);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [editingDevoir]);
+
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
@@ -121,14 +157,15 @@ export default function Devoirs() {
       // le serveur (en UTC sur Railway) la prend à tort pour de l'UTC (issue #44).
       const { data } = await api.post("/devoirs", {
         ...form,
+        optionId: form.optionId ? Number(form.optionId) : null,
         dateLimite: new Date(form.dateLimite).toISOString(),
       });
-      setDevoirs([...devoirs, data]);
+      setDevoirs((prev) => [...prev, data].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)));
       setForm(FORM_VIDE);
       setShowForm(false);
-      toast("Devoir cree");
+      toast(data.type === "Evaluation" ? "Évaluation créée" : "Devoir créé");
     } catch {
-      toast("Impossible de creer le devoir", "error");
+      toast("Impossible de créer le devoir", "error");
     }
   }
 
@@ -139,6 +176,7 @@ export default function Devoirs() {
       matiere: devoir.matiere,
       description: devoir.description ?? "",
       type: devoir.type ?? "Devoir",
+      optionId: devoir.optionId ?? "",
       dateLimite: versDatetimeLocal(devoir.dateLimite),
     });
   }
@@ -148,9 +186,14 @@ export default function Devoirs() {
     try {
       const { data } = await api.patch(`/devoirs/${editingDevoir.id}`, {
         ...editForm,
+        optionId: editForm.optionId ? Number(editForm.optionId) : null,
         dateLimite: new Date(editForm.dateLimite).toISOString(),
       });
-      setDevoirs((prev) => prev.map((d) => (d.id === data.id ? { ...d, ...data } : d)));
+      setDevoirs((prev) =>
+        prev
+          .map((d) => (d.id === data.id ? { ...d, ...data } : d))
+          .sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite))
+      );
       setEditingDevoir(null);
       toast("Devoir modifié");
     } catch {
@@ -247,8 +290,8 @@ export default function Devoirs() {
     setToDelete(null);
     try {
       await api.delete(`/devoirs/${id}`);
-      setDevoirs(devoirs.filter((d) => d.id !== id));
-      toast("Devoir supprime");
+      setDevoirs((prev) => prev.filter((d) => d.id !== id));
+      toast("Devoir supprimé");
     } catch {
       toast("Impossible de supprimer le devoir", "error");
     }
@@ -271,19 +314,218 @@ export default function Devoirs() {
   // une valeur qui donnerait une liste vide
   const nbParType = (type) => devoirsDeLOnglet.filter((d) => d.type === type).length;
   const matieres = ["Toutes", ...Array.from(new Set(devoirsDeLOnglet.map((d) => d.matiere))).sort()];
+  const matieresConnues = Array.from(new Set(devoirs.map((d) => d.matiere))).sort();
 
   // Si la matière choisie n'existe plus dans cet onglet, on retombe sur "Toutes"
   const matiereActive = matieres.includes(filtreMatiere) ? filtreMatiere : "Toutes";
+  const requete = recherche.trim().toLowerCase();
+
+  // "Visible par" : n'apparaît que s'il y a des devoirs d'option (sinon rien à filtrer)
+  const audiences = Array.from(
+    new Map(devoirsDeLOnglet.filter((d) => d.option).map((d) => [d.option.id, d.option.nom]))
+  ).map(([id, nom]) => ({ id, nom }));
+  const audienceActive =
+    filtreAudience === "tous" || filtreAudience === "groupe" || audiences.some((a) => a.id === filtreAudience)
+      ? filtreAudience
+      : "tous";
 
   const devoirsAffiches = devoirsDeLOnglet
     .filter((d) => filtreType === "Tous" || d.type === filtreType)
-    .filter((d) => matiereActive === "Toutes" || d.matiere === matiereActive);
+    .filter((d) => matiereActive === "Toutes" || d.matiere === matiereActive)
+    .filter(
+      (d) =>
+        audienceActive === "tous" ||
+        (audienceActive === "groupe" ? !d.optionId : d.optionId === audienceActive)
+    )
+    .filter((d) => !requete || `${d.titre} ${d.matiere}`.toLowerCase().includes(requete));
+
+  // "À rendre" est un agenda : on regroupe par échéance (dépassée, aujourd'hui, demain...).
+  // "Historique" reste une simple liste du plus récent au plus ancien.
+  const sections =
+    onglet === "aRendre"
+      ? GROUPES.map((g) => ({
+          ...g,
+          items: devoirsAffiches.filter((d) => groupeEcheance(d.dateLimite, now) === g.id),
+        })).filter((g) => g.items.length > 0)
+      : [{ id: "historique", label: null, items: devoirsAffiches }];
+
+  // Résumé en tête de page
+  const nonRendus = devoirs.filter((d) => !d.rendu);
+  const nbEvaluations = nonRendus.filter(
+    (d) => d.type === "Evaluation" && new Date(d.dateLimite) >= now
+  ).length;
+  const nbRetard = nonRendus.filter((d) => urgenceEcheance(d.dateLimite, now) === "retard").length;
+
+  const filtresActifs =
+    filtreType !== "Tous" || matiereActive !== "Toutes" || audienceActive !== "tous" || requete !== "";
+
+  function renderCarte(devoir) {
+    const urgence = devoir.rendu ? "rendu" : urgenceEcheance(devoir.dateLimite, now);
+    const { principal, secondaire } = libelleEcheance(devoir.dateLimite, now);
+    const nbCommentaires = devoir._count?.commentaires || 0;
+
+    return (
+      <article
+        key={devoir.id}
+        className={`${styles.card} ${styles[`urgence_${urgence}`] ?? ""} ${sortants.has(`${onglet}-${devoir.id}`) ? styles.cardSortant : ""}`}
+      >
+        <button
+          className={`${styles.check} ${devoir.rendu ? styles.checkOn : ""}`}
+          onClick={() => handleToggleRendu(devoir)}
+          aria-pressed={!!devoir.rendu}
+          aria-label={devoir.rendu ? "Marquer comme non rendu" : "Marquer comme rendu"}
+          title={devoir.rendu ? "Rendu — cliquer pour annuler" : "J'ai rendu ce devoir"}
+        >
+          <Check size={16} strokeWidth={2.5} />
+        </button>
+
+        <div className={styles.body}>
+          <div className={styles.topline}>
+            <div className={styles.badges}>
+              <span className={styles.matiere}>{devoir.matiere}</span>
+              {devoir.type === "Evaluation" && <span className={styles.evalBadge}>Évaluation</span>}
+              {devoir.option && (
+                <span
+                  className={styles.optionBadge}
+                  title="Visible uniquement par les membres de cette option"
+                >
+                  {devoir.option.nom}
+                </span>
+              )}
+              {urgence === "retard" && <span className={styles.lateBadge}>En retard</span>}
+            </div>
+            <div className={styles.echeance}>
+              <span className={styles.echeancePrincipal}>{principal}</span>
+              <span className={styles.echeanceSecondaire}>{secondaire}</span>
+            </div>
+          </div>
+
+          <h3 className={styles.titre}>{devoir.titre}</h3>
+          {devoir.description && <Consignes texte={devoir.description} />}
+
+          <div className={styles.footer}>
+            <span className={styles.auteur}>Ajouté par {devoir.auteur?.nom}</span>
+            <div className={styles.actions}>
+              <button
+                className={`${styles.commentToggle} ${nbCommentaires > 0 ? styles.commentToggleActif : ""}`}
+                onClick={() => toggleComments(devoir.id)}
+                title="Commentaires"
+                aria-expanded={expandedId === devoir.id}
+              >
+                <MessageSquare size={15} strokeWidth={1.5} />
+                <span>{nbCommentaires}</span>
+                {expandedId === devoir.id ? (
+                  <ChevronUp size={13} strokeWidth={1.5} />
+                ) : (
+                  <ChevronDown size={13} strokeWidth={1.5} />
+                )}
+              </button>
+              {canCreate && (
+                <button className={styles.editBtn} onClick={() => openEditDevoir(devoir)} title="Modifier">
+                  <Pencil size={14} strokeWidth={1.5} />
+                </button>
+              )}
+              {canCreate && (
+                <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)} title="Supprimer">
+                  <Trash2 size={14} strokeWidth={1.5} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {expandedId === devoir.id && (
+            <div className={styles.comments}>
+              <div className={styles.commentsList}>
+                {!commentaires[devoir.id] ? (
+                  <p className={styles.commentsEmpty}>Chargement…</p>
+                ) : commentaires[devoir.id].length === 0 ? (
+                  <p className={styles.commentsEmpty}>Aucun commentaire. Précisions, questions ?</p>
+                ) : (
+                  commentaires[devoir.id].map((c) => (
+                    <div key={c.id} className={styles.comment}>
+                      <div className={styles.commentHeader}>
+                        <span className={styles.commentAuteur}>{c.auteur.nom}</span>
+                        {["admin", "delegue"].includes(c.auteur.role) && (
+                          <span className={styles.commentRole}>
+                            {c.auteur.role === "admin" ? "Admin" : "Délégué"}
+                          </span>
+                        )}
+                        <span className={styles.commentDate}>{formatDateCommentaire(c.createdAt)}</span>
+                        {(canCreate || c.auteur.id === user?.id) && (
+                          <button
+                            className={styles.commentDelete}
+                            onClick={() => deleteComment(devoir.id, c.id)}
+                            title="Supprimer le commentaire"
+                          >
+                            <X size={11} strokeWidth={1.5} />
+                          </button>
+                        )}
+                      </div>
+                      <p className={styles.commentContent}>{c.content}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+              <form
+                className={styles.commentForm}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  sendComment(devoir.id);
+                }}
+              >
+                <input
+                  className={styles.commentInput}
+                  placeholder="Ajouter un commentaire…"
+                  maxLength={1000}
+                  value={commentInput[devoir.id] || ""}
+                  onChange={(e) => setCommentInput((prev) => ({ ...prev, [devoir.id]: e.target.value }))}
+                />
+                <button
+                  type="submit"
+                  className={styles.commentSend}
+                  disabled={!commentInput[devoir.id]?.trim()}
+                >
+                  <Send size={14} strokeWidth={1.5} />
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+      </article>
+    );
+  }
 
   return (
     <Layout>
       <div className={styles.page}>
+        {/* Suggestions de matières déjà utilisées, sans jamais bloquer la saisie libre */}
+        <datalist id="matieres-devoirs">
+          {matieresConnues.map((m) => (
+            <option key={m} value={m} />
+          ))}
+        </datalist>
+
         <div className={styles.header}>
-          <PageTitle>Devoirs</PageTitle>
+          <div>
+            <PageTitle>Devoirs</PageTitle>
+            {!loading && !loadError && (
+              <p className={styles.resume}>
+                <strong>{nonRendus.length}</strong> à rendre
+                {nbEvaluations > 0 && (
+                  <>
+                    {" · "}
+                    <strong>{nbEvaluations}</strong> évaluation{nbEvaluations > 1 ? "s" : ""} à venir
+                  </>
+                )}
+                {nbRetard > 0 && (
+                  <>
+                    {" · "}
+                    <span className={styles.resumeRetard}>{nbRetard} en retard</span>
+                  </>
+                )}
+              </p>
+            )}
+          </div>
           {canCreate && (
             <button onClick={() => setShowForm(!showForm)}>
               {showForm ? <X size={16} strokeWidth={1.5} /> : <Plus size={16} strokeWidth={1.5} />}
@@ -291,6 +533,70 @@ export default function Devoirs() {
             </button>
           )}
         </div>
+
+        {showForm && (
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <h2 className={styles.formTitle}>Nouveau devoir</h2>
+            <div className={styles.formRow}>
+              <select name="type" value={form.type} onChange={handleChange} aria-label="Type">
+                {TYPES.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <input
+                name="matiere"
+                list="matieres-devoirs"
+                placeholder="Matière"
+                value={form.matiere}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <input
+              name="titre"
+              placeholder="Titre"
+              value={form.titre}
+              onChange={handleChange}
+              required
+              autoFocus
+            />
+            <textarea
+              name="description"
+              placeholder="Consignes / description (optionnel)"
+              rows={4}
+              value={form.description}
+              onChange={handleChange}
+            />
+            {options.length > 0 && (
+              <label className={styles.dateLabel}>
+                Visible par
+                <select name="optionId" value={form.optionId} onChange={handleChange}>
+                  <option value="">Tout le groupe</option>
+                  {options.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.nom} (uniquement les membres)
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label className={styles.dateLabel}>
+              Date limite
+              <input
+                name="dateLimite"
+                type="datetime-local"
+                value={form.dateLimite}
+                onChange={handleChange}
+                required
+              />
+            </label>
+            <button type="submit">
+              {form.type === "Evaluation" ? "Créer l'évaluation" : "Créer le devoir"}
+            </button>
+          </form>
+        )}
 
         <div className={styles.tabs}>
           <button
@@ -307,24 +613,50 @@ export default function Devoirs() {
           </button>
         </div>
 
-        {/* Agenda de rendu : filtre par type puis par matière (issue #51) */}
-        <div className={styles.filters}>
-          <button
-            className={`${styles.filterBtn} ${filtreType === "Tous" ? styles.filterActive : ""}`}
-            onClick={() => setFiltreType("Tous")}
-          >
-            Tout <span className={styles.filterCount}>{devoirsDeLOnglet.length}</span>
-          </button>
-          {TYPES.map((t) => (
+        {/* Agenda de rendu : type, matière et recherche (issue #51) */}
+        <div className={styles.toolbar}>
+          <div className={styles.filters}>
             <button
-              key={t.id}
-              className={`${styles.filterBtn} ${filtreType === t.id ? styles.filterActive : ""}`}
-              onClick={() => setFiltreType(t.id)}
+              className={`${styles.filterBtn} ${filtreType === "Tous" ? styles.filterActive : ""}`}
+              onClick={() => setFiltreType("Tous")}
             >
-              {t.label}s <span className={styles.filterCount}>{nbParType(t.id)}</span>
+              Tout <span className={styles.filterCount}>{devoirsDeLOnglet.length}</span>
             </button>
-          ))}
+            {TYPES.map((t) => (
+              <button
+                key={t.id}
+                className={`${styles.filterBtn} ${filtreType === t.id ? styles.filterActive : ""}`}
+                onClick={() => setFiltreType(t.id)}
+              >
+                {t.label}s <span className={styles.filterCount}>{nbParType(t.id)}</span>
+              </button>
+            ))}
+          </div>
+          <label className={styles.search}>
+            <Search size={14} strokeWidth={1.5} />
+            <input
+              type="search"
+              placeholder="Rechercher…"
+              value={recherche}
+              onChange={(e) => setRecherche(e.target.value)}
+              aria-label="Rechercher un devoir"
+            />
+          </label>
         </div>
+        {audiences.length > 0 && (
+          <div className={styles.filters}>
+            <span className={styles.filtreLabel}>Visible par</span>
+            {[{ id: "tous", nom: "Tous" }, { id: "groupe", nom: "Mon groupe" }, ...audiences].map((a) => (
+              <button
+                key={a.id}
+                className={`${styles.filterBtn} ${styles.filterBtnMatiere} ${audienceActive === a.id ? styles.filterActive : ""}`}
+                onClick={() => setFiltreAudience(a.id)}
+              >
+                {a.nom}
+              </button>
+            ))}
+          </div>
+        )}
         {matieres.length > 2 && (
           <div className={styles.filters}>
             {matieres.map((m) => (
@@ -339,45 +671,6 @@ export default function Devoirs() {
           </div>
         )}
 
-        {showForm && (
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <h2 className={styles.formTitle}>Nouveau devoir</h2>
-            <select name="type" value={form.type} onChange={handleChange}>
-              {TYPES.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-            <input name="titre" placeholder="Titre" value={form.titre} onChange={handleChange} required />
-            <input
-              name="matiere"
-              placeholder="Matière"
-              value={form.matiere}
-              onChange={handleChange}
-              required
-            />
-            <textarea
-              name="description"
-              placeholder="Consignes / description (optionnel)"
-              rows={4}
-              value={form.description}
-              onChange={handleChange}
-            />
-            <label className={styles.dateLabel}>
-              Date limite
-              <input
-                name="dateLimite"
-                type="datetime-local"
-                value={form.dateLimite}
-                onChange={handleChange}
-                required
-              />
-            </label>
-            <button type="submit">Créer le devoir</button>
-          </form>
-        )}
-
         {loading && <SkeletonCards count={3} height={100} />}
 
         {loadError && !loading && (
@@ -390,147 +683,44 @@ export default function Devoirs() {
         {!loading && !loadError && (
           <div className={styles.list}>
             {devoirsAffiches.length === 0 && (
-              <p className={styles.empty}>
-                {devoirsDeLOnglet.length > 0
-                  ? "Aucun résultat avec ces filtres"
-                  : onglet === "aRendre"
-                    ? "Rien à rendre pour l'instant"
-                    : "Aucun devoir pour l'instant"}
-              </p>
+              <div className={styles.empty}>
+                {filtresActifs && devoirsDeLOnglet.length > 0 ? (
+                  <>
+                    <p>Aucun résultat avec ces filtres.</p>
+                    <button
+                      className={styles.resetBtn}
+                      onClick={() => {
+                        setFiltreType("Tous");
+                        setFiltreMatiere("Toutes");
+                        setFiltreAudience("tous");
+                        setRecherche("");
+                      }}
+                    >
+                      Réinitialiser les filtres
+                    </button>
+                  </>
+                ) : onglet === "aRendre" ? (
+                  <>
+                    <PartyPopper size={28} strokeWidth={1.5} />
+                    <p>Tout est rendu, rien à faire pour l'instant.</p>
+                  </>
+                ) : (
+                  <p>Aucun devoir dans l'historique.</p>
+                )}
+              </div>
             )}
-            {devoirsAffiches.map((devoir) => {
-              const enRetard = estRecemmentEnRetard(devoir, now);
-              return (
-                <div
-                  key={devoir.id}
-                  className={`${styles.card} ${enRetard ? styles.cardLate : ""} ${devoir.rendu ? styles.cardRendu : ""} ${sortants.has(`${onglet}-${devoir.id}`) ? styles.cardSortant : ""}`}
-                >
-                  <div className={styles.cardHeader}>
-                    <div className={styles.badges}>
-                      <span className={styles.matiere}>{devoir.matiere}</span>
-                      {devoir.type === "Evaluation" && <span className={styles.evalBadge}>Évaluation</span>}
-                    </div>
-                    <span className={enRetard ? styles.dateLate : styles.date}>
-                      {enRetard && <span className={styles.lateBadge}>En retard</span>}
-                      {new Date(devoir.dateLimite).toLocaleDateString("fr-FR", {
-                        day: "numeric",
-                        month: "long",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                  <h3>{devoir.titre}</h3>
-                  {devoir.description && <p className={styles.consignes}>{devoir.description}</p>}
-                  <div className={styles.cardFooter}>
-                    <label className={styles.renduCheck}>
-                      <input
-                        type="checkbox"
-                        checked={!!devoir.rendu}
-                        onChange={() => handleToggleRendu(devoir)}
-                      />
-                      {devoir.rendu ? "Rendu" : "J'ai rendu ce devoir"}
-                    </label>
-                    <div className={styles.cardFooterRight}>
-                      <span className={styles.auteur}>Ajouté par {devoir.auteur?.nom}</span>
-                      <button
-                        className={styles.commentToggle}
-                        onClick={() => toggleComments(devoir.id)}
-                        title="Commentaires"
-                      >
-                        <MessageSquare size={15} strokeWidth={1.5} />
-                        <span>{devoir._count?.commentaires || 0}</span>
-                        {expandedId === devoir.id ? (
-                          <ChevronUp size={13} strokeWidth={1.5} />
-                        ) : (
-                          <ChevronDown size={13} strokeWidth={1.5} />
-                        )}
-                      </button>
-                      {canCreate && (
-                        <button
-                          className={styles.editBtn}
-                          onClick={() => openEditDevoir(devoir)}
-                          title="Modifier"
-                        >
-                          <Pencil size={14} strokeWidth={1.5} />
-                        </button>
-                      )}
-                      {canCreate && (
-                        <button
-                          className={styles.deleteBtn}
-                          onClick={() => setToDelete(devoir.id)}
-                          title="Supprimer"
-                        >
-                          <Trash2 size={14} strokeWidth={1.5} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {expandedId === devoir.id && (
-                    <div className={styles.comments}>
-                      <div className={styles.commentsList}>
-                        {!commentaires[devoir.id] ? (
-                          <p className={styles.commentsEmpty}>Chargement…</p>
-                        ) : commentaires[devoir.id].length === 0 ? (
-                          <p className={styles.commentsEmpty}>Aucun commentaire. Précisions, questions ?</p>
-                        ) : (
-                          commentaires[devoir.id].map((c) => (
-                            <div key={c.id} className={styles.comment}>
-                              <div className={styles.commentHeader}>
-                                <span className={styles.commentAuteur}>{c.auteur.nom}</span>
-                                {["admin", "delegue"].includes(c.auteur.role) && (
-                                  <span className={styles.commentRole}>
-                                    {c.auteur.role === "admin" ? "Admin" : "Délégué"}
-                                  </span>
-                                )}
-                                <span className={styles.commentDate}>
-                                  {formatDateCommentaire(c.createdAt)}
-                                </span>
-                                {(canCreate || c.auteur.id === user?.id) && (
-                                  <button
-                                    className={styles.commentDelete}
-                                    onClick={() => deleteComment(devoir.id, c.id)}
-                                    title="Supprimer le commentaire"
-                                  >
-                                    <X size={11} strokeWidth={1.5} />
-                                  </button>
-                                )}
-                              </div>
-                              <p className={styles.commentContent}>{c.content}</p>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                      <form
-                        className={styles.commentForm}
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          sendComment(devoir.id);
-                        }}
-                      >
-                        <input
-                          className={styles.commentInput}
-                          placeholder="Ajouter un commentaire…"
-                          maxLength={1000}
-                          value={commentInput[devoir.id] || ""}
-                          onChange={(e) =>
-                            setCommentInput((prev) => ({ ...prev, [devoir.id]: e.target.value }))
-                          }
-                        />
-                        <button
-                          type="submit"
-                          className={styles.commentSend}
-                          disabled={!commentInput[devoir.id]?.trim()}
-                        >
-                          <Send size={14} strokeWidth={1.5} />
-                        </button>
-                      </form>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {sections.map((section) => (
+              <section key={section.id} className={styles.section}>
+                {section.label && (
+                  <h2
+                    className={`${styles.sectionTitre} ${section.id === "retard" ? styles.sectionRetard : ""}`}
+                  >
+                    {section.label} <span className={styles.sectionCount}>{section.items.length}</span>
+                  </h2>
+                )}
+                {section.items.map(renderCarte)}
+              </section>
+            ))}
           </div>
         )}
       </div>
@@ -556,6 +746,7 @@ export default function Devoirs() {
               required
             />
             <input
+              list="matieres-devoirs"
               placeholder="Matière"
               value={editForm.matiere}
               onChange={(e) => setEditForm({ ...editForm, matiere: e.target.value })}
@@ -567,6 +758,22 @@ export default function Devoirs() {
               value={editForm.description}
               onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
             />
+            {options.length > 0 && (
+              <label className={styles.dateLabel}>
+                Visible par
+                <select
+                  value={editForm.optionId}
+                  onChange={(e) => setEditForm({ ...editForm, optionId: e.target.value })}
+                >
+                  <option value="">Tout le groupe</option>
+                  {options.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.nom} (uniquement les membres)
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className={styles.dateLabel}>
               Date limite
               <input
@@ -589,7 +796,7 @@ export default function Devoirs() {
       <ConfirmModal
         open={toDelete !== null}
         title="Supprimer ce devoir ?"
-        message="Cette action est definitive."
+        message="Cette action est définitive."
         onConfirm={confirmDelete}
         onCancel={() => setToDelete(null)}
       />

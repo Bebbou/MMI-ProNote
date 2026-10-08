@@ -43,6 +43,7 @@ model User {
   votes               VoteSondage[]
   devoirsRendus       DevoirRendu[]
   commentairesDevoirs CommentaireDevoir[] @relation("AuteurCommentaireDevoir")
+  options             UserOption[]
 }
 
 model PushSubscription {
@@ -70,8 +71,39 @@ model Devoir {
   auteur   User @relation("AuteurDevoir", fields: [auteurId], references: [id])
   auteurId Int
 
+  // Issue #51 : si renseigné, le devoir n'est visible que par les membres de l'option
+  // (anglais renforcé...), quel que soit leur groupe. Sinon : tout le groupe.
+  option   Option? @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId Int?
+
   rendus       DevoirRendu[]
   commentaires CommentaireDevoir[]
+
+  @@index([optionId])
+}
+
+// Option transversale aux groupes de TD (ex. "Anglais renforcé" : 10 élèves répartis
+// dans 3 groupes). Rattachée à une promo, comme les groupes.
+model Option {
+  id        Int      @id @default(autoincrement())
+  nom       String
+  promo     String
+  createdAt DateTime @default(now())
+
+  membres UserOption[]
+  devoirs Devoir[]
+
+  @@unique([nom, promo])
+}
+
+model UserOption {
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int
+  option   Option @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId Int
+
+  @@id([userId, optionId])
+  @@index([optionId])
 }
 
 model CommentaireDevoir {

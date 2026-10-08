@@ -1,25 +1,19 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 1rem;
   border-bottom: 1px solid var(--border);
   padding-bottom: 1rem;
 }
 
-.header h1 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.3px;
-}
-
-.header button {
+.header > button {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -32,13 +26,32 @@
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
+  white-space: nowrap;
   transition: background 0.15s;
 }
 
-.header button:hover {
+.header > button:hover {
   background: var(--accent-solid-hover);
 }
 
+/* Résumé sous le titre : l'info utile en un coup d'oeil */
+.resume {
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+
+.resume strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.resumeRetard {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* ── Onglets ── */
 .tabs {
   display: flex;
   gap: 0.4rem;
@@ -71,6 +84,90 @@
   font-weight: 600;
 }
 
+/* ── Filtres et recherche ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.filterBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  padding: 0.3rem 0.85rem;
+  font-size: 0.775rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: 20px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+
+.filterBtn:hover {
+  color: var(--text-muted);
+}
+
+.filterActive {
+  background: var(--tint-pink);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Les matières sont un second niveau de filtre : un cran plus discrètes */
+.filterBtnMatiere {
+  font-size: 0.725rem;
+  padding: 0.2rem 0.7rem;
+}
+
+.filterCount {
+  font-size: 0.675rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.3rem 0.85rem;
+  color: var(--text-faint);
+  transition: border-color 0.15s;
+}
+
+.search:focus-within {
+  border-color: var(--accent);
+}
+
+.search input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 0.775rem;
+  font-family: inherit;
+  width: 150px;
+}
+
+/* ── Formulaire de création ── */
 .form {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -78,6 +175,18 @@
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+}
+
+.formTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 160px 1fr;
   gap: 0.75rem;
 }
 
@@ -132,28 +241,82 @@
   background: var(--accent-solid-hover);
 }
 
+/* ── Liste et sections d'agenda ── */
 .list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
+.sectionTitre {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-faint);
+  padding: 0 0.25rem;
+}
+
+.sectionRetard {
+  color: var(--danger);
+}
+
+.sectionCount {
+  font-size: 0.65rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0 0.45rem;
+  letter-spacing: 0;
+}
+
 .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
   color: var(--text-faint);
   font-size: 0.875rem;
   text-align: center;
-  padding: 2rem 0;
+  padding: 2.5rem 0;
 }
 
+.resetBtn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 8px;
+  padding: 0.4rem 1rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.resetBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Carte de devoir ── */
 .card {
+  display: flex;
+  gap: 0.9rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
   border-radius: 10px;
-  padding: 1rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  max-height: 700px; /* assez haut pour les commentaires dépliés, sert à l'animation de sortie */
+  padding: 1rem 1.25rem 1rem 1rem;
+  max-height: 900px; /* assez haut pour les commentaires dépliés, sert à l'animation de sortie */
   overflow: hidden;
   transition:
     box-shadow 0.15s,
@@ -169,133 +332,23 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 }
 
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Le bord gauche porte l'urgence : lisible sans lire la date */
+.urgence_retard {
+  border-left-color: var(--danger);
 }
-
-.matiere {
-  color: var(--accent);
-  font-size: 0.75rem;
-  font-weight: 700;
-  background: var(--tint-pink);
-  padding: 0.15rem 0.6rem;
-  border-radius: 20px;
+.urgence_urgent {
+  border-left-color: var(--accent-orange);
 }
-
-.date {
-  color: var(--accent-orange);
-  font-size: 0.775rem;
-  font-weight: 500;
+.urgence_proche {
+  border-left-color: var(--accent-blue);
 }
-
-.card h3 {
-  font-size: 0.925rem;
-  font-weight: 600;
-  color: var(--text-muted);
+.urgence_rendu {
+  border-left-color: var(--success);
+  opacity: 0.65;
 }
-
-.card p {
-  color: var(--text-faint);
-  font-size: 0.825rem;
-}
-
-.cardFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.cardFooterRight {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.auteur {
-  font-size: 0.75rem;
-  color: var(--text-faint);
-}
-
-.renduCheck {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  cursor: pointer;
-  user-select: none;
-}
-
-/* Case à cocher personnalisée : carré arrondi qui se remplit avec un check animé,
-   plus agréable et plus visible que la checkbox par défaut du navigateur */
-.renduCheck input {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 19px;
-  height: 19px;
-  flex-shrink: 0;
-  border: 2px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg-input);
-  cursor: pointer;
-  position: relative;
-  transition:
-    background 0.15s,
-    border-color 0.15s,
-    transform 0.1s;
-}
-
-.renduCheck input:hover {
-  border-color: var(--accent);
-}
-
-.renduCheck input:active {
-  transform: scale(0.88);
-}
-
-.renduCheck input:checked {
-  background: var(--success);
-  border-color: var(--success);
-}
-
-.renduCheck input:checked::after {
-  content: "";
-  position: absolute;
-  left: 6px;
-  top: 2px;
-  width: 4px;
-  height: 9px;
-  border: solid #fff;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg) scale(0);
-  animation: renduCheckPop 0.18s 0.02s ease forwards;
-}
-
-@keyframes renduCheckPop {
-  to {
-    transform: rotate(45deg) scale(1);
-  }
-}
-
-.cardRendu {
-  opacity: 0.6;
-  border-color: var(--success);
-}
-
-.cardRendu h3 {
+.urgence_rendu .titre {
   text-decoration: line-through;
   color: var(--text-faint);
-}
-
-.cardRendu .renduCheck {
-  color: var(--success);
-  font-weight: 600;
 }
 
 /* Transition de sortie quand on coche un devoir dans "À rendre" : la carte reste
@@ -310,6 +363,182 @@
   padding-top: 0;
   padding-bottom: 0;
   border-width: 0;
+}
+
+/* Grand rond à cocher : cible tactile confortable, à gauche pour être le premier geste */
+.check {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin-top: 0.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-input);
+  color: transparent;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s,
+    transform 0.1s;
+}
+
+.check:hover {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.check:active {
+  transform: scale(0.88);
+}
+
+.checkOn,
+.checkOn:hover {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.matiere {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--tint-pink);
+  padding: 0.15rem 0.6rem;
+  border-radius: 20px;
+}
+
+.evalBadge {
+  background: var(--accent-orange);
+  color: #fff;
+  font-size: 0.675rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.lateBadge {
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.675rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Échéance sur deux lignes : "Demain" bien visible, l'heure en dessous */
+.echeance {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  line-height: 1.25;
+}
+
+.echeancePrincipal {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.echeanceSecondaire {
+  font-size: 0.7rem;
+  color: var(--text-faint);
+}
+
+.urgence_retard .echeancePrincipal {
+  color: var(--danger);
+}
+.urgence_urgent .echeancePrincipal {
+  color: var(--accent-orange);
+}
+
+.titre {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.consignes {
+  color: var(--text-muted);
+  font-size: 0.825rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.consignesReplie {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.voirPlus {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 0.2rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.voirPlus:hover {
+  text-decoration: underline;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+}
+
+.auteur {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 /* Boutons-icônes, même rendu que la page Cours */
@@ -338,6 +567,161 @@
   color: var(--danger);
 }
 
+/* ── Commentaires (même rendu que la page Cours) ── */
+.commentToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-faint);
+  font-size: 0.775rem;
+  font-family: inherit;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.commentToggle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Des commentaires existent : on le voit sans avoir à déplier */
+.commentToggleActif {
+  color: var(--accent);
+}
+
+.comments {
+  border-top: 1px solid var(--border);
+  margin-top: 0.5rem;
+  padding-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.commentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.commentsEmpty {
+  font-size: 0.825rem;
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.comment {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+}
+
+.commentHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.commentAuteur {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.commentRole {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--accent);
+  background: var(--tint-pink);
+  padding: 0.05rem 0.45rem;
+  border-radius: 20px;
+}
+
+.commentDate {
+  font-size: 0.725rem;
+  color: var(--text-faint);
+  flex: 1;
+}
+
+.commentDelete {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  display: flex;
+  padding: 0.1rem;
+  border-radius: 3px;
+  transition: color 0.15s;
+}
+
+.commentDelete:hover {
+  color: var(--danger);
+}
+
+.commentContent {
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.commentForm {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.commentInput {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.commentInput:focus {
+  border-color: var(--accent);
+}
+
+.commentSend {
+  background: var(--accent-solid);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.commentSend:hover {
+  background: var(--accent-solid-hover);
+}
+
+.commentSend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ── Modale d'édition ── */
 .editOverlay {
   position: fixed;
@@ -357,7 +741,9 @@
   border-radius: 14px;
   padding: 1.5rem;
   width: 100%;
-  max-width: 420px;
+  max-width: 460px;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
@@ -437,271 +823,6 @@
   background: var(--accent-solid-hover);
 }
 
-@media (max-width: 768px) {
-  .header {
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-
-  .cardHeader {
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-}
-
-/* ── Devoirs en retard ── */
-.dateLate {
-  color: var(--danger);
-  font-size: 0.775rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.lateBadge {
-  background: var(--danger);
-  color: #fff;
-  font-size: 0.675rem;
-  font-weight: 700;
-  padding: 0.1rem 0.5rem;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.cardLate {
-  border-color: var(--danger);
-  opacity: 0.85;
-}
-
-/* ── Filtres (agenda de rendu) ── */
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.filterBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-faint);
-  padding: 0.3rem 0.85rem;
-  font-size: 0.775rem;
-  font-family: inherit;
-  font-weight: 500;
-  border-radius: 20px;
-  cursor: pointer;
-  transition:
-    border-color 0.15s,
-    color 0.15s,
-    background 0.15s;
-}
-
-.filterBtn:hover {
-  color: var(--text-muted);
-}
-
-.filterActive {
-  background: var(--tint-pink);
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-/* Les matières sont un second niveau de filtre : un cran plus discrètes */
-.filterBtnMatiere {
-  font-size: 0.725rem;
-  padding: 0.2rem 0.7rem;
-}
-
-.filterCount {
-  font-size: 0.675rem;
-  font-weight: 700;
-  opacity: 0.7;
-}
-
-.formTitle {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.badges {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
-
-.evalBadge {
-  background: var(--accent-orange);
-  color: #fff;
-  font-size: 0.675rem;
-  font-weight: 700;
-  padding: 0.15rem 0.55rem;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-/* Les consignes gardent leurs retours à la ligne */
-.consignes {
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-/* ── Commentaires (même rendu que la page Cours) ── */
-.commentToggle {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text-faint);
-  font-size: 0.775rem;
-  font-family: inherit;
-  padding: 0.4rem 0.65rem;
-  cursor: pointer;
-  transition:
-    color 0.15s,
-    border-color 0.15s;
-}
-
-.commentToggle:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-.comments {
-  border-top: 1px solid var(--border);
-  margin-top: 0.5rem;
-  padding-top: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.commentsList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  max-height: 260px;
-  overflow-y: auto;
-}
-
-.commentsEmpty {
-  font-style: italic;
-}
-
-.comment {
-  background: var(--bg-dark);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.6rem 0.85rem;
-}
-
-.commentHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.3rem;
-}
-
-.commentAuteur {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.commentRole {
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: var(--accent);
-  background: var(--tint-pink);
-  padding: 0.05rem 0.45rem;
-  border-radius: 20px;
-}
-
-.commentDate {
-  font-size: 0.725rem;
-  color: var(--text-faint);
-  flex: 1;
-}
-
-.commentDelete {
-  background: none;
-  border: none;
-  color: var(--text-faint);
-  cursor: pointer;
-  display: flex;
-  padding: 0.1rem;
-  border-radius: 3px;
-  transition: color 0.15s;
-}
-
-.commentDelete:hover {
-  color: var(--danger);
-}
-
-.card .commentContent {
-  font-size: 0.85rem;
-  color: var(--text);
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.commentForm {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.commentInput {
-  flex: 1;
-  min-width: 0;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.5rem 0.85rem;
-  color: var(--text);
-  font-size: 0.85rem;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.commentInput:focus {
-  border-color: var(--accent);
-}
-
-.commentSend {
-  background: var(--accent-solid);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: background 0.15s;
-}
-
-.commentSend:hover {
-  background: var(--accent-solid-hover);
-}
-
-.commentSend:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* ── Erreur de chargement ── */
 .loadError {
   display: flex;
@@ -723,4 +844,69 @@
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-wrap: wrap;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search input {
+    width: 100%;
+  }
+
+  .card {
+    padding: 0.85rem 0.9rem 0.85rem 0.75rem;
+    gap: 0.7rem;
+  }
+
+  /* Sur mobile l'échéance passe sous les badges plutôt que de les écraser */
+  .topline {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .echeance {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    justify-content: flex-end;
+  }
+}
+
+/* Tag d'option (anglais renforcé...) : le devoir n'est visible que par ses membres */
+.optionBadge {
+  background: var(--tint-blue);
+  color: var(--accent-blue);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.6rem;
+  border-radius: 20px;
+}
+
+.filtreLabel {
+  align-self: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-right: 0.15rem;
 }

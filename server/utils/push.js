@@ -38,6 +38,15 @@ export async function sendPushToGroup(groupeId, excludeUserId, payload) {
   await sendToSubs(subs, payload);
 }
 
+// Membres d'une option (ex. anglais renforcé), tous groupes confondus
+export async function sendPushToOption(optionId, excludeUserId, payload) {
+  if (!process.env.VAPID_PUBLIC_KEY) return;
+  const subs = await prisma.pushSubscription.findMany({
+    where: { user: { id: { not: excludeUserId }, options: { some: { optionId } } } },
+  });
+  await sendToSubs(subs, payload);
+}
+
 export async function sendPushToAll(excludeUserId, payload) {
   if (!process.env.VAPID_PUBLIC_KEY) return;
   const subs = await prisma.pushSubscription.findMany({
