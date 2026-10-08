@@ -31,6 +31,9 @@ function formatDate(iso) {
 export default function Documents() {
   const { user, token } = useAuth();
   const isAdmin = user?.role === "admin";
+  // Issue #25 : les professeurs publient des cours, mais ne gèrent que les leurs
+  const peutPublier = isAdmin || user?.role === "professeur";
+  const peutGerer = (doc) => isAdmin || (peutPublier && doc.auteur.id === user?.id);
 
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,9 +66,9 @@ export default function Documents() {
   const fileRef = useRef(null);
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!peutPublier) return;
     api.get("/auth/groupes").then((r) => setPromos(Array.from(new Set(r.data.map((g) => g.promo))).sort()));
-  }, [isAdmin]);
+  }, [peutPublier]);
 
   useEffect(() => {
     api.get("/documents").then((r) => {
@@ -219,7 +222,7 @@ export default function Documents() {
               {docs.length} document{docs.length !== 1 ? "s" : ""} disponible{docs.length !== 1 ? "s" : ""}
             </p>
           </div>
-          {isAdmin && (
+          {peutPublier && (
             <button className={styles.uploadBtn} onClick={() => setShowUpload((v) => !v)}>
               {showUpload ? <X size={16} strokeWidth={1.5} /> : <Plus size={16} strokeWidth={1.5} />}
               {showUpload ? "Annuler" : "Ajouter un cours"}
@@ -227,8 +230,8 @@ export default function Documents() {
           )}
         </div>
 
-        {/* Formulaire upload admin */}
-        {isAdmin && showUpload && (
+        {/* Formulaire de publication (admin ou professeur) */}
+        {peutPublier && showUpload && (
           <form className={styles.uploadForm} onSubmit={handleUpload}>
             <h2 className={styles.formTitle}>Nouveau document</h2>
             <div className={styles.formGrid}>
@@ -374,7 +377,9 @@ export default function Documents() {
                     <div className={styles.cardMeta}>
                       <span className={styles.matiereBadge}>{doc.matiere}</span>
                       <span className={styles.typeBadge}>{doc.type}</span>
-                      {isAdmin && <span className={styles.profBadge}>{doc.promo}</span>}
+                      {(isAdmin || doc.promo !== user?.promo) && (
+                        <span className={styles.profBadge}>{doc.promo}</span>
+                      )}
                       {doc.prof && <span className={styles.profBadge}>{doc.prof}</span>}
                       <span className={styles.cardDate}>{formatDate(doc.createdAt)}</span>
                     </div>
@@ -406,12 +411,12 @@ export default function Documents() {
                       <Download size={15} strokeWidth={1.5} />
                       Télécharger
                     </button>
-                    {isAdmin && (
+                    {peutGerer(doc) && (
                       <button className={styles.editBtn} onClick={() => openEdit(doc)} title="Modifier">
                         <Pencil size={14} strokeWidth={1.5} />
                       </button>
                     )}
-                    {isAdmin && (
+                    {peutGerer(doc) && (
                       <button
                         className={styles.deleteBtn}
                         onClick={() => deleteDoc(doc.id)}

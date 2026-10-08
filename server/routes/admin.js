@@ -28,7 +28,7 @@ router.patch("/users/:id/valider", async (req, res) => {
 // PATCH /admin/users/:id/role — change le rôle d'un utilisateur
 router.patch("/users/:id/role", async (req, res) => {
   const { role } = req.body;
-  if (!["etudiant", "delegue", "admin"].includes(role)) {
+  if (!["etudiant", "delegue", "professeur", "admin"].includes(role)) {
     return res.status(400).json({ error: "Rôle invalide." });
   }
   // Un admin ne peut pas se rétrograder lui-même : ça pourrait laisser

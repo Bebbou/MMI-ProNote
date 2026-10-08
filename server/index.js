@@ -30,7 +30,9 @@ const httpServer = createServer(app);
 // Origines autorisées : le(s) front(s) en prod (CLIENT_ORIGIN, séparées par des virgules
 // si plusieurs, ex. pendant une migration Vercel -> Netlify) + le dev local
 const allowedOrigins = [
-  ...(process.env.CLIENT_ORIGIN?.split(",").map((o) => o.trim()).filter(Boolean) ?? []),
+  ...(process.env.CLIENT_ORIGIN?.split(",")
+    .map((o) => o.trim())
+    .filter(Boolean) ?? []),
   "http://localhost:5173",
 ];
 
@@ -131,6 +133,7 @@ async function joindreRoomsOptions(socket) {
   });
   if (!user) return;
   socket.join(`user-${socket.user.id}`);
+  socket.join(`promo-${user.groupe.promo}`);
   for (const { optionId } of user.options) socket.join(`option-${optionId}`);
   if (["admin", "delegue"].includes(user.role)) socket.join(`gestion-${user.groupe.promo}`);
 }

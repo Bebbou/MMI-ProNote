@@ -38,7 +38,9 @@ export default function Admin() {
     setNewGroupeError("");
     try {
       const { data } = await api.post("/admin/groupes", newGroupe);
-      setGroupes([...groupes, data].sort((a, b) => a.promo.localeCompare(b.promo) || a.nom.localeCompare(b.nom)));
+      setGroupes(
+        [...groupes, data].sort((a, b) => a.promo.localeCompare(b.promo) || a.nom.localeCompare(b.nom))
+      );
       setIcalDrafts({ ...icalDrafts, [data.id]: "" });
       setNewGroupe({ nom: "", promo: "" });
     } catch (err) {
@@ -104,7 +106,8 @@ export default function Admin() {
   // Filtres par promo (MMI2/MMI3...) et par groupe — issue #46, utile une fois
   // plusieurs promos mélangées dans la liste des utilisateurs
   const promos = ["Toutes", ...Array.from(new Set(groupes.map((g) => g.promo)))];
-  const groupesDeLaPromo = filtrePromo === "Toutes" ? groupes : groupes.filter((g) => g.promo === filtrePromo);
+  const groupesDeLaPromo =
+    filtrePromo === "Toutes" ? groupes : groupes.filter((g) => g.promo === filtrePromo);
 
   function handleFiltrePromo(promo) {
     setFiltrePromo(promo);
@@ -165,7 +168,9 @@ export default function Admin() {
                   <div className={styles.info}>
                     <span className={styles.nom}>{u.nom}</span>
                     <span className={styles.email}>{u.email}</span>
-                    <span className={styles.groupe}>{u.groupe?.nom} · {u.groupe?.promo}</span>
+                    <span className={styles.groupe}>
+                      {u.groupe?.nom} · {u.groupe?.promo}
+                    </span>
                   </div>
                   <div className={styles.actions}>
                     <button className={styles.validateBtn} onClick={() => handleValider(u.id)}>
@@ -256,7 +261,9 @@ export default function Admin() {
                 <div className={styles.info}>
                   <span className={styles.nom}>{u.nom}</span>
                   <span className={styles.email}>{u.email}</span>
-                  <span className={styles.groupe}>{u.groupe?.nom} · {u.groupe?.promo}</span>
+                  <span className={styles.groupe}>
+                    {u.groupe?.nom} · {u.groupe?.promo}
+                  </span>
                 </div>
                 <div className={styles.actions}>
                   <select
@@ -268,6 +275,7 @@ export default function Admin() {
                   >
                     <option value="etudiant">Étudiant</option>
                     <option value="delegue">Délégué</option>
+                    <option value="professeur">Professeur</option>
                     <option value="admin">Admin</option>
                   </select>
                   <button className={styles.editBtn} onClick={() => openEdit(u)}>
@@ -372,11 +380,7 @@ export default function Admin() {
               Impossible si des comptes, devoirs ou cours y sont encore rattachés.
             </p>
             <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.cancelBtn}
-                onClick={() => setConfirmDeleteGroupe(null)}
-              >
+              <button type="button" className={styles.cancelBtn} onClick={() => setConfirmDeleteGroupe(null)}>
                 Annuler
               </button>
               <button

@@ -76,6 +76,10 @@ model Devoir {
   option   Option? @relation(fields: [optionId], references: [id], onDelete: Cascade)
   optionId Int?
 
+  // Issue #25 : devoir créé par un professeur/admin pour toute une promo (ex. "MMI2"),
+  // quel que soit le groupe. null = devoir de groupe (groupeId) ou d'option.
+  promoCible String?
+
   rendus       DevoirRendu[]
   commentaires CommentaireDevoir[]
 

@@ -3,6 +3,7 @@ import multer from "multer";
 import prisma from "../db.js";
 import { requireAuth, requireRole } from "../middlewares/auth.js";
 import { sendPushToPromo } from "../utils/push.js";
+import { peutVoirDocument, peutGererDocument } from "../utils/documentAccess.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -35,11 +36,9 @@ const docSelect = {
   _count: { select: { commentaires: true } },
 };
 
-// Issue #49 : un cours n'est visible que par la promo à laquelle il est destiné. Seuls les
-// admins voient toutes les promos, pour pouvoir les gérer.
-function peutVoir(user, doc) {
-  return user.role === "admin" || doc.promo === user.promo;
-}
+// Issues #49 et #25 : un cours n'est visible que par la promo à laquelle il est destiné
+// (règles complètes dans utils/documentAccess.js). Les admins et professeurs publient.
+const peutVoir = peutVoirDocument;
 
 // Promo choisie pour un document : celle de l'admin par défaut, ou une promo existante
 async function resoudrePromo(user, brute) {
@@ -62,7 +61,15 @@ async function chargerDoc(req, res, args = {}) {
 // GET /documents
 router.get("/", async (req, res) => {
   const docs = await prisma.document.findMany({
-    where: req.user.role === "admin" ? {} : { promo: req.user.promo },
+    where:
+      req.user.role === "admin"
+        ? {}
+        : {
+            OR: [
+              { promo: req.user.promo },
+              ...(req.user.role === "professeur" ? [{ auteurId: req.user.id }] : []),
+            ],
+          },
     select: docSelect,
     orderBy: { createdAt: "desc" },
   });
@@ -78,8 +85,8 @@ router.get("/:id/download", async (req, res) => {
   res.send(doc.fileData);
 });
 
-// POST /documents (admin)
-router.post("/", requireRole("admin"), upload.single("file"), async (req, res) => {
+// POST /documents (admin ou professeur)
+router.post("/", requireRole("admin", "professeur"), upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "Fichier PDF requis." });
   const { titre, description, matiere, prof, type } = req.body;
   if (!titre || !matiere) return res.status(400).json({ error: "Titre et matière requis." });
@@ -111,11 +118,13 @@ router.post("/", requireRole("admin"), upload.single("file"), async (req, res) =
   res.status(201).json(doc);
 });
 
-// PATCH /documents/:id (admin) — modifie les tags (ressource/prof/type) et les infos
+// PATCH /documents/:id (admin, ou professeur pour ses propres cours) — modifie les tags (ressource/prof/type) et les infos
 // d'un document déjà publié, sans avoir à ré-uploader le fichier (issue #37)
-router.patch("/:id", requireRole("admin"), async (req, res) => {
+router.patch("/:id", requireRole("admin", "professeur"), async (req, res) => {
   const doc = await chargerDoc(req, res);
   if (!doc) return;
+  if (!peutGererDocument(req.user, doc))
+    return res.status(403).json({ error: "Tu ne peux modifier que tes propres cours." });
 
   const { titre, description, matiere, prof, type } = req.body;
   if (type && !TYPES.includes(type)) return res.status(400).json({ error: "Type invalide." });
@@ -136,17 +145,19 @@ router.patch("/:id", requireRole("admin"), async (req, res) => {
   res.json(updated);
 });
 
-// DELETE /documents/:id (admin)
-router.delete("/:id", requireRole("admin"), async (req, res) => {
+// DELETE /documents/:id (admin, ou professeur pour ses propres cours)
+router.delete("/:id", requireRole("admin", "professeur"), async (req, res) => {
   const doc = await chargerDoc(req, res);
   if (!doc) return;
+  if (!peutGererDocument(req.user, doc))
+    return res.status(403).json({ error: "Tu ne peux supprimer que tes propres cours." });
   await prisma.document.delete({ where: { id: doc.id } });
   res.json({ message: "Document supprimé." });
 });
 
 // GET /documents/:id/commentaires
 router.get("/:id/commentaires", async (req, res) => {
-  const doc = await chargerDoc(req, res, { select: { id: true, promo: true } });
+  const doc = await chargerDoc(req, res, { select: { id: true, promo: true, auteurId: true } });
   if (!doc) return;
   const commentaires = await prisma.commentaireDoc.findMany({
     where: { documentId: doc.id },
@@ -160,7 +171,7 @@ router.get("/:id/commentaires", async (req, res) => {
 router.post("/:id/commentaires", async (req, res) => {
   const { content } = req.body;
   if (!content?.trim()) return res.status(400).json({ error: "Commentaire vide." });
-  const doc = await chargerDoc(req, res, { select: { id: true, promo: true } });
+  const doc = await chargerDoc(req, res, { select: { id: true, promo: true, auteurId: true } });
   if (!doc) return;
   const commentaire = await prisma.commentaireDoc.create({
     data: { content: content.trim(), auteurId: req.user.id, documentId: doc.id },
@@ -173,9 +184,10 @@ router.post("/:id/commentaires", async (req, res) => {
 router.delete("/commentaires/:id", async (req, res) => {
   const c = await prisma.commentaireDoc.findUnique({
     where: { id: Number(req.params.id) },
-    include: { document: { select: { promo: true } } },
+    include: { document: { select: { promo: true, auteurId: true } } },
   });
-  if (!c || !peutVoir(req.user, c.document)) return res.status(404).json({ error: "Commentaire introuvable." });
+  if (!c || !peutVoir(req.user, c.document))
+    return res.status(404).json({ error: "Commentaire introuvable." });
   if (req.user.role !== "admin" && c.auteurId !== req.user.id)
     return res.status(403).json({ error: "Non autorisé." });
   await prisma.commentaireDoc.delete({ where: { id: c.id } });
