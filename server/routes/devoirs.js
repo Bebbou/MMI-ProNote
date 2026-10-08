@@ -18,7 +18,7 @@ const router = Router();
 const TYPES = ["Devoir", "Evaluation"];
 
 const includeDevoir = {
-  auteur: { select: { nom: true } },
+  auteur: { select: { id: true, nom: true, role: true } },
   option: { select: { id: true, nom: true, promo: true } },
   groupe: { select: { id: true, nom: true, promo: true } },
   _count: { select: { commentaires: true } },
@@ -242,7 +242,10 @@ router.delete("/commentaires/:id", requireAuth, async (req, res) => {
   if (!devoirEstVisible(req.user, optionIds, c.devoir))
     return res.status(403).json({ error: "Accès refusé." });
 
-  const moderateur = ["admin", "delegue"].includes(req.user.role);
+  // Modération : admin/délégué, ou le professeur auteur du devoir commenté
+  const moderateur =
+    ["admin", "delegue"].includes(req.user.role) ||
+    (req.user.role === "professeur" && c.devoir.auteurId === req.user.id);
   if (!moderateur && c.auteurId !== req.user.id) return res.status(403).json({ error: "Non autorisé." });
 
   await prisma.commentaireDevoir.delete({ where: { id: c.id } });

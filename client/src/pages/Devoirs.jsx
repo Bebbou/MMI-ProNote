@@ -37,7 +37,59 @@ const TYPES = [
   { id: "Evaluation", label: "Évaluation" },
 ];
 
-const FORM_VIDE = { titre: "", matiere: "", description: "", dateLimite: "", type: "Devoir", optionId: "" };
+const FORM_VIDE = { titre: "", matiere: "", description: "", dateLimite: "", type: "Devoir", cible: "" };
+
+// Valeur de `cible` envoyée au serveur : "" (mon groupe), "option:5", "promo:MMI2", "groupe:12"
+function cibleDe(devoir, user) {
+  if (devoir.optionId) return `option:${devoir.optionId}`;
+  if (devoir.promoCible) return `promo:${devoir.promoCible}`;
+  const g = devoir.groupe;
+  return g && (g.nom !== user?.groupe || g.promo !== user?.promo) ? `groupe:${g.id}` : "";
+}
+
+// "Visible par" : à qui s'adresse le devoir. Un délégué ne cible que son groupe et ses
+// options ; un professeur ou un admin peut aussi viser une promo entière ou un autre groupe.
+function SelecteurCible({ value, onChange, user, options, groupes, libre }) {
+  if (!libre && options.length === 0) return null;
+  const promos = Array.from(new Set(groupes.map((g) => g.promo))).sort();
+  const autresGroupes = groupes.filter((g) => g.nom !== user?.groupe || g.promo !== user?.promo);
+
+  return (
+    <label className={styles.dateLabel}>
+      Visible par
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="">Mon groupe ({user?.groupe})</option>
+        {libre && promos.length > 0 && (
+          <optgroup label="Promos entières">
+            {promos.map((p) => (
+              <option key={p} value={`promo:${p}`}>
+                Toute la promo {p}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {libre && autresGroupes.length > 0 && (
+          <optgroup label="Autres groupes">
+            {autresGroupes.map((g) => (
+              <option key={g.id} value={`groupe:${g.id}`}>
+                {g.nom} ({g.promo})
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {options.length > 0 && (
+          <optgroup label="Options (uniquement les membres)">
+            {options.map((o) => (
+              <option key={o.id} value={`option:${o.id}`}>
+                {o.nom}
+              </option>
+            ))}
+          </optgroup>
+        )}
+      </select>
+    </label>
+  );
+}
 
 function formatDateCommentaire(iso) {
   return new Date(iso).toLocaleDateString("fr-FR", {
@@ -70,6 +122,7 @@ export default function Devoirs() {
   const { user } = useAuth();
   const socket = useSocket();
   const { options } = useOptions();
+  const [groupes, setGroupes] = useState([]);
   const [devoirs, setDevoirs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -83,7 +136,7 @@ export default function Devoirs() {
   const [filtreType, setFiltreType] = useState("Tous");
   const [filtreMatiere, setFiltreMatiere] = useState("Toutes");
   const [recherche, setRecherche] = useState("");
-  const [filtreAudience, setFiltreAudience] = useState("tous"); // "tous" | "groupe" | id d'option
+  const [filtreAudience, setFiltreAudience] = useState("tous"); // "tous" | "groupe" | "promo" | id d'option
   // Commentaires : un seul devoir déplié à la fois, chargés à la demande
   const [expandedId, setExpandedId] = useState(null);
   const [commentaires, setCommentaires] = useState({});
@@ -137,6 +190,12 @@ export default function Devoirs() {
     };
   }, [socket]);
 
+  // Liste des groupes (toutes promos) : seulement utile pour cibler une promo ou un groupe
+  useEffect(() => {
+    if (!["admin", "professeur"].includes(user?.role)) return;
+    api.get("/auth/groupes").then((r) => setGroupes(r.data));
+  }, [user?.role]);
+
   // Échap ferme la modale d'édition
   useEffect(() => {
     if (!editingDevoir) return;
@@ -157,7 +216,7 @@ export default function Devoirs() {
       // le serveur (en UTC sur Railway) la prend à tort pour de l'UTC (issue #44).
       const { data } = await api.post("/devoirs", {
         ...form,
-        optionId: form.optionId ? Number(form.optionId) : null,
+        cible: form.cible,
         dateLimite: new Date(form.dateLimite).toISOString(),
       });
       setDevoirs((prev) => [...prev, data].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)));
@@ -176,7 +235,7 @@ export default function Devoirs() {
       matiere: devoir.matiere,
       description: devoir.description ?? "",
       type: devoir.type ?? "Devoir",
-      optionId: devoir.optionId ?? "",
+      cible: cibleDe(devoir, user),
       dateLimite: versDatetimeLocal(devoir.dateLimite),
     });
   }
@@ -186,7 +245,7 @@ export default function Devoirs() {
     try {
       const { data } = await api.patch(`/devoirs/${editingDevoir.id}`, {
         ...editForm,
-        optionId: editForm.optionId ? Number(editForm.optionId) : null,
+        cible: editForm.cible,
         dateLimite: new Date(editForm.dateLimite).toISOString(),
       });
       setDevoirs((prev) =>
@@ -297,7 +356,15 @@ export default function Devoirs() {
     }
   }
 
-  const canCreate = user?.role === "admin" || user?.role === "delegue";
+  // Issue #25 : les professeurs créent aussi des devoirs et des évaluations
+  const canCreate = ["admin", "delegue", "professeur"].includes(user?.role);
+  const cibleLibre = ["admin", "professeur"].includes(user?.role);
+  const moderateur = ["admin", "delegue"].includes(user?.role);
+  // Un professeur ne gère que ses devoirs ; un délégué ne touche pas à ceux d'un professeur
+  const peutGerer = (d) =>
+    user?.role === "admin" ||
+    (user?.role === "professeur" && d.auteur?.id === user.id) ||
+    (user?.role === "delegue" && d.auteur?.role !== "professeur");
   const now = new Date();
 
   // "Historique" ne doit montrer que ce qui appartient vraiment au passé : un devoir
@@ -324,8 +391,11 @@ export default function Devoirs() {
   const audiences = Array.from(
     new Map(devoirsDeLOnglet.filter((d) => d.option).map((d) => [d.option.id, d.option.nom]))
   ).map(([id, nom]) => ({ id, nom }));
+  const avecPromo = devoirsDeLOnglet.some((d) => d.promoCible);
   const audienceActive =
-    filtreAudience === "tous" || filtreAudience === "groupe" || audiences.some((a) => a.id === filtreAudience)
+    ["tous", "groupe"].includes(filtreAudience) ||
+    (filtreAudience === "promo" && avecPromo) ||
+    audiences.some((a) => a.id === filtreAudience)
       ? filtreAudience
       : "tous";
 
@@ -335,7 +405,11 @@ export default function Devoirs() {
     .filter(
       (d) =>
         audienceActive === "tous" ||
-        (audienceActive === "groupe" ? !d.optionId : d.optionId === audienceActive)
+        (audienceActive === "groupe"
+          ? !d.optionId && !d.promoCible
+          : audienceActive === "promo"
+            ? !!d.promoCible
+            : d.optionId === audienceActive)
     )
     .filter((d) => !requete || `${d.titre} ${d.matiere}`.toLowerCase().includes(requete));
 
@@ -392,6 +466,19 @@ export default function Devoirs() {
                   {devoir.option.nom}
                 </span>
               )}
+              {devoir.promoCible && (
+                <span className={styles.optionBadge} title="Visible par toute la promo">
+                  Promo {devoir.promoCible}
+                </span>
+              )}
+              {!devoir.optionId &&
+                !devoir.promoCible &&
+                devoir.groupe &&
+                (devoir.groupe.nom !== user?.groupe || devoir.groupe.promo !== user?.promo) && (
+                  <span className={styles.optionBadge}>
+                    {devoir.groupe.nom} ({devoir.groupe.promo})
+                  </span>
+                )}
               {urgence === "retard" && <span className={styles.lateBadge}>En retard</span>}
             </div>
             <div className={styles.echeance}>
@@ -404,7 +491,10 @@ export default function Devoirs() {
           {devoir.description && <Consignes texte={devoir.description} />}
 
           <div className={styles.footer}>
-            <span className={styles.auteur}>Ajouté par {devoir.auteur?.nom}</span>
+            <span className={styles.auteur}>
+              Ajouté par {devoir.auteur?.nom}
+              {devoir.auteur?.role === "professeur" && " (professeur)"}
+            </span>
             <div className={styles.actions}>
               <button
                 className={`${styles.commentToggle} ${nbCommentaires > 0 ? styles.commentToggleActif : ""}`}
@@ -420,12 +510,12 @@ export default function Devoirs() {
                   <ChevronDown size={13} strokeWidth={1.5} />
                 )}
               </button>
-              {canCreate && (
+              {peutGerer(devoir) && (
                 <button className={styles.editBtn} onClick={() => openEditDevoir(devoir)} title="Modifier">
                   <Pencil size={14} strokeWidth={1.5} />
                 </button>
               )}
-              {canCreate && (
+              {peutGerer(devoir) && (
                 <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)} title="Supprimer">
                   <Trash2 size={14} strokeWidth={1.5} />
                 </button>
@@ -451,7 +541,7 @@ export default function Devoirs() {
                           </span>
                         )}
                         <span className={styles.commentDate}>{formatDateCommentaire(c.createdAt)}</span>
-                        {(canCreate || c.auteur.id === user?.id) && (
+                        {(moderateur || c.auteur.id === user?.id) && (
                           <button
                             className={styles.commentDelete}
                             onClick={() => deleteComment(devoir.id, c.id)}
@@ -569,19 +659,14 @@ export default function Devoirs() {
               value={form.description}
               onChange={handleChange}
             />
-            {options.length > 0 && (
-              <label className={styles.dateLabel}>
-                Visible par
-                <select name="optionId" value={form.optionId} onChange={handleChange}>
-                  <option value="">Tout le groupe</option>
-                  {options.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.nom} (uniquement les membres)
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
+            <SelecteurCible
+              value={form.cible}
+              onChange={(cible) => setForm({ ...form, cible })}
+              user={user}
+              options={options}
+              groupes={groupes}
+              libre={cibleLibre}
+            />
             <label className={styles.dateLabel}>
               Date limite
               <input
@@ -643,10 +728,15 @@ export default function Devoirs() {
             />
           </label>
         </div>
-        {audiences.length > 0 && (
+        {(audiences.length > 0 || avecPromo) && (
           <div className={styles.filters}>
             <span className={styles.filtreLabel}>Visible par</span>
-            {[{ id: "tous", nom: "Tous" }, { id: "groupe", nom: "Mon groupe" }, ...audiences].map((a) => (
+            {[
+              { id: "tous", nom: "Tous" },
+              { id: "groupe", nom: "Groupe" },
+              ...(avecPromo ? [{ id: "promo", nom: "Toute la promo" }] : []),
+              ...audiences,
+            ].map((a) => (
               <button
                 key={a.id}
                 className={`${styles.filterBtn} ${styles.filterBtnMatiere} ${audienceActive === a.id ? styles.filterActive : ""}`}
@@ -758,22 +848,14 @@ export default function Devoirs() {
               value={editForm.description}
               onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
             />
-            {options.length > 0 && (
-              <label className={styles.dateLabel}>
-                Visible par
-                <select
-                  value={editForm.optionId}
-                  onChange={(e) => setEditForm({ ...editForm, optionId: e.target.value })}
-                >
-                  <option value="">Tout le groupe</option>
-                  {options.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.nom} (uniquement les membres)
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
+            <SelecteurCible
+              value={editForm.cible}
+              onChange={(cible) => setEditForm({ ...editForm, cible })}
+              user={user}
+              options={options}
+              groupes={groupes}
+              libre={cibleLibre}
+            />
             <label className={styles.dateLabel}>
               Date limite
               <input
