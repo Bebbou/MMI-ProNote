@@ -38,6 +38,15 @@ export async function sendPushToGroup(groupeId, excludeUserId, payload) {
   await sendToSubs(subs, payload);
 }
 
+// Tous les élèves d'une promo (ex. nouveau cours : les autres promos n'y ont pas accès)
+export async function sendPushToPromo(promo, excludeUserId, payload) {
+  if (!process.env.VAPID_PUBLIC_KEY) return;
+  const subs = await prisma.pushSubscription.findMany({
+    where: { user: { valide: true, id: { not: excludeUserId }, groupe: { promo } } },
+  });
+  await sendToSubs(subs, payload);
+}
+
 // Membres d'une option (ex. anglais renforcé), tous groupes confondus
 export async function sendPushToOption(optionId, excludeUserId, payload) {
   if (!process.env.VAPID_PUBLIC_KEY) return;

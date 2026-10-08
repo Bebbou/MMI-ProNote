@@ -228,6 +228,7 @@ model Document {
   matiere     String // ressource (ex. "CMS avancé")
   prof        String? // enseignant (ex. "Talleux")
   type        String   @default("Autre") // CM | TD | TP | Projet | Autre
+  promo       String // promo destinataire (ex. "MMI2") : un cours n'est visible que par sa promo (issue #49)
   fileName    String
   fileSize    Int
   fileData    Bytes
@@ -237,6 +238,8 @@ model Document {
   auteurId Int
 
   commentaires CommentaireDoc[]
+
+  @@index([promo])
 }
 
 model CommentaireDoc {

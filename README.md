@@ -26,7 +26,7 @@ En bref, si vous me dites : "Aaahh, c'est de l'IA", je répondrai que, pour la m
 - **Notifications push** — alertes navigateur/mobile même app fermée (PWA installable)
 - **Profil** — consultation des informations de son compte, changement de mot de passe
 - **Thèmes** — 5 thèmes visuels au choix (MMI, Sombre, Bleu, Pastel, Obsidian), sauvegardés par utilisateur
-- **Mode Canvas** — vue alternative en widgets repositionnables (React Flow), positions persistées
+- **MMIparty** — raccourci vers [MMIparty](https://play.mmiparty.fr/), le projet d'une étudiante de la promo
 - **Admin** — validation des comptes, changement de rôles, suppression d'utilisateurs, configuration des flux iCal de l'EDT
 - **Authentification** — inscription avec validation manuelle par un admin, connexion par JWT, réinitialisation de mot de passe par email
 
@@ -122,7 +122,6 @@ Pronote-MMI/
 │       ├── context/             # AuthContext (état global auth)
 │       ├── hooks/                # useSocket, useTheme, usePushNotifications
 │       ├── pages/                # Une page par route
-│       ├── widgets/              # Widgets du mode Canvas
 │       └── sw.js                 # Service worker (notifications push)
 ├── server/                     # Backend Express
 │   ├── middlewares/             # requireAuth, requireRole

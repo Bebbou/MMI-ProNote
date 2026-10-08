@@ -7,7 +7,7 @@ import {
   Calendar,
   Settings,
   LogOut,
-  LayoutGrid,
+  PartyPopper,
   Sun,
   Menu,
   X,
@@ -140,14 +140,17 @@ export default function Layout({ children }) {
           )}
         </div>
 
-        <NavLink
-          to="/canvas"
+        {/* Projet d'une étudiante de la promo, hébergé ailleurs : s'ouvre dans un nouvel onglet */}
+        <a
+          href="https://play.mmiparty.fr/"
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={() => setMenuOpen(false)}
-          className={({ isActive }) => `${styles.canvasBtn} ${isActive ? styles.canvasBtnActive : ""}`}
+          className={styles.partyBtn}
         >
-          <LayoutGrid size={13} strokeWidth={1.5} />
-          <span className={styles.navLabel}>Mode Canvas</span>
-        </NavLink>
+          <PartyPopper size={13} strokeWidth={1.5} />
+          <span className={styles.navLabel}>MMIparty</span>
+        </a>
         <button className={styles.logout} onClick={handleLogout}>
           <LogOut size={13} strokeWidth={1.5} />
           <span className={styles.navLabel}>Deconnexion</span>

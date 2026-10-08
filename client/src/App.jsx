@@ -10,7 +10,6 @@ import Notes from "./pages/Notes";
 import EDT from "./pages/EDT";
 import Admin from "./pages/Admin";
 import Profil from "./pages/Profil";
-import Canvas from "./pages/Canvas";
 import Chat from "./pages/Chat";
 import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
@@ -74,14 +73,6 @@ function App() {
             element={
               <PrivateRoute>
                 <Profil />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/canvas"
-            element={
-              <PrivateRoute>
-                <Canvas />
               </PrivateRoute>
             }
           />

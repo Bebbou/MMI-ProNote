@@ -37,6 +37,10 @@ export default function Documents() {
   const [filtreMat, setFiltreMat] = useState("Toutes");
   const [filtreProf, setFiltreProf] = useState("Tous");
   const [filtreType, setFiltreType] = useState("Tous");
+  // Admin : voit toutes les promos (issue #49), filtre sur la sienne par défaut.
+  // Les autres utilisateurs ne reçoivent de toute façon que les cours de leur promo.
+  const [filtrePromo, setFiltrePromo] = useState(user?.promo ?? "Toutes");
+  const [promos, setPromos] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [commentaires, setCommentaires] = useState({});
   const [commentInput, setCommentInput] = useState({});
@@ -51,11 +55,17 @@ export default function Documents() {
     matiere: "",
     prof: "",
     type: TYPES[0],
+    promo: user?.promo ?? "",
   });
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const fileRef = useRef(null);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    api.get("/auth/groupes").then((r) => setPromos(Array.from(new Set(r.data.map((g) => g.promo))).sort()));
+  }, [isAdmin]);
 
   useEffect(() => {
     api.get("/documents").then((r) => {
@@ -65,6 +75,7 @@ export default function Documents() {
   }, []);
 
   const filteredDocs = docs
+    .filter((d) => !isAdmin || filtrePromo === "Toutes" || d.promo === filtrePromo)
     .filter((d) => filtreMat === "Toutes" || d.matiere === filtreMat)
     .filter((d) => filtreProf === "Tous" || d.prof === filtreProf)
     .filter((d) => filtreType === "Tous" || d.type === filtreType);
@@ -119,6 +130,7 @@ export default function Documents() {
       matiere: doc.matiere,
       prof: doc.prof || "",
       type: doc.type || "Autre",
+      promo: doc.promo || user?.promo || "",
     });
   }
 
@@ -162,10 +174,18 @@ export default function Documents() {
       fd.append("matiere", form.matiere);
       fd.append("prof", form.prof);
       fd.append("type", form.type);
+      fd.append("promo", form.promo);
       fd.append("file", file);
       const r = await api.post("/documents", fd, { headers: { "Content-Type": "multipart/form-data" } });
       setDocs((prev) => [r.data, ...prev]);
-      setForm({ titre: "", description: "", matiere: "", prof: "", type: TYPES[0] });
+      setForm({
+        titre: "",
+        description: "",
+        matiere: "",
+        prof: "",
+        type: TYPES[0],
+        promo: user?.promo ?? "",
+      });
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";
       setShowUpload(false);
@@ -247,6 +267,17 @@ export default function Documents() {
                   ))}
                 </select>
               </div>
+              <div className={styles.field}>
+                <label>Promo *</label>
+                <select
+                  value={form.promo}
+                  onChange={(e) => setForm((f) => ({ ...f, promo: e.target.value }))}
+                >
+                  {promos.map((p) => (
+                    <option key={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
                 <label>Description</label>
                 <input
@@ -271,6 +302,20 @@ export default function Documents() {
               {uploading ? "Upload en cours…" : "Publier le document"}
             </button>
           </form>
+        )}
+
+        {isAdmin && promos.length > 1 && (
+          <div className={styles.filters}>
+            {["Toutes", ...promos].map((p) => (
+              <button
+                key={p}
+                className={`${styles.filterBtn} ${filtrePromo === p ? styles.filterActive : ""}`}
+                onClick={() => setFiltrePromo(p)}
+              >
+                {p === "Toutes" ? "Toutes les promos" : p}
+              </button>
+            ))}
+          </div>
         )}
 
         {/* Filtres : ressource, enseignant, type (issue #37) */}
@@ -329,6 +374,7 @@ export default function Documents() {
                     <div className={styles.cardMeta}>
                       <span className={styles.matiereBadge}>{doc.matiere}</span>
                       <span className={styles.typeBadge}>{doc.type}</span>
+                      {isAdmin && <span className={styles.profBadge}>{doc.promo}</span>}
                       {doc.prof && <span className={styles.profBadge}>{doc.prof}</span>}
                       <span className={styles.cardDate}>{formatDate(doc.createdAt)}</span>
                     </div>
@@ -437,11 +483,7 @@ export default function Documents() {
       {/* Modale d'édition des tags (ressource/enseignant/type) — issue #37 */}
       {editingDoc && (
         <div className={styles.editOverlay} onClick={() => setEditingDoc(null)}>
-          <form
-            className={styles.editModal}
-            onClick={(e) => e.stopPropagation()}
-            onSubmit={handleEditSubmit}
-          >
+          <form className={styles.editModal} onClick={(e) => e.stopPropagation()} onSubmit={handleEditSubmit}>
             <h2 className={styles.formTitle}>Modifier « {editingDoc.titre} »</h2>
             <div className={styles.formGrid}>
               <div className={styles.field}>
@@ -478,6 +520,17 @@ export default function Documents() {
                 >
                   {TYPES.map((t) => (
                     <option key={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.field}>
+                <label>Promo *</label>
+                <select
+                  value={editForm.promo}
+                  onChange={(e) => setEditForm((f) => ({ ...f, promo: e.target.value }))}
+                >
+                  {promos.map((p) => (
+                    <option key={p}>{p}</option>
                   ))}
                 </select>
               </div>

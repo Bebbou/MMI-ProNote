@@ -204,7 +204,7 @@
   flex-shrink: 0;
 }
 
-.canvasBtn {
+.partyBtn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -224,8 +224,7 @@
   text-decoration: none;
 }
 
-.canvasBtn:hover,
-.canvasBtnActive {
+.partyBtn:hover {
   background: var(--accent-solid);
   border-color: var(--accent);
   color: #fff;
@@ -310,7 +309,7 @@
   }
 
   .themeBtn,
-  .canvasBtn,
+  .partyBtn,
   .logout {
     padding: 0.65rem;
     gap: 0;
