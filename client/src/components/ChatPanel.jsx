@@ -19,7 +19,7 @@ import styles from "./ChatPanel.module.css";
 
 const EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🎉"];
 
-export default function ChatPanel() {
+export default function ChatPanel({ open, onToggle }) {
   const {
     user,
     socket,
@@ -49,7 +49,6 @@ export default function ChatPanel() {
     formatDate,
   } = useChatChannel();
 
-  const [open, setOpen] = useState(false);
   const [newChannelForm, setNewChannelForm] = useState(false);
   const [newChannelNom, setNewChannelNom] = useState("");
   const [newChannelDesc, setNewChannelDesc] = useState("");
@@ -157,7 +156,7 @@ export default function ChatPanel() {
 
   return (
     <div className={`${styles.panel} ${open ? styles.panelOpen : ""}`}>
-      <button className={styles.toggleBtn} onClick={() => setOpen((v) => !v)}>
+      <button className={styles.toggleBtn} onClick={onToggle}>
         {open ? <X size={16} strokeWidth={1.5} /> : <MessageSquare size={16} strokeWidth={1.5} />}
         {!open && <span>Chat</span>}
         {!open && totalUnread > 0 && <span className={styles.badge}>{totalUnread}</span>}

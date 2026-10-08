@@ -38,6 +38,7 @@
     background 0.15s;
 }
 .panelOpen .toggleBtn {
+  right: 100%; /* à gauche du panel, pas par-dessus le chat */
   background: var(--tint-pink);
   color: var(--accent);
   border-color: var(--accent);

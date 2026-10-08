@@ -57,6 +57,9 @@ export default function Layout({ children }) {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+  // Le panel est inutile sur la page /chat (même contenu) : on ne le monte pas
+  const [chatOpen, setChatOpen] = useState(false);
+  const showChatPanel = location.pathname !== "/chat";
   const themeRef = useRef(null);
   const mobileThemeRef = useRef(null);
 
@@ -153,7 +156,7 @@ export default function Layout({ children }) {
 
       {menuOpen && <div className={styles.overlay} onClick={() => setMenuOpen(false)} />}
 
-      <div className={styles.content}>
+      <div className={`${styles.content} ${showChatPanel && chatOpen ? styles.contentChatOpen : ""}`}>
         <header className={styles.mobileHeader}>
           <button className={styles.menuBtn} onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Menu size={20} strokeWidth={1.5} />
@@ -190,7 +193,7 @@ export default function Layout({ children }) {
         <MmiDecor />
         <Toaster />
         <main className={styles.main}>{children}</main>
-        <ChatPanel />
+        {showChatPanel && <ChatPanel open={chatOpen} onToggle={() => setChatOpen((v) => !v)} />}
 
         <nav className={styles.bottomNav}>
           {bottomNavItems.map((item) => {

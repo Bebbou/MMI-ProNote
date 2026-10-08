@@ -10,6 +10,13 @@
   flex-direction: column;
   margin-left: 240px;
   min-width: 0;
+  transition: margin-right 0.2s ease;
+}
+
+/* Panel de chat ouvert : le contenu est poussé au lieu d'être recouvert
+   (même largeur que .inner dans ChatPanel.module.css) */
+.contentChatOpen {
+  margin-right: 340px;
 }
 
 /* ── Sidebar ── */
@@ -331,6 +338,11 @@
 @media (max-width: 768px) {
   .layout {
     flex-direction: column;
+  }
+
+  .content,
+  .contentChatOpen {
+    margin-right: 0;
   }
 
   .content {
