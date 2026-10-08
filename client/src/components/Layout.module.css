@@ -10,6 +10,13 @@
   flex-direction: column;
   margin-left: 240px;
   min-width: 0;
+  transition: margin-right 0.2s ease;
+}
+
+/* Panel de chat ouvert : le contenu est poussé au lieu d'être recouvert
+   (même largeur que .inner dans ChatPanel.module.css) */
+.contentChatOpen {
+  margin-right: 340px;
 }
 
 /* ── Sidebar ── */
@@ -197,7 +204,7 @@
   flex-shrink: 0;
 }
 
-.canvasBtn {
+.partyBtn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -217,9 +224,8 @@
   text-decoration: none;
 }
 
-.canvasBtn:hover,
-.canvasBtnActive {
-  background: var(--accent);
+.partyBtn:hover {
+  background: var(--accent-solid);
   border-color: var(--accent);
   color: #fff;
 }
@@ -253,6 +259,13 @@
   padding: 2rem;
   position: relative;
   z-index: 1;
+}
+
+/* Cloche + choix du thème, côte à côte dans l'en-tête mobile */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 /* ── Mobile header (caché sur desktop) ── */
@@ -303,7 +316,7 @@
   }
 
   .themeBtn,
-  .canvasBtn,
+  .partyBtn,
   .logout {
     padding: 0.65rem;
     gap: 0;
@@ -331,6 +344,11 @@
 @media (max-width: 768px) {
   .layout {
     flex-direction: column;
+  }
+
+  .content,
+  .contentChatOpen {
+    margin-right: 0;
   }
 
   .content {

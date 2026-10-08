@@ -83,7 +83,7 @@
 }
 
 .form > button {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -97,7 +97,7 @@
 }
 
 .form > button:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 /* ── Sélecteur de thème ── */
@@ -150,7 +150,7 @@
   background: #f7f6f3;
 }
 [data-theme-preview="dark"] .themePreview {
-  background: #0d0d0d;
+  background: #0e0e0e;
 }
 [data-theme-preview="bleu"] .themePreview {
   background: #f0f6fc;
@@ -159,7 +159,7 @@
   background: #fef0f6;
 }
 [data-theme-preview="obsidian"] .themePreview {
-  background: #13111a;
+  background: #161420;
 }
 
 .previewSidebar {
@@ -175,7 +175,7 @@
   border-right: 1px solid #e4e2dd;
 }
 [data-theme-preview="dark"] .previewSidebar {
-  background: #111111;
+  background: #0e0e0e;
   border-right: 1px solid #2a2a2a;
 }
 [data-theme-preview="bleu"] .previewSidebar {
@@ -187,7 +187,7 @@
   border-right: 1px solid #f2b8d4;
 }
 [data-theme-preview="obsidian"] .previewSidebar {
-  background: #1c1928;
+  background: #161420;
   border-right: 1px solid #2e2a40;
 }
 
@@ -255,6 +255,72 @@
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s;
+}
+
+.notifCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.notifInfo {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.notifListe {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  line-height: 1.7;
+  padding-left: 1.1rem;
+}
+
+.notifActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.notifBtn {
+  background: var(--accent-solid);
+  color: #fff;
+  border: none;
+}
+
+.notifBtn:hover {
+  background: var(--accent-solid-hover);
+}
+
+.notifBtnOn {
+  background: var(--tint-pink);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.notifBtnOn:hover {
+  background: var(--tint-pink);
+}
+
+.notifTest {
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: inherit;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.notifTest:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .notifBtn:disabled {

@@ -20,7 +20,7 @@
 }
 
 .header button {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -33,7 +33,7 @@
 }
 
 .header button:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 .groupeSelect {
@@ -146,7 +146,7 @@
 }
 
 .form button {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -160,7 +160,7 @@
 }
 
 .form button:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 /* --- Grille de l'emploi du temps --- */
@@ -536,7 +536,7 @@
   background: var(--accent-blue);
 }
 .detailPastille.couleur-rose {
-  background: var(--accent);
+  background: var(--accent-solid);
 }
 .detailPastille.couleur-orange {
   background: var(--accent-orange);

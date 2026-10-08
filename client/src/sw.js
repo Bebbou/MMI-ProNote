@@ -3,8 +3,22 @@ import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
 precacheAndRoute(self.__WB_MANIFEST || []);
 cleanupOutdatedCaches();
 
+// Mise à jour automatique (registerType: "autoUpdate") : une nouvelle version s'active tout
+// de suite au lieu d'attendre que tous les onglets soient fermés. Sans ça, un correctif du
+// service worker n'arrive jamais chez ceux qui ont déjà l'application ouverte.
+self.skipWaiting();
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
+});
+
 self.addEventListener("push", (event) => {
-  const data = event.data?.json() ?? {};
+  let data;
+  try {
+    data = event.data?.json() ?? {};
+  } catch {
+    data = { body: event.data?.text() ?? "" }; // payload qui n'est pas du JSON : on l'affiche tel quel
+  }
   event.waitUntil(
     self.registration.showNotification(data.title ?? "Pronote-MMI", {
       body: data.body ?? "",

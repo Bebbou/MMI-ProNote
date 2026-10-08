@@ -66,7 +66,7 @@
   border-color: var(--accent);
 }
 .newChannelForm button {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -109,7 +109,7 @@
 }
 .channelBadge {
   margin-left: auto;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   font-size: 0.65rem;
   font-weight: 700;
@@ -529,7 +529,7 @@
   border-color: var(--accent);
 }
 .sendBtn {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -542,7 +542,7 @@
   flex-shrink: 0;
 }
 .sendBtn:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 .sendBtn:disabled {
   opacity: 0.5;
@@ -609,7 +609,7 @@
   margin-top: 0.2rem;
 }
 .sondageSubmit {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 6px;

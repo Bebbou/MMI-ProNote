@@ -1,4 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
+import {
+  Plus,
+  X,
+  Pencil,
+  Trash2,
+  MessageSquare,
+  ChevronDown,
+  ChevronUp,
+  Send,
+  Check,
+  Search,
+  PartyPopper,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../hooks/useSocket";
 import Layout from "../components/Layout";
@@ -6,19 +19,10 @@ import PageTitle from "../components/PageTitle";
 import ConfirmModal from "../components/ConfirmModal";
 import { SkeletonCards } from "../components/Skeleton";
 import { toast } from "../components/Toast";
+import { useOptions } from "../hooks/useOptions";
 import api from "../api/index.js";
+import { GROUPES, groupeEcheance, urgenceEcheance, libelleEcheance } from "../utils/echeance";
 import styles from "./Devoirs.module.css";
-
-const UN_JOUR_MS = 24 * 60 * 60 * 1000;
-
-// Le badge rouge "En retard" ne reste affiché que 24h après l'échéance : passé ce délai,
-// un signal d'alerte qui ne disparaît jamais perd son sens (issue #36). Le devoir reste
-// visible dans "À rendre" tant qu'il n'est pas coché, juste sans l'alerte visuelle.
-function estRecemmentEnRetard(devoir, maintenant) {
-  if (devoir.rendu) return false;
-  const retardMs = maintenant - new Date(devoir.dateLimite);
-  return retardMs > 0 && retardMs < UN_JOUR_MS;
-}
 
 // Convertit une date ISO (UTC) en chaîne compatible <input type="datetime-local">,
 // dans le fuseau du navigateur (donc le bon fuseau, celui de l'utilisateur)
@@ -28,18 +32,115 @@ function versDatetimeLocal(iso) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+const TYPES = [
+  { id: "Devoir", label: "Devoir" },
+  { id: "Evaluation", label: "Évaluation" },
+];
+
+const FORM_VIDE = { titre: "", matiere: "", description: "", dateLimite: "", type: "Devoir", cible: "" };
+
+// Valeur de `cible` envoyée au serveur : "" (mon groupe), "option:5", "promo:MMI2", "groupe:12"
+function cibleDe(devoir, user) {
+  if (devoir.optionId) return `option:${devoir.optionId}`;
+  if (devoir.promoCible) return `promo:${devoir.promoCible}`;
+  const g = devoir.groupe;
+  return g && (g.nom !== user?.groupe || g.promo !== user?.promo) ? `groupe:${g.id}` : "";
+}
+
+// "Visible par" : à qui s'adresse le devoir. Un délégué ne cible que son groupe et ses
+// options ; un professeur ou un admin peut aussi viser une promo entière ou un autre groupe.
+function SelecteurCible({ value, onChange, user, options, groupes, libre }) {
+  if (!libre && options.length === 0) return null;
+  const promos = Array.from(new Set(groupes.map((g) => g.promo))).sort();
+  const autresGroupes = groupes.filter((g) => g.nom !== user?.groupe || g.promo !== user?.promo);
+
+  return (
+    <label className={styles.dateLabel}>
+      Visible par
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="">Mon groupe ({user?.groupe})</option>
+        {libre && promos.length > 0 && (
+          <optgroup label="Promos entières">
+            {promos.map((p) => (
+              <option key={p} value={`promo:${p}`}>
+                Toute la promo {p}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {libre && autresGroupes.length > 0 && (
+          <optgroup label="Autres groupes">
+            {autresGroupes.map((g) => (
+              <option key={g.id} value={`groupe:${g.id}`}>
+                {g.nom} ({g.promo})
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {options.length > 0 && (
+          <optgroup label="Options (uniquement les membres)">
+            {options.map((o) => (
+              <option key={o.id} value={`option:${o.id}`}>
+                {o.nom}
+              </option>
+            ))}
+          </optgroup>
+        )}
+      </select>
+    </label>
+  );
+}
+
+function formatDateCommentaire(iso) {
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// Consignes repliées sur 3 lignes : une longue description ne doit pas pousser les autres
+// devoirs hors de l'écran, mais reste lisible en un clic
+function Consignes({ texte }) {
+  const [ouvert, setOuvert] = useState(false);
+  const longue = texte.length > 160 || texte.split("\n").length > 3;
+
+  return (
+    <div>
+      <p className={`${styles.consignes} ${longue && !ouvert ? styles.consignesReplie : ""}`}>{texte}</p>
+      {longue && (
+        <button className={styles.voirPlus} onClick={() => setOuvert((v) => !v)}>
+          {ouvert ? "Réduire" : "Voir la suite"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function Devoirs() {
   const { user } = useAuth();
   const socket = useSocket();
+  const { options } = useOptions();
+  const [groupes, setGroupes] = useState([]);
   const [devoirs, setDevoirs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [form, setForm] = useState({ titre: "", matiere: "", description: "", dateLimite: "" });
+  const [form, setForm] = useState(FORM_VIDE);
   const [showForm, setShowForm] = useState(false);
   const [toDelete, setToDelete] = useState(null);
   const [editingDevoir, setEditingDevoir] = useState(null);
   const [editForm, setEditForm] = useState(null);
   const [onglet, setOnglet] = useState("aRendre"); // "aRendre" | "historique"
+  // Filtres de l'"agenda de rendu" (issue #51)
+  const [filtreType, setFiltreType] = useState("Tous");
+  const [filtreMatiere, setFiltreMatiere] = useState("Toutes");
+  const [recherche, setRecherche] = useState("");
+  const [filtreAudience, setFiltreAudience] = useState("tous"); // "tous" | "groupe" | "promo" | id d'option
+  // Commentaires : un seul devoir déplié à la fois, chargés à la demande
+  const [expandedId, setExpandedId] = useState(null);
+  const [commentaires, setCommentaires] = useState({});
+  const [commentInput, setCommentInput] = useState({});
   // Devoirs qu'on vient de (dé)cocher et qui vont quitter la vue actuelle : encore
   // affichés le temps de l'animation de sortie avant de disparaître pour de bon (sinon
   // la carte disparaît d'un coup). Clés au format "onglet-id" pour ne pas appliquer
@@ -65,7 +166,11 @@ export default function Devoirs() {
     if (!socket) return;
 
     socket.on("nouveauDevoir", (devoir) => {
-      setDevoirs((prev) => [...prev, devoir].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)));
+      setDevoirs((prev) =>
+        [...prev.filter((d) => d.id !== devoir.id), devoir].sort(
+          (a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)
+        )
+      );
     });
 
     socket.on("devoirSupprime", ({ id }) => {
@@ -85,6 +190,20 @@ export default function Devoirs() {
     };
   }, [socket]);
 
+  // Liste des groupes (toutes promos) : seulement utile pour cibler une promo ou un groupe
+  useEffect(() => {
+    if (!["admin", "professeur"].includes(user?.role)) return;
+    api.get("/auth/groupes").then((r) => setGroupes(r.data));
+  }, [user?.role]);
+
+  // Échap ferme la modale d'édition
+  useEffect(() => {
+    if (!editingDevoir) return;
+    const onKey = (e) => e.key === "Escape" && setEditingDevoir(null);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [editingDevoir]);
+
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
@@ -97,14 +216,15 @@ export default function Devoirs() {
       // le serveur (en UTC sur Railway) la prend à tort pour de l'UTC (issue #44).
       const { data } = await api.post("/devoirs", {
         ...form,
+        cible: form.cible,
         dateLimite: new Date(form.dateLimite).toISOString(),
       });
-      setDevoirs([...devoirs, data]);
-      setForm({ titre: "", matiere: "", description: "", dateLimite: "" });
+      setDevoirs((prev) => [...prev, data].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)));
+      setForm(FORM_VIDE);
       setShowForm(false);
-      toast("Devoir cree");
+      toast(data.type === "Evaluation" ? "Évaluation créée" : "Devoir créé");
     } catch {
-      toast("Impossible de creer le devoir", "error");
+      toast("Impossible de créer le devoir", "error");
     }
   }
 
@@ -114,6 +234,8 @@ export default function Devoirs() {
       titre: devoir.titre,
       matiere: devoir.matiere,
       description: devoir.description ?? "",
+      type: devoir.type ?? "Devoir",
+      cible: cibleDe(devoir, user),
       dateLimite: versDatetimeLocal(devoir.dateLimite),
     });
   }
@@ -123,9 +245,14 @@ export default function Devoirs() {
     try {
       const { data } = await api.patch(`/devoirs/${editingDevoir.id}`, {
         ...editForm,
+        cible: editForm.cible,
         dateLimite: new Date(editForm.dateLimite).toISOString(),
       });
-      setDevoirs((prev) => prev.map((d) => (d.id === data.id ? { ...d, ...data } : d)));
+      setDevoirs((prev) =>
+        prev
+          .map((d) => (d.id === data.id ? { ...d, ...data } : d))
+          .sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite))
+      );
       setEditingDevoir(null);
       toast("Devoir modifié");
     } catch {
@@ -168,40 +295,393 @@ export default function Devoirs() {
     }
   }
 
+  function ajusterCompteur(devoirId, delta) {
+    setDevoirs((prev) =>
+      prev.map((d) =>
+        d.id === devoirId
+          ? { ...d, _count: { commentaires: Math.max(0, (d._count?.commentaires || 0) + delta) } }
+          : d
+      )
+    );
+  }
+
+  async function toggleComments(devoirId) {
+    if (expandedId === devoirId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(devoirId);
+    if (commentaires[devoirId]) return;
+    try {
+      const { data } = await api.get(`/devoirs/${devoirId}/commentaires`);
+      setCommentaires((prev) => ({ ...prev, [devoirId]: data }));
+    } catch {
+      setExpandedId(null);
+      toast("Impossible de charger les commentaires", "error");
+    }
+  }
+
+  async function sendComment(devoirId) {
+    const content = commentInput[devoirId]?.trim();
+    if (!content) return;
+    try {
+      const { data } = await api.post(`/devoirs/${devoirId}/commentaires`, { content });
+      setCommentaires((prev) => ({ ...prev, [devoirId]: [...(prev[devoirId] || []), data] }));
+      setCommentInput((prev) => ({ ...prev, [devoirId]: "" }));
+      ajusterCompteur(devoirId, 1);
+    } catch {
+      toast("Impossible d'envoyer le commentaire", "error");
+    }
+  }
+
+  async function deleteComment(devoirId, commentId) {
+    try {
+      await api.delete(`/devoirs/commentaires/${commentId}`);
+      setCommentaires((prev) => ({ ...prev, [devoirId]: prev[devoirId].filter((c) => c.id !== commentId) }));
+      ajusterCompteur(devoirId, -1);
+    } catch {
+      toast("Impossible de supprimer le commentaire", "error");
+    }
+  }
+
   async function confirmDelete() {
     const id = toDelete;
     setToDelete(null);
     try {
       await api.delete(`/devoirs/${id}`);
-      setDevoirs(devoirs.filter((d) => d.id !== id));
-      toast("Devoir supprime");
+      setDevoirs((prev) => prev.filter((d) => d.id !== id));
+      toast("Devoir supprimé");
     } catch {
       toast("Impossible de supprimer le devoir", "error");
     }
   }
 
-  const canCreate = user?.role === "admin" || user?.role === "delegue";
+  // Issue #25 : les professeurs créent aussi des devoirs et des évaluations
+  const canCreate = ["admin", "delegue", "professeur"].includes(user?.role);
+  const cibleLibre = ["admin", "professeur"].includes(user?.role);
+  const moderateur = ["admin", "delegue"].includes(user?.role);
+  // Un professeur ne gère que ses devoirs ; un délégué ne touche pas à ceux d'un professeur
+  const peutGerer = (d) =>
+    user?.role === "admin" ||
+    (user?.role === "professeur" && d.auteur?.id === user.id) ||
+    (user?.role === "delegue" && d.auteur?.role !== "professeur");
   const now = new Date();
 
   // "Historique" ne doit montrer que ce qui appartient vraiment au passé : un devoir
   // rendu (peu importe la date), ou un devoir dont l'échéance est dépassée. Un devoir
   // à venir et pas encore rendu n'a rien à faire ici, il reste dans "À rendre" (issue #42).
-  const devoirsAffiches =
+  const devoirsDeLOnglet =
     onglet === "aRendre"
       ? devoirs.filter((d) => !d.rendu || sortants.has(`aRendre-${d.id}`))
       : devoirs
           .filter((d) => d.rendu || new Date(d.dateLimite) < now || sortants.has(`historique-${d.id}`))
           .sort((a, b) => new Date(b.dateLimite) - new Date(a.dateLimite));
 
+  // Compteurs et matières suivent l'onglet courant : un filtre ne doit jamais proposer
+  // une valeur qui donnerait une liste vide
+  const nbParType = (type) => devoirsDeLOnglet.filter((d) => d.type === type).length;
+  const matieres = ["Toutes", ...Array.from(new Set(devoirsDeLOnglet.map((d) => d.matiere))).sort()];
+  const matieresConnues = Array.from(new Set(devoirs.map((d) => d.matiere))).sort();
+
+  // Si la matière choisie n'existe plus dans cet onglet, on retombe sur "Toutes"
+  const matiereActive = matieres.includes(filtreMatiere) ? filtreMatiere : "Toutes";
+  const requete = recherche.trim().toLowerCase();
+
+  // "Visible par" : n'apparaît que s'il y a des devoirs d'option (sinon rien à filtrer)
+  const audiences = Array.from(
+    new Map(devoirsDeLOnglet.filter((d) => d.option).map((d) => [d.option.id, d.option.nom]))
+  ).map(([id, nom]) => ({ id, nom }));
+  const avecPromo = devoirsDeLOnglet.some((d) => d.promoCible);
+  const audienceActive =
+    ["tous", "groupe"].includes(filtreAudience) ||
+    (filtreAudience === "promo" && avecPromo) ||
+    audiences.some((a) => a.id === filtreAudience)
+      ? filtreAudience
+      : "tous";
+
+  const devoirsAffiches = devoirsDeLOnglet
+    .filter((d) => filtreType === "Tous" || d.type === filtreType)
+    .filter((d) => matiereActive === "Toutes" || d.matiere === matiereActive)
+    .filter(
+      (d) =>
+        audienceActive === "tous" ||
+        (audienceActive === "groupe"
+          ? !d.optionId && !d.promoCible
+          : audienceActive === "promo"
+            ? !!d.promoCible
+            : d.optionId === audienceActive)
+    )
+    .filter((d) => !requete || `${d.titre} ${d.matiere}`.toLowerCase().includes(requete));
+
+  // "À rendre" est un agenda : on regroupe par échéance (dépassée, aujourd'hui, demain...).
+  // "Historique" reste une simple liste du plus récent au plus ancien.
+  const sections =
+    onglet === "aRendre"
+      ? GROUPES.map((g) => ({
+          ...g,
+          items: devoirsAffiches.filter((d) => groupeEcheance(d.dateLimite, now) === g.id),
+        })).filter((g) => g.items.length > 0)
+      : [{ id: "historique", label: null, items: devoirsAffiches }];
+
+  // Résumé en tête de page
+  const nonRendus = devoirs.filter((d) => !d.rendu);
+  const nbEvaluations = nonRendus.filter(
+    (d) => d.type === "Evaluation" && new Date(d.dateLimite) >= now
+  ).length;
+  const nbRetard = nonRendus.filter((d) => urgenceEcheance(d.dateLimite, now) === "retard").length;
+
+  const filtresActifs =
+    filtreType !== "Tous" || matiereActive !== "Toutes" || audienceActive !== "tous" || requete !== "";
+
+  function renderCarte(devoir) {
+    const urgence = devoir.rendu ? "rendu" : urgenceEcheance(devoir.dateLimite, now);
+    const { principal, secondaire } = libelleEcheance(devoir.dateLimite, now);
+    const nbCommentaires = devoir._count?.commentaires || 0;
+
+    return (
+      <article
+        key={devoir.id}
+        className={`${styles.card} ${styles[`urgence_${urgence}`] ?? ""} ${sortants.has(`${onglet}-${devoir.id}`) ? styles.cardSortant : ""}`}
+      >
+        <button
+          className={`${styles.check} ${devoir.rendu ? styles.checkOn : ""}`}
+          onClick={() => handleToggleRendu(devoir)}
+          aria-pressed={!!devoir.rendu}
+          aria-label={devoir.rendu ? "Marquer comme non rendu" : "Marquer comme rendu"}
+          title={devoir.rendu ? "Rendu — cliquer pour annuler" : "J'ai rendu ce devoir"}
+        >
+          <Check size={16} strokeWidth={2.5} />
+        </button>
+
+        <div className={styles.body}>
+          <div className={styles.topline}>
+            <div className={styles.badges}>
+              <span className={styles.matiere}>{devoir.matiere}</span>
+              {devoir.type === "Evaluation" && <span className={styles.evalBadge}>Évaluation</span>}
+              {devoir.option && (
+                <span
+                  className={styles.optionBadge}
+                  title="Visible uniquement par les membres de cette option"
+                >
+                  {devoir.option.nom}
+                </span>
+              )}
+              {devoir.promoCible && (
+                <span className={styles.optionBadge} title="Visible par toute la promo">
+                  Promo {devoir.promoCible}
+                </span>
+              )}
+              {!devoir.optionId &&
+                !devoir.promoCible &&
+                devoir.groupe &&
+                (devoir.groupe.nom !== user?.groupe || devoir.groupe.promo !== user?.promo) && (
+                  <span className={styles.optionBadge}>
+                    {devoir.groupe.nom} ({devoir.groupe.promo})
+                  </span>
+                )}
+              {urgence === "retard" && <span className={styles.lateBadge}>En retard</span>}
+            </div>
+            <div className={styles.echeance}>
+              <span className={styles.echeancePrincipal}>{principal}</span>
+              <span className={styles.echeanceSecondaire}>{secondaire}</span>
+            </div>
+          </div>
+
+          <h3 className={styles.titre}>{devoir.titre}</h3>
+          {devoir.description && <Consignes texte={devoir.description} />}
+
+          <div className={styles.footer}>
+            <span className={styles.auteur}>
+              Ajouté par {devoir.auteur?.nom}
+              {devoir.auteur?.role === "professeur" && " (professeur)"}
+            </span>
+            <div className={styles.actions}>
+              <button
+                className={`${styles.commentToggle} ${nbCommentaires > 0 ? styles.commentToggleActif : ""}`}
+                onClick={() => toggleComments(devoir.id)}
+                title="Commentaires"
+                aria-expanded={expandedId === devoir.id}
+              >
+                <MessageSquare size={15} strokeWidth={1.5} />
+                <span>{nbCommentaires}</span>
+                {expandedId === devoir.id ? (
+                  <ChevronUp size={13} strokeWidth={1.5} />
+                ) : (
+                  <ChevronDown size={13} strokeWidth={1.5} />
+                )}
+              </button>
+              {peutGerer(devoir) && (
+                <button className={styles.editBtn} onClick={() => openEditDevoir(devoir)} title="Modifier">
+                  <Pencil size={14} strokeWidth={1.5} />
+                </button>
+              )}
+              {peutGerer(devoir) && (
+                <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)} title="Supprimer">
+                  <Trash2 size={14} strokeWidth={1.5} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {expandedId === devoir.id && (
+            <div className={styles.comments}>
+              <div className={styles.commentsList}>
+                {!commentaires[devoir.id] ? (
+                  <p className={styles.commentsEmpty}>Chargement…</p>
+                ) : commentaires[devoir.id].length === 0 ? (
+                  <p className={styles.commentsEmpty}>Aucun commentaire. Précisions, questions ?</p>
+                ) : (
+                  commentaires[devoir.id].map((c) => (
+                    <div key={c.id} className={styles.comment}>
+                      <div className={styles.commentHeader}>
+                        <span className={styles.commentAuteur}>{c.auteur.nom}</span>
+                        {["admin", "delegue"].includes(c.auteur.role) && (
+                          <span className={styles.commentRole}>
+                            {c.auteur.role === "admin" ? "Admin" : "Délégué"}
+                          </span>
+                        )}
+                        <span className={styles.commentDate}>{formatDateCommentaire(c.createdAt)}</span>
+                        {(moderateur || c.auteur.id === user?.id) && (
+                          <button
+                            className={styles.commentDelete}
+                            onClick={() => deleteComment(devoir.id, c.id)}
+                            title="Supprimer le commentaire"
+                          >
+                            <X size={11} strokeWidth={1.5} />
+                          </button>
+                        )}
+                      </div>
+                      <p className={styles.commentContent}>{c.content}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+              <form
+                className={styles.commentForm}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  sendComment(devoir.id);
+                }}
+              >
+                <input
+                  className={styles.commentInput}
+                  placeholder="Ajouter un commentaire…"
+                  maxLength={1000}
+                  value={commentInput[devoir.id] || ""}
+                  onChange={(e) => setCommentInput((prev) => ({ ...prev, [devoir.id]: e.target.value }))}
+                />
+                <button
+                  type="submit"
+                  className={styles.commentSend}
+                  disabled={!commentInput[devoir.id]?.trim()}
+                >
+                  <Send size={14} strokeWidth={1.5} />
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+      </article>
+    );
+  }
+
   return (
     <Layout>
       <div className={styles.page}>
+        {/* Suggestions de matières déjà utilisées, sans jamais bloquer la saisie libre */}
+        <datalist id="matieres-devoirs">
+          {matieresConnues.map((m) => (
+            <option key={m} value={m} />
+          ))}
+        </datalist>
+
         <div className={styles.header}>
-          <PageTitle>Devoirs</PageTitle>
+          <div>
+            <PageTitle>Devoirs</PageTitle>
+            {!loading && !loadError && (
+              <p className={styles.resume}>
+                <strong>{nonRendus.length}</strong> à rendre
+                {nbEvaluations > 0 && (
+                  <>
+                    {" · "}
+                    <strong>{nbEvaluations}</strong> évaluation{nbEvaluations > 1 ? "s" : ""} à venir
+                  </>
+                )}
+                {nbRetard > 0 && (
+                  <>
+                    {" · "}
+                    <span className={styles.resumeRetard}>{nbRetard} en retard</span>
+                  </>
+                )}
+              </p>
+            )}
+          </div>
           {canCreate && (
-            <button onClick={() => setShowForm(!showForm)}>{showForm ? "Annuler" : "+ Ajouter"}</button>
+            <button onClick={() => setShowForm(!showForm)}>
+              {showForm ? <X size={16} strokeWidth={1.5} /> : <Plus size={16} strokeWidth={1.5} />}
+              {showForm ? "Annuler" : "Ajouter un devoir"}
+            </button>
           )}
         </div>
+
+        {showForm && (
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <h2 className={styles.formTitle}>Nouveau devoir</h2>
+            <div className={styles.formRow}>
+              <select name="type" value={form.type} onChange={handleChange} aria-label="Type">
+                {TYPES.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <input
+                name="matiere"
+                list="matieres-devoirs"
+                placeholder="Matière"
+                value={form.matiere}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <input
+              name="titre"
+              placeholder="Titre"
+              value={form.titre}
+              onChange={handleChange}
+              required
+              autoFocus
+            />
+            <textarea
+              name="description"
+              placeholder="Consignes / description (optionnel)"
+              rows={4}
+              value={form.description}
+              onChange={handleChange}
+            />
+            <SelecteurCible
+              value={form.cible}
+              onChange={(cible) => setForm({ ...form, cible })}
+              user={user}
+              options={options}
+              groupes={groupes}
+              libre={cibleLibre}
+            />
+            <label className={styles.dateLabel}>
+              Date limite
+              <input
+                name="dateLimite"
+                type="datetime-local"
+                value={form.dateLimite}
+                onChange={handleChange}
+                required
+              />
+            </label>
+            <button type="submit">
+              {form.type === "Evaluation" ? "Créer l'évaluation" : "Créer le devoir"}
+            </button>
+          </form>
+        )}
 
         <div className={styles.tabs}>
           <button
@@ -218,34 +698,67 @@ export default function Devoirs() {
           </button>
         </div>
 
-        {showForm && (
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <input name="titre" placeholder="Titre" value={form.titre} onChange={handleChange} required />
+        {/* Agenda de rendu : type, matière et recherche (issue #51) */}
+        <div className={styles.toolbar}>
+          <div className={styles.filters}>
+            <button
+              className={`${styles.filterBtn} ${filtreType === "Tous" ? styles.filterActive : ""}`}
+              onClick={() => setFiltreType("Tous")}
+            >
+              Tout <span className={styles.filterCount}>{devoirsDeLOnglet.length}</span>
+            </button>
+            {TYPES.map((t) => (
+              <button
+                key={t.id}
+                className={`${styles.filterBtn} ${filtreType === t.id ? styles.filterActive : ""}`}
+                onClick={() => setFiltreType(t.id)}
+              >
+                {t.label}s <span className={styles.filterCount}>{nbParType(t.id)}</span>
+              </button>
+            ))}
+          </div>
+          <label className={styles.search}>
+            <Search size={14} strokeWidth={1.5} />
             <input
-              name="matiere"
-              placeholder="Matière"
-              value={form.matiere}
-              onChange={handleChange}
-              required
+              type="search"
+              placeholder="Rechercher…"
+              value={recherche}
+              onChange={(e) => setRecherche(e.target.value)}
+              aria-label="Rechercher un devoir"
             />
-            <input
-              name="description"
-              placeholder="Description (optionnel)"
-              value={form.description}
-              onChange={handleChange}
-            />
-            <label className={styles.dateLabel}>
-              Date limite
-              <input
-                name="dateLimite"
-                type="datetime-local"
-                value={form.dateLimite}
-                onChange={handleChange}
-                required
-              />
-            </label>
-            <button type="submit">Créer le devoir</button>
-          </form>
+          </label>
+        </div>
+        {(audiences.length > 0 || avecPromo) && (
+          <div className={styles.filters}>
+            <span className={styles.filtreLabel}>Visible par</span>
+            {[
+              { id: "tous", nom: "Tous" },
+              { id: "groupe", nom: "Groupe" },
+              ...(avecPromo ? [{ id: "promo", nom: "Toute la promo" }] : []),
+              ...audiences,
+            ].map((a) => (
+              <button
+                key={a.id}
+                className={`${styles.filterBtn} ${styles.filterBtnMatiere} ${audienceActive === a.id ? styles.filterActive : ""}`}
+                onClick={() => setFiltreAudience(a.id)}
+              >
+                {a.nom}
+              </button>
+            ))}
+          </div>
+        )}
+        {matieres.length > 2 && (
+          <div className={styles.filters}>
+            {matieres.map((m) => (
+              <button
+                key={m}
+                className={`${styles.filterBtn} ${styles.filterBtnMatiere} ${matiereActive === m ? styles.filterActive : ""}`}
+                onClick={() => setFiltreMatiere(m)}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
         )}
 
         {loading && <SkeletonCards count={3} height={100} />}
@@ -260,57 +773,44 @@ export default function Devoirs() {
         {!loading && !loadError && (
           <div className={styles.list}>
             {devoirsAffiches.length === 0 && (
-              <p className={styles.empty}>
-                {onglet === "aRendre" ? "Rien à rendre pour l'instant" : "Aucun devoir pour l'instant"}
-              </p>
+              <div className={styles.empty}>
+                {filtresActifs && devoirsDeLOnglet.length > 0 ? (
+                  <>
+                    <p>Aucun résultat avec ces filtres.</p>
+                    <button
+                      className={styles.resetBtn}
+                      onClick={() => {
+                        setFiltreType("Tous");
+                        setFiltreMatiere("Toutes");
+                        setFiltreAudience("tous");
+                        setRecherche("");
+                      }}
+                    >
+                      Réinitialiser les filtres
+                    </button>
+                  </>
+                ) : onglet === "aRendre" ? (
+                  <>
+                    <PartyPopper size={28} strokeWidth={1.5} />
+                    <p>Tout est rendu, rien à faire pour l'instant.</p>
+                  </>
+                ) : (
+                  <p>Aucun devoir dans l'historique.</p>
+                )}
+              </div>
             )}
-            {devoirsAffiches.map((devoir) => {
-              const enRetard = estRecemmentEnRetard(devoir, now);
-              return (
-                <div
-                  key={devoir.id}
-                  className={`${styles.card} ${enRetard ? styles.cardLate : ""} ${devoir.rendu ? styles.cardRendu : ""} ${sortants.has(`${onglet}-${devoir.id}`) ? styles.cardSortant : ""}`}
-                >
-                  <div className={styles.cardHeader}>
-                    <span className={styles.matiere}>{devoir.matiere}</span>
-                    <span className={enRetard ? styles.dateLate : styles.date}>
-                      {enRetard && <span className={styles.lateBadge}>En retard</span>}
-                      {new Date(devoir.dateLimite).toLocaleDateString("fr-FR", {
-                        day: "numeric",
-                        month: "long",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                  <h3>{devoir.titre}</h3>
-                  {devoir.description && <p>{devoir.description}</p>}
-                  <div className={styles.cardFooter}>
-                    <label className={styles.renduCheck}>
-                      <input
-                        type="checkbox"
-                        checked={!!devoir.rendu}
-                        onChange={() => handleToggleRendu(devoir)}
-                      />
-                      {devoir.rendu ? "Rendu" : "J'ai rendu ce devoir"}
-                    </label>
-                    <div className={styles.cardFooterRight}>
-                      <span className={styles.auteur}>Ajouté par {devoir.auteur?.nom}</span>
-                      {canCreate && (
-                        <button className={styles.editBtn} onClick={() => openEditDevoir(devoir)}>
-                          Modifier
-                        </button>
-                      )}
-                      {canCreate && (
-                        <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)}>
-                          Supprimer
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {sections.map((section) => (
+              <section key={section.id} className={styles.section}>
+                {section.label && (
+                  <h2
+                    className={`${styles.sectionTitre} ${section.id === "retard" ? styles.sectionRetard : ""}`}
+                  >
+                    {section.label} <span className={styles.sectionCount}>{section.items.length}</span>
+                  </h2>
+                )}
+                {section.items.map(renderCarte)}
+              </section>
+            ))}
           </div>
         )}
       </div>
@@ -319,6 +819,16 @@ export default function Devoirs() {
         <div className={styles.editOverlay} onClick={() => setEditingDevoir(null)}>
           <form className={styles.editModal} onClick={(e) => e.stopPropagation()} onSubmit={handleEditSubmit}>
             <h2 className={styles.editModalTitle}>Modifier le devoir</h2>
+            <select
+              value={editForm.type}
+              onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
+            >
+              {TYPES.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
             <input
               placeholder="Titre"
               value={editForm.titre}
@@ -326,15 +836,25 @@ export default function Devoirs() {
               required
             />
             <input
+              list="matieres-devoirs"
               placeholder="Matière"
               value={editForm.matiere}
               onChange={(e) => setEditForm({ ...editForm, matiere: e.target.value })}
               required
             />
-            <input
-              placeholder="Description (optionnel)"
+            <textarea
+              placeholder="Consignes / description (optionnel)"
+              rows={4}
               value={editForm.description}
               onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+            />
+            <SelecteurCible
+              value={editForm.cible}
+              onChange={(cible) => setEditForm({ ...editForm, cible })}
+              user={user}
+              options={options}
+              groupes={groupes}
+              libre={cibleLibre}
             />
             <label className={styles.dateLabel}>
               Date limite
@@ -358,7 +878,7 @@ export default function Devoirs() {
       <ConfirmModal
         open={toDelete !== null}
         title="Supprimer ce devoir ?"
-        message="Cette action est definitive."
+        message="Cette action est définitive."
         onConfirm={confirmDelete}
         onCancel={() => setToDelete(null)}
       />

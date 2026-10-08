@@ -245,7 +245,7 @@
 }
 
 .modalActions > button[type="submit"] {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -258,7 +258,7 @@
 }
 
 .modalActions > button[type="submit"]:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 .modalWarning {
@@ -372,4 +372,43 @@
   .filterLabel select {
     width: 100%;
   }
+}
+
+/* Recherche et pagination de la liste des utilisateurs */
+.filterSearch {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  min-width: 180px;
+  transition: border-color 0.15s;
+}
+
+.filterSearch:focus {
+  border-color: var(--accent);
+}
+
+.moreBtn {
+  display: block;
+  margin: 0.75rem auto 0;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  padding: 0.5rem 1.25rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.moreBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }

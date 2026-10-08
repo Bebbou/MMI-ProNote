@@ -31,17 +31,43 @@ model User {
   groupe   Groupe @relation(fields: [groupeId], references: [id])
   groupeId Int
 
-  notes              Note[]
-  devoirsCreees      Devoir[]           @relation("AuteurDevoir")
-  pushSubscriptions  PushSubscription[]
-  messages           Message[]
-  reactions          Reaction[]
-  passwordResets     PasswordReset[]
-  documents          Document[]         @relation("AuteurDocument")
-  commentairesDocs   CommentaireDoc[]   @relation("AuteurCommentaireDoc")
-  sondages           Sondage[]          @relation("AuteurSondage")
-  votes              VoteSondage[]
-  devoirsRendus      DevoirRendu[]
+  notes               Note[]
+  devoirsCreees       Devoir[]            @relation("AuteurDevoir")
+  pushSubscriptions   PushSubscription[]
+  messages            Message[]
+  reactions           Reaction[]
+  passwordResets      PasswordReset[]
+  documents           Document[]          @relation("AuteurDocument")
+  commentairesDocs    CommentaireDoc[]    @relation("AuteurCommentaireDoc")
+  sondages            Sondage[]           @relation("AuteurSondage")
+  votes               VoteSondage[]
+  devoirsRendus       DevoirRendu[]
+  commentairesDevoirs CommentaireDevoir[] @relation("AuteurCommentaireDevoir")
+  options             UserOption[]
+
+  // Préférences de notification (Profil) : une case par catégorie, tout activé par défaut
+  notifDevoirs  Boolean        @default(true)
+  notifRappels  Boolean        @default(true)
+  notifCours    Boolean        @default(true)
+  notifAnnonces Boolean        @default(true)
+  notifications Notification[]
+}
+
+// Historique des notifications affiché dans la cloche de l'application. Existe même sans
+// push : un élève qui n'a pas activé les notifications (ou sur iPhone non installé) les voit ici.
+model Notification {
+  id        Int       @id @default(autoincrement())
+  categorie String // devoir | rappel | cours | annonce
+  titre     String
+  corps     String
+  url       String    @default("/")
+  luAt      DateTime?
+  createdAt DateTime  @default(now())
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  @@index([userId, createdAt])
 }
 
 model PushSubscription {
@@ -59,6 +85,7 @@ model Devoir {
   titre       String
   matiere     String
   description String?
+  type        String   @default("Devoir") // Devoir | Evaluation
   dateLimite  DateTime
   createdAt   DateTime @default(now())
 
@@ -68,7 +95,60 @@ model Devoir {
   auteur   User @relation("AuteurDevoir", fields: [auteurId], references: [id])
   auteurId Int
 
-  rendus DevoirRendu[]
+  // Issue #51 : si renseigné, le devoir n'est visible que par les membres de l'option
+  // (anglais renforcé...), quel que soit leur groupe. Sinon : tout le groupe.
+  option   Option? @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId Int?
+
+  // Issue #25 : devoir créé par un professeur/admin pour toute une promo (ex. "MMI2"),
+  // quel que soit le groupe. null = devoir de groupe (groupeId) ou d'option.
+  promoCible String?
+
+  // true une fois le rappel "à rendre sous 24h" envoyé (un seul rappel par devoir)
+  rappelEnvoye Boolean @default(false)
+
+  rendus       DevoirRendu[]
+  commentaires CommentaireDevoir[]
+
+  @@index([optionId])
+}
+
+// Option transversale aux groupes de TD (ex. "Anglais renforcé" : 10 élèves répartis
+// dans 3 groupes). Rattachée à une promo, comme les groupes.
+model Option {
+  id        Int      @id @default(autoincrement())
+  nom       String
+  promo     String
+  createdAt DateTime @default(now())
+
+  membres UserOption[]
+  devoirs Devoir[]
+
+  @@unique([nom, promo])
+}
+
+model UserOption {
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   Int
+  option   Option @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId Int
+
+  @@id([userId, optionId])
+  @@index([optionId])
+}
+
+model CommentaireDevoir {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+
+  auteur   User @relation("AuteurCommentaireDevoir", fields: [auteurId], references: [id], onDelete: Cascade)
+  auteurId Int
+
+  devoir   Devoir @relation(fields: [devoirId], references: [id], onDelete: Cascade)
+  devoirId Int
+
+  @@index([devoirId])
 }
 
 // Suivi "j'ai rendu ce devoir" par étudiant (état personnel, pas partagé avec le groupe).
@@ -116,25 +196,25 @@ model Message {
   createdAt DateTime  @default(now())
   editedAt  DateTime?
 
-  auteur   User    @relation(fields: [auteurId], references: [id], onDelete: Cascade)
+  auteur   User @relation(fields: [auteurId], references: [id], onDelete: Cascade)
   auteurId Int
 
   channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId Int
 
-  replyTo   Message?   @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replyTo   Message?  @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
   replyToId Int?
-  replies   Message[]  @relation("MessageReply")
+  replies   Message[] @relation("MessageReply")
 
   reactions Reaction[]
 }
 
 model Reaction {
-  id        Int     @id @default(autoincrement())
-  emoji     String
+  id    Int    @id @default(autoincrement())
+  emoji String
 
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
 
   message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
   messageId Int
@@ -165,11 +245,11 @@ model Cours {
   groupe   Groupe @relation(fields: [groupeId], references: [id])
   groupeId Int
 
-  @@index([groupeId, dateDebut])
   // Unique par (groupe, uid) et non par uid seul : ADE réutilise le même UID pour un
   // cours partagé entre plusieurs groupes (CM commun, TD partagé...). Chaque groupe qui
   // y assiste doit obtenir sa propre ligne, sinon seul le premier groupe synchronisé le voit.
   @@unique([groupeId, uid])
+  @@index([groupeId, dateDebut])
 }
 
 model Document {
@@ -179,6 +259,7 @@ model Document {
   matiere     String // ressource (ex. "CMS avancé")
   prof        String? // enseignant (ex. "Talleux")
   type        String   @default("Autre") // CM | TD | TP | Projet | Autre
+  promo       String // promo destinataire (ex. "MMI2") : un cours n'est visible que par sa promo (issue #49)
   fileName    String
   fileSize    Int
   fileData    Bytes
@@ -188,6 +269,8 @@ model Document {
   auteurId Int
 
   commentaires CommentaireDoc[]
+
+  @@index([promo])
 }
 
 model CommentaireDoc {
@@ -195,8 +278,8 @@ model CommentaireDoc {
   content   String
   createdAt DateTime @default(now())
 
-  auteur     User     @relation("AuteurCommentaireDoc", fields: [auteurId], references: [id])
-  auteurId   Int
+  auteur   User @relation("AuteurCommentaireDoc", fields: [auteurId], references: [id])
+  auteurId Int
 
   document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
   documentId Int
@@ -208,24 +291,24 @@ model Sondage {
   clos      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  auteur    User    @relation("AuteurSondage", fields: [auteurId], references: [id])
-  auteurId  Int
+  auteur   User @relation("AuteurSondage", fields: [auteurId], references: [id])
+  auteurId Int
 
   channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId Int
 
-  options   OptionSondage[]
-  votes     VoteSondage[]
+  options OptionSondage[]
+  votes   VoteSondage[]
 }
 
 model OptionSondage {
-  id      Int    @id @default(autoincrement())
-  texte   String
+  id    Int    @id @default(autoincrement())
+  texte String
 
   sondage   Sondage @relation(fields: [sondageId], references: [id], onDelete: Cascade)
   sondageId Int
 
-  votes   VoteSondage[]
+  votes VoteSondage[]
 }
 
 model VoteSondage {
@@ -238,8 +321,8 @@ model VoteSondage {
   option   OptionSondage @relation(fields: [optionId], references: [id], onDelete: Cascade)
   optionId Int
 
-  @@unique([userId, sondageId])
-
   sondage   Sondage @relation(fields: [sondageId], references: [id], onDelete: Cascade)
   sondageId Int
+
+  @@unique([userId, sondageId])
 }

@@ -18,8 +18,10 @@ import notificationsRoutes from "./routes/notifications.js";
 import chatRoutes from "./routes/chat.js";
 import documentsRoutes from "./routes/documents.js";
 import sondagesRoutes from "./routes/sondages.js";
-import { sendPushToAll } from "./utils/push.js";
+import optionsRoutes from "./routes/options.js";
+import { notifierSansBloquer } from "./utils/notifier.js";
 import { syncTousLesGroupes } from "./services/edtSync.js";
+import { envoyerRappels, purgerAnciennesNotifications } from "./services/rappels.js";
 import { utilisateurPeutAccederAuCanal } from "./utils/chatAccess.js";
 import { compteRequetes, lireStats, fluxEvenements, signalerConnexion } from "./utils/stats.js";
 
@@ -29,7 +31,9 @@ const httpServer = createServer(app);
 // Origines autorisées : le(s) front(s) en prod (CLIENT_ORIGIN, séparées par des virgules
 // si plusieurs, ex. pendant une migration Vercel -> Netlify) + le dev local
 const allowedOrigins = [
-  ...(process.env.CLIENT_ORIGIN?.split(",").map((o) => o.trim()).filter(Boolean) ?? []),
+  ...(process.env.CLIENT_ORIGIN?.split(",")
+    .map((o) => o.trim())
+    .filter(Boolean) ?? []),
   "http://localhost:5173",
 ];
 
@@ -100,6 +104,7 @@ app.use("/notifications", notificationsRoutes);
 app.use("/chat", chatRoutes);
 app.use("/documents", documentsRoutes);
 app.use("/sondages", sondagesRoutes);
+app.use("/options", optionsRoutes);
 
 // Gestion d'erreurs globale : toute erreur non attrapée dans une route
 // (y compris async, grâce à express-async-errors) atterrit ici au lieu
@@ -122,8 +127,25 @@ io.use((socket, next) => {
   }
 });
 
+async function joindreRoomsOptions(socket) {
+  const user = await prisma.user.findUnique({
+    where: { id: socket.user.id },
+    select: { role: true, groupe: { select: { promo: true } }, options: { select: { optionId: true } } },
+  });
+  if (!user) return;
+  socket.join(`user-${socket.user.id}`);
+  socket.join(`promo-${user.groupe.promo}`);
+  for (const { optionId } of user.options) socket.join(`option-${optionId}`);
+  if (["admin", "delegue"].includes(user.role)) socket.join(`gestion-${user.groupe.promo}`);
+}
+
 io.on("connection", (socket) => {
   signalerConnexion(); // fait "battre" le dashboard Pulse
+
+  // Rooms propres à l'utilisateur, calculées côté serveur depuis la base (jamais depuis
+  // le client) : "user-X" pour le cibler, "option-X" pour ses options (issue #51) et
+  // "gestion-PROMO" pour les admins/délégués, qui suivent toutes les options de leur promo
+  joindreRoomsOptions(socket).catch((e) => console.warn("Rooms options ignorées :", e.message));
 
   // Un utilisateur ne peut rejoindre que la room de SON PROPRE groupe (les
   // événements temps réel de devoirs/EDT d'un autre groupe ne doivent pas fuiter)
@@ -171,11 +193,16 @@ io.on("connection", (socket) => {
 
       // Notif push pour les annonces
       if (channel?.type === "annonce") {
-        sendPushToAll(socket.user.id, {
-          title: `Annonce · ${message.auteur.nom}`,
-          body: message.content.slice(0, 120),
-          url: "/chat",
-          tag: `annonce-${message.id}`,
+        notifierSansBloquer({
+          where: { groupe: { promo: channel.promo } },
+          categorie: "annonce",
+          exclureUserId: socket.user.id,
+          payload: {
+            title: `Annonce · ${message.auteur.nom}`,
+            body: message.content.slice(0, 120),
+            url: "/chat",
+            tag: `annonce-${message.id}`,
+          },
         });
       }
     } catch {}
@@ -232,6 +259,18 @@ async function syncEdt() {
   }
 }
 
+const QUINZE_MINUTES_MS = 15 * 60 * 1000;
+
+async function rappels() {
+  try {
+    const n = await envoyerRappels();
+    if (n) console.log(`Rappels de devoirs : ${n} devoir(s) traité(s)`);
+    await purgerAnciennesNotifications();
+  } catch (e) {
+    console.warn("Rappels ignorés :", e.message);
+  }
+}
+
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, async () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);
@@ -242,4 +281,6 @@ httpServer.listen(PORT, async () => {
   }
   syncEdt();
   setInterval(syncEdt, UNE_HEURE_MS);
+  rappels();
+  setInterval(rappels, QUINZE_MINUTES_MS);
 });

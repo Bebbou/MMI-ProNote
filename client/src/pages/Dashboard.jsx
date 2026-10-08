@@ -7,7 +7,12 @@ import PageTitle from "../components/PageTitle";
 import api from "../api/index.js";
 import styles from "./Dashboard.module.css";
 
-const ROLE_LABELS = { admin: "Administrateur", delegue: "Délégué", etudiant: "Étudiant" };
+const ROLE_LABELS = {
+  admin: "Administrateur",
+  delegue: "Délégué",
+  professeur: "Professeur",
+  etudiant: "Étudiant",
+};
 const JOURS = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
 export default function Dashboard() {
@@ -40,7 +45,9 @@ export default function Dashboard() {
   const now = new Date();
   const aRendre = devoirs?.filter((d) => !d.rendu) ?? [];
   const prochainDevoir =
-    aRendre.length > 0 ? [...aRendre].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite))[0] : null;
+    aRendre.length > 0
+      ? [...aRendre].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite))[0]
+      : null;
 
   // ── Notes : moyenne + derniere ──
   const moyenne =

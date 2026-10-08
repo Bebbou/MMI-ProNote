@@ -7,6 +7,9 @@
     "dev": "nodemon index.js",
     "start": "prisma migrate deploy && node index.js",
     "build": "prisma generate",
+    "db:push": "prisma db push --skip-generate",
+    "seed": "node scripts/seed.js",
+    "smoke": "node scripts/smoke.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

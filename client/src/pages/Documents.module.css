@@ -27,7 +27,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -40,7 +40,7 @@
   transition: background 0.15s;
 }
 .uploadBtn:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 /* ── Formulaire upload ── */
@@ -102,7 +102,7 @@
 }
 .submitBtn {
   align-self: flex-start;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -114,7 +114,7 @@
   transition: background 0.15s;
 }
 .submitBtn:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 .submitBtn:disabled {
   opacity: 0.6;
@@ -295,7 +295,7 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -307,7 +307,7 @@
   transition: background 0.15s;
 }
 .downloadBtn:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 .editBtn {
   background: none;
@@ -469,7 +469,7 @@
   border-color: var(--accent);
 }
 .commentSend {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -480,7 +480,7 @@
   transition: background 0.15s;
 }
 .commentSend:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 .commentSend:disabled {
   opacity: 0.5;
@@ -507,4 +507,10 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+/* Stockage presque plein : on prévient avant que l'upload soit refusé */
+.stockageAlerte {
+  color: var(--danger);
+  font-weight: 600;
 }

@@ -2,7 +2,8 @@ import { Router } from "express";
 import multer from "multer";
 import prisma from "../db.js";
 import { requireAuth, requireRole } from "../middlewares/auth.js";
-import { sendPushToAll } from "../utils/push.js";
+import { notifierSansBloquer } from "../utils/notifier.js";
+import { peutVoirDocument, peutGererDocument } from "../utils/documentAccess.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -20,6 +21,16 @@ const upload = multer({
 // les anciens documents importés avant l'ajout de ce champ.
 const TYPES = ["CM", "TD", "TP", "Projet", "Autre"];
 
+// Les PDF sont stockés dans PostgreSQL, dont le volume est limité (500 Mo sur Railway) :
+// au-delà d'un plafond on refuse les nouveaux cours plutôt que de saturer la base, ce qui
+// ferait tomber toute l'application. Réglable avec MAX_DOCS_MB.
+const MAX_DOCS_OCTETS = (Number(process.env.MAX_DOCS_MB) || 350) * 1024 * 1024;
+
+async function stockageUtilise() {
+  const { _sum } = await prisma.document.aggregate({ _sum: { fileSize: true } });
+  return _sum.fileSize ?? 0;
+}
+
 const docSelect = {
   id: true,
   titre: true,
@@ -27,6 +38,7 @@ const docSelect = {
   matiere: true,
   prof: true,
   type: true,
+  promo: true,
   fileName: true,
   fileSize: true,
   createdAt: true,
@@ -34,30 +46,73 @@ const docSelect = {
   _count: { select: { commentaires: true } },
 };
 
+// Issues #49 et #25 : un cours n'est visible que par la promo à laquelle il est destiné
+// (règles complètes dans utils/documentAccess.js). Les admins et professeurs publient.
+const peutVoir = peutVoirDocument;
+
+// Promo choisie pour un document : celle de l'admin par défaut, ou une promo existante
+async function resoudrePromo(user, brute) {
+  const promo = brute || user.promo;
+  const existe = await prisma.groupe.findFirst({ where: { promo }, select: { id: true } });
+  return existe ? promo : null;
+}
+
+// Charge un document visible par l'utilisateur ; répond 404 sinon (on ne révèle pas
+// l'existence d'un cours d'une autre promo). Renvoie null si la réponse est déjà envoyée.
+async function chargerDoc(req, res, args = {}) {
+  const doc = await prisma.document.findUnique({ where: { id: Number(req.params.id) }, ...args });
+  if (!doc || !peutVoir(req.user, doc)) {
+    res.status(404).json({ error: "Document introuvable." });
+    return null;
+  }
+  return doc;
+}
+
 // GET /documents
 router.get("/", async (req, res) => {
   const docs = await prisma.document.findMany({
+    where:
+      req.user.role === "admin"
+        ? {}
+        : {
+            OR: [
+              { promo: req.user.promo },
+              ...(req.user.role === "professeur" ? [{ auteurId: req.user.id }] : []),
+            ],
+          },
     select: docSelect,
     orderBy: { createdAt: "desc" },
   });
   res.json(docs);
 });
 
+// GET /documents/stockage — espace utilisé par les cours (pour ceux qui publient)
+router.get("/stockage", requireRole("admin", "professeur"), async (req, res) => {
+  res.json({ utilise: await stockageUtilise(), limite: MAX_DOCS_OCTETS });
+});
+
 // GET /documents/:id/download
 router.get("/:id/download", async (req, res) => {
-  const doc = await prisma.document.findUnique({ where: { id: Number(req.params.id) } });
-  if (!doc) return res.status(404).json({ error: "Document introuvable." });
+  const doc = await chargerDoc(req, res);
+  if (!doc) return;
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", `attachment; filename="${doc.fileName}"`);
   res.send(doc.fileData);
 });
 
-// POST /documents (admin)
-router.post("/", requireRole("admin"), upload.single("file"), async (req, res) => {
+// POST /documents (admin ou professeur)
+router.post("/", requireRole("admin", "professeur"), upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "Fichier PDF requis." });
+  if ((await stockageUtilise()) + req.file.size > MAX_DOCS_OCTETS) {
+    return res
+      .status(507)
+      .json({ error: "Espace de stockage des cours plein : supprime d'anciens cours avant d'en ajouter." });
+  }
   const { titre, description, matiere, prof, type } = req.body;
   if (!titre || !matiere) return res.status(400).json({ error: "Titre et matière requis." });
   if (type && !TYPES.includes(type)) return res.status(400).json({ error: "Type invalide." });
+  const promo = await resoudrePromo(req.user, req.body.promo);
+  if (!promo) return res.status(400).json({ error: "Promo inconnue." });
   const doc = await prisma.document.create({
     data: {
       titre,
@@ -65,6 +120,7 @@ router.post("/", requireRole("admin"), upload.single("file"), async (req, res) =
       matiere,
       prof: prof?.trim() || null,
       type: type || "Autre",
+      promo,
       fileName: req.file.originalname,
       fileSize: req.file.size,
       fileData: req.file.buffer,
@@ -72,21 +128,28 @@ router.post("/", requireRole("admin"), upload.single("file"), async (req, res) =
     },
     select: docSelect,
   });
-  sendPushToAll(req.user.id, {
-    title: `Nouveau cours · ${doc.matiere}`,
-    body: `${doc.titre}${doc.description ? ` — ${doc.description}` : ""}`,
-    url: "/documents",
-    tag: `document-${doc.id}`,
+  notifierSansBloquer({
+    where: { groupe: { promo: doc.promo } },
+    categorie: "cours",
+    exclureUserId: req.user.id,
+    payload: {
+      title: `Nouveau cours · ${doc.matiere}`,
+      body: `${doc.titre}${doc.description ? ` — ${doc.description}` : ""}`,
+      url: "/documents",
+      tag: `document-${doc.id}`,
+    },
   });
 
   res.status(201).json(doc);
 });
 
-// PATCH /documents/:id (admin) — modifie les tags (ressource/prof/type) et les infos
+// PATCH /documents/:id (admin, ou professeur pour ses propres cours) — modifie les tags (ressource/prof/type) et les infos
 // d'un document déjà publié, sans avoir à ré-uploader le fichier (issue #37)
-router.patch("/:id", requireRole("admin"), async (req, res) => {
-  const doc = await prisma.document.findUnique({ where: { id: Number(req.params.id) } });
-  if (!doc) return res.status(404).json({ error: "Document introuvable." });
+router.patch("/:id", requireRole("admin", "professeur"), async (req, res) => {
+  const doc = await chargerDoc(req, res);
+  if (!doc) return;
+  if (!peutGererDocument(req.user, doc))
+    return res.status(403).json({ error: "Tu ne peux modifier que tes propres cours." });
 
   const { titre, description, matiere, prof, type } = req.body;
   if (type && !TYPES.includes(type)) return res.status(400).json({ error: "Type invalide." });
@@ -97,23 +160,32 @@ router.patch("/:id", requireRole("admin"), async (req, res) => {
   if (matiere) data.matiere = matiere;
   if (prof !== undefined) data.prof = prof?.trim() || null;
   if (type) data.type = type;
+  if (req.body.promo) {
+    const promo = await resoudrePromo(req.user, req.body.promo);
+    if (!promo) return res.status(400).json({ error: "Promo inconnue." });
+    data.promo = promo;
+  }
 
   const updated = await prisma.document.update({ where: { id: doc.id }, data, select: docSelect });
   res.json(updated);
 });
 
-// DELETE /documents/:id (admin)
-router.delete("/:id", requireRole("admin"), async (req, res) => {
-  const doc = await prisma.document.findUnique({ where: { id: Number(req.params.id) } });
-  if (!doc) return res.status(404).json({ error: "Document introuvable." });
+// DELETE /documents/:id (admin, ou professeur pour ses propres cours)
+router.delete("/:id", requireRole("admin", "professeur"), async (req, res) => {
+  const doc = await chargerDoc(req, res);
+  if (!doc) return;
+  if (!peutGererDocument(req.user, doc))
+    return res.status(403).json({ error: "Tu ne peux supprimer que tes propres cours." });
   await prisma.document.delete({ where: { id: doc.id } });
   res.json({ message: "Document supprimé." });
 });
 
 // GET /documents/:id/commentaires
 router.get("/:id/commentaires", async (req, res) => {
+  const doc = await chargerDoc(req, res, { select: { id: true, promo: true, auteurId: true } });
+  if (!doc) return;
   const commentaires = await prisma.commentaireDoc.findMany({
-    where: { documentId: Number(req.params.id) },
+    where: { documentId: doc.id },
     include: { auteur: { select: { id: true, nom: true } } },
     orderBy: { createdAt: "asc" },
   });
@@ -124,11 +196,8 @@ router.get("/:id/commentaires", async (req, res) => {
 router.post("/:id/commentaires", async (req, res) => {
   const { content } = req.body;
   if (!content?.trim()) return res.status(400).json({ error: "Commentaire vide." });
-  const doc = await prisma.document.findUnique({
-    where: { id: Number(req.params.id) },
-    select: { id: true },
-  });
-  if (!doc) return res.status(404).json({ error: "Document introuvable." });
+  const doc = await chargerDoc(req, res, { select: { id: true, promo: true, auteurId: true } });
+  if (!doc) return;
   const commentaire = await prisma.commentaireDoc.create({
     data: { content: content.trim(), auteurId: req.user.id, documentId: doc.id },
     include: { auteur: { select: { id: true, nom: true } } },
@@ -138,8 +207,12 @@ router.post("/:id/commentaires", async (req, res) => {
 
 // DELETE /documents/commentaires/:id (admin ou auteur)
 router.delete("/commentaires/:id", async (req, res) => {
-  const c = await prisma.commentaireDoc.findUnique({ where: { id: Number(req.params.id) } });
-  if (!c) return res.status(404).json({ error: "Commentaire introuvable." });
+  const c = await prisma.commentaireDoc.findUnique({
+    where: { id: Number(req.params.id) },
+    include: { document: { select: { promo: true, auteurId: true } } },
+  });
+  if (!c || !peutVoir(req.user, c.document))
+    return res.status(404).json({ error: "Commentaire introuvable." });
   if (req.user.role !== "admin" && c.auteurId !== req.user.id)
     return res.status(403).json({ error: "Non autorisé." });
   await prisma.commentaireDoc.delete({ where: { id: c.id } });

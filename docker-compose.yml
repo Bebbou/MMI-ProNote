@@ -1,0 +1,24 @@
+# Base PostgreSQL locale pour le développement : rien à voir avec la production (Railway).
+#
+#   docker compose up -d        démarre la base
+#   docker compose down         l'arrête (les données sont conservées)
+#   docker compose down -v      l'arrête et efface toutes les données
+#
+# URL à mettre dans server/.env :
+#   DATABASE_URL="postgresql://postgres:dev@localhost:5432/pronote_mmi"
+
+services:
+  db:
+    image: postgres:16
+    container_name: mmivers-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: pronote_mmi
+    ports:
+      - "5432:5432"
+    volumes:
+      - mmivers-db-data:/var/lib/postgresql/data
+
+volumes:
+  mmivers-db-data:

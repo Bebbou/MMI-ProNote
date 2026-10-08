@@ -4,6 +4,8 @@ import Layout from "../components/Layout";
 import api from "../api/index.js";
 import styles from "./Admin.module.css";
 
+const TAILLE_PAGE = 25;
+
 export default function Admin() {
   const { user: moi } = useAuth();
   const [users, setUsers] = useState([]);
@@ -18,6 +20,10 @@ export default function Admin() {
   const [confirmDeleteGroupe, setConfirmDeleteGroupe] = useState(null);
   const [filtrePromo, setFiltrePromo] = useState("Toutes");
   const [filtreGroupeId, setFiltreGroupeId] = useState("Tous");
+  // Recherche, rôle et pagination : la liste devient longue avec plusieurs promos
+  const [recherche, setRecherche] = useState("");
+  const [filtreRole, setFiltreRole] = useState("Tous");
+  const [limite, setLimite] = useState(TAILLE_PAGE);
 
   useEffect(() => {
     api.get("/admin/users").then((res) => setUsers(res.data));
@@ -38,7 +44,9 @@ export default function Admin() {
     setNewGroupeError("");
     try {
       const { data } = await api.post("/admin/groupes", newGroupe);
-      setGroupes([...groupes, data].sort((a, b) => a.promo.localeCompare(b.promo) || a.nom.localeCompare(b.nom)));
+      setGroupes(
+        [...groupes, data].sort((a, b) => a.promo.localeCompare(b.promo) || a.nom.localeCompare(b.nom))
+      );
       setIcalDrafts({ ...icalDrafts, [data.id]: "" });
       setNewGroupe({ nom: "", promo: "" });
     } catch (err) {
@@ -104,16 +112,21 @@ export default function Admin() {
   // Filtres par promo (MMI2/MMI3...) et par groupe — issue #46, utile une fois
   // plusieurs promos mélangées dans la liste des utilisateurs
   const promos = ["Toutes", ...Array.from(new Set(groupes.map((g) => g.promo)))];
-  const groupesDeLaPromo = filtrePromo === "Toutes" ? groupes : groupes.filter((g) => g.promo === filtrePromo);
+  const groupesDeLaPromo =
+    filtrePromo === "Toutes" ? groupes : groupes.filter((g) => g.promo === filtrePromo);
 
   function handleFiltrePromo(promo) {
     setFiltrePromo(promo);
     setFiltreGroupeId("Tous"); // le groupe sélectionné peut ne plus être dans cette promo
   }
 
+  const requete = recherche.trim().toLowerCase();
+
   const usersFiltres = users.filter((u) => {
     if (filtrePromo !== "Toutes" && u.groupe?.promo !== filtrePromo) return false;
     if (filtreGroupeId !== "Tous" && u.groupe?.id !== Number(filtreGroupeId)) return false;
+    if (filtreRole !== "Tous" && u.role !== filtreRole) return false;
+    if (requete && !`${u.nom} ${u.email}`.toLowerCase().includes(requete)) return false;
     return true;
   });
 
@@ -145,11 +158,45 @@ export default function Admin() {
               ))}
             </select>
           </label>
-          {(filtrePromo !== "Toutes" || filtreGroupeId !== "Tous") && (
+          <label className={styles.filterLabel}>
+            Rôle
+            <select
+              value={filtreRole}
+              onChange={(e) => {
+                setFiltreRole(e.target.value);
+                setLimite(TAILLE_PAGE);
+              }}
+            >
+              <option value="Tous">Tous</option>
+              <option value="etudiant">Étudiant</option>
+              <option value="delegue">Délégué</option>
+              <option value="professeur">Professeur</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+          <label className={styles.filterLabel}>
+            Recherche
+            <input
+              type="search"
+              className={styles.filterSearch}
+              placeholder="Nom ou email"
+              value={recherche}
+              onChange={(e) => {
+                setRecherche(e.target.value);
+                setLimite(TAILLE_PAGE);
+              }}
+            />
+          </label>
+          {(filtrePromo !== "Toutes" || filtreGroupeId !== "Tous" || filtreRole !== "Tous" || recherche) && (
             <button
               type="button"
               className={styles.clearFiltersBtn}
-              onClick={() => handleFiltrePromo("Toutes")}
+              onClick={() => {
+                handleFiltrePromo("Toutes");
+                setFiltreRole("Tous");
+                setRecherche("");
+                setLimite(TAILLE_PAGE);
+              }}
             >
               Réinitialiser
             </button>
@@ -165,7 +212,9 @@ export default function Admin() {
                   <div className={styles.info}>
                     <span className={styles.nom}>{u.nom}</span>
                     <span className={styles.email}>{u.email}</span>
-                    <span className={styles.groupe}>{u.groupe?.nom} · {u.groupe?.promo}</span>
+                    <span className={styles.groupe}>
+                      {u.groupe?.nom} · {u.groupe?.promo}
+                    </span>
                   </div>
                   <div className={styles.actions}>
                     <button className={styles.validateBtn} onClick={() => handleValider(u.id)}>
@@ -251,12 +300,14 @@ export default function Admin() {
         <section>
           <h2 className={styles.sectionTitle}>Utilisateurs actifs ({valides.length})</h2>
           <div className={styles.list}>
-            {valides.map((u) => (
+            {valides.slice(0, limite).map((u) => (
               <div key={u.id} className={styles.card}>
                 <div className={styles.info}>
                   <span className={styles.nom}>{u.nom}</span>
                   <span className={styles.email}>{u.email}</span>
-                  <span className={styles.groupe}>{u.groupe?.nom} · {u.groupe?.promo}</span>
+                  <span className={styles.groupe}>
+                    {u.groupe?.nom} · {u.groupe?.promo}
+                  </span>
                 </div>
                 <div className={styles.actions}>
                   <select
@@ -268,6 +319,7 @@ export default function Admin() {
                   >
                     <option value="etudiant">Étudiant</option>
                     <option value="delegue">Délégué</option>
+                    <option value="professeur">Professeur</option>
                     <option value="admin">Admin</option>
                   </select>
                   <button className={styles.editBtn} onClick={() => openEdit(u)}>
@@ -282,6 +334,15 @@ export default function Admin() {
               </div>
             ))}
           </div>
+          {valides.length > limite && (
+            <button
+              type="button"
+              className={styles.moreBtn}
+              onClick={() => setLimite((l) => l + TAILLE_PAGE)}
+            >
+              Afficher plus ({valides.length - limite} restants)
+            </button>
+          )}
         </section>
       </div>
 
@@ -372,11 +433,7 @@ export default function Admin() {
               Impossible si des comptes, devoirs ou cours y sont encore rattachés.
             </p>
             <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.cancelBtn}
-                onClick={() => setConfirmDeleteGroupe(null)}
-              >
+              <button type="button" className={styles.cancelBtn} onClick={() => setConfirmDeleteGroupe(null)}>
                 Annuler
               </button>
               <button

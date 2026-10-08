@@ -31,7 +31,7 @@
 }
 
 .header button {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -44,7 +44,7 @@
 }
 
 .header button:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 .form {
@@ -74,7 +74,7 @@
 }
 
 .form button {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -88,7 +88,7 @@
 }
 
 .form button:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 .list {
@@ -194,7 +194,7 @@
 }
 
 .loadError button {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;

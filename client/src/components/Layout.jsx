@@ -7,7 +7,7 @@ import {
   Calendar,
   Settings,
   LogOut,
-  LayoutGrid,
+  PartyPopper,
   Sun,
   Menu,
   X,
@@ -20,6 +20,9 @@ import { useState, useEffect, useRef } from "react";
 import ChatPanel from "./ChatPanel";
 import MmiDecor from "./MmiDecor";
 import { Toaster } from "./Toast";
+import PwaPrompts from "./PwaPrompts";
+import NotificationsBell from "./NotificationsBell";
+import { useNotifications } from "../hooks/useNotifications";
 import logoMmi from "../assets/logo_mmi.jpg";
 import styles from "./Layout.module.css";
 
@@ -54,9 +57,13 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme } = useTheme();
+  const notifs = useNotifications(!!user);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+  // Le panel est inutile sur la page /chat (même contenu) : on ne le monte pas
+  const [chatOpen, setChatOpen] = useState(false);
+  const showChatPanel = location.pathname !== "/chat";
   const themeRef = useRef(null);
   const mobileThemeRef = useRef(null);
 
@@ -96,6 +103,11 @@ export default function Layout({ children }) {
           <span className={styles.userGroupe}>{user?.groupe}</span>
         </div>
         <nav className={styles.nav}>
+          <NotificationsBell
+            variant="nav"
+            {...notifs}
+            classes={{ bouton: styles.navLink, label: styles.navLabel }}
+          />
           {allNavItems.map((item) => (
             <NavLink
               key={item.to}
@@ -137,14 +149,17 @@ export default function Layout({ children }) {
           )}
         </div>
 
-        <NavLink
-          to="/canvas"
+        {/* Projet d'une étudiante de la promo, hébergé ailleurs : s'ouvre dans un nouvel onglet */}
+        <a
+          href="https://play.mmiparty.fr/"
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={() => setMenuOpen(false)}
-          className={({ isActive }) => `${styles.canvasBtn} ${isActive ? styles.canvasBtnActive : ""}`}
+          className={styles.partyBtn}
         >
-          <LayoutGrid size={13} strokeWidth={1.5} />
-          <span className={styles.navLabel}>Mode Canvas</span>
-        </NavLink>
+          <PartyPopper size={13} strokeWidth={1.5} />
+          <span className={styles.navLabel}>MMIparty</span>
+        </a>
         <button className={styles.logout} onClick={handleLogout}>
           <LogOut size={13} strokeWidth={1.5} />
           <span className={styles.navLabel}>Deconnexion</span>
@@ -153,44 +168,48 @@ export default function Layout({ children }) {
 
       {menuOpen && <div className={styles.overlay} onClick={() => setMenuOpen(false)} />}
 
-      <div className={styles.content}>
+      <div className={`${styles.content} ${showChatPanel && chatOpen ? styles.contentChatOpen : ""}`}>
         <header className={styles.mobileHeader}>
           <button className={styles.menuBtn} onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Menu size={20} strokeWidth={1.5} />
           </button>
           <span className={styles.mobileTitle}>Pronote-MMI</span>
-          <div className={styles.mobileThemePicker} ref={mobileThemeRef}>
-            <button
-              className={`${styles.themeIconBtn} ${themeOpen ? styles.themeIconBtnOpen : ""}`}
-              onClick={() => setThemeOpen((v) => !v)}
-              aria-label="Changer de thème"
-            >
-              <Sun size={18} strokeWidth={1.5} />
-            </button>
-            {themeOpen && (
-              <div className={styles.mobileThemeDropdown}>
-                {THEMES.map((t) => (
-                  <button
-                    key={t.id}
-                    className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
-                    onClick={() => {
-                      setTheme(t.id);
-                      setThemeOpen(false);
-                    }}
-                  >
-                    <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className={styles.headerActions}>
+            <NotificationsBell variant="header" {...notifs} />
+            <div className={styles.mobileThemePicker} ref={mobileThemeRef}>
+              <button
+                className={`${styles.themeIconBtn} ${themeOpen ? styles.themeIconBtnOpen : ""}`}
+                onClick={() => setThemeOpen((v) => !v)}
+                aria-label="Changer de thème"
+              >
+                <Sun size={18} strokeWidth={1.5} />
+              </button>
+              {themeOpen && (
+                <div className={styles.mobileThemeDropdown}>
+                  {THEMES.map((t) => (
+                    <button
+                      key={t.id}
+                      className={`${styles.themeItem} ${theme === t.id ? styles.themeItemActive : ""}`}
+                      onClick={() => {
+                        setTheme(t.id);
+                        setThemeOpen(false);
+                      }}
+                    >
+                      <span className={styles.themeDot} style={{ background: THEME_DOTS[t.id] }} />
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
         <MmiDecor />
         <Toaster />
+        <PwaPrompts />
         <main className={styles.main}>{children}</main>
-        <ChatPanel />
+        {showChatPanel && <ChatPanel open={chatOpen} onToggle={() => setChatOpen((v) => !v)} />}
 
         <nav className={styles.bottomNav}>
           {bottomNavItems.map((item) => {

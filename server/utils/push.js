@@ -21,6 +21,7 @@ async function sendToSubs(subscriptions, payload) {
         .then(() => console.log(`[push] OK → ${sub.endpoint.slice(0, 40)}…`))
         .catch(async (err) => {
           console.error(`[push] ERREUR ${err.statusCode} → ${err.message}`);
+          // Abonnement expiré ou révoqué côté navigateur : inutile de le garder
           if (err.statusCode === 410 || err.statusCode === 404) {
             await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
           }
@@ -29,23 +30,8 @@ async function sendToSubs(subscriptions, payload) {
   );
 }
 
-export async function sendPushToGroup(groupeId, excludeUserId, payload) {
-  if (!process.env.VAPID_PUBLIC_KEY) return;
-  const subs = await prisma.pushSubscription.findMany({
-    where: { user: { groupeId, id: { not: excludeUserId } } },
-  });
-  console.log(`[push] sendPushToGroup groupeId=${groupeId} subs trouvés=${subs.length}`);
-  await sendToSubs(subs, payload);
-}
-
-export async function sendPushToAll(excludeUserId, payload) {
-  if (!process.env.VAPID_PUBLIC_KEY) return;
-  const subs = await prisma.pushSubscription.findMany({
-    where: { user: { valide: true, id: { not: excludeUserId } } },
-  });
-  await sendToSubs(subs, payload);
-}
-
+// Envoie le push aux appareils de ces utilisateurs. Les destinataires, leurs préférences et
+// l'historique sont gérés par utils/notifier.js : n'appelle pas ceci directement.
 export async function sendPushToUsers(userIds, payload) {
   if (!process.env.VAPID_PUBLIC_KEY) return;
   const subs = await prisma.pushSubscription.findMany({
