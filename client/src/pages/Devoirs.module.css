@@ -20,7 +20,10 @@
 }
 
 .header button {
-  background: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -33,7 +36,7 @@
 }
 
 .header button:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 .tabs {
@@ -112,7 +115,7 @@
 }
 
 .form button {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -126,7 +129,7 @@
 }
 
 .form button:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 .list {
@@ -150,7 +153,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  max-height: 400px;
+  max-height: 700px; /* assez haut pour les commentaires dépliés, sert à l'animation de sortie */
   overflow: hidden;
   transition:
     box-shadow 0.15s,
@@ -309,16 +312,17 @@
   border-width: 0;
 }
 
+/* Boutons-icônes, même rendu que la page Cours */
 .editBtn,
 .deleteBtn {
   background: none;
   border: 1px solid var(--border);
   color: var(--text-faint);
-  padding: 0.2rem 0.6rem;
-  font-size: 0.775rem;
-  font-family: inherit;
-  border-radius: 6px;
+  padding: 0.4rem;
+  border-radius: 8px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
   transition:
     border-color 0.15s,
     color 0.15s;
@@ -360,7 +364,9 @@
   gap: 0.75rem;
 }
 
-.editModal input {
+.editModal input,
+.editModal textarea,
+.editModal select {
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -372,8 +378,16 @@
   transition: border-color 0.15s;
 }
 
-.editModal input:focus {
+.editModal input:focus,
+.editModal textarea:focus,
+.editModal select:focus {
   border-color: var(--accent);
+}
+
+.editModal textarea,
+.form textarea {
+  resize: vertical;
+  min-height: 90px;
 }
 
 .editModalTitle {
@@ -407,7 +421,7 @@
 }
 
 .editModalActions button[type="submit"] {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -420,7 +434,7 @@
 }
 
 .editModalActions button[type="submit"]:hover {
-  background: var(--accent-hover);
+  background: var(--accent-solid-hover);
 }
 
 @media (max-width: 768px) {
@@ -461,6 +475,233 @@
   opacity: 0.85;
 }
 
+/* ── Filtres (agenda de rendu) ── */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.filterBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  padding: 0.3rem 0.85rem;
+  font-size: 0.775rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: 20px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+
+.filterBtn:hover {
+  color: var(--text-muted);
+}
+
+.filterActive {
+  background: var(--tint-pink);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Les matières sont un second niveau de filtre : un cran plus discrètes */
+.filterBtnMatiere {
+  font-size: 0.725rem;
+  padding: 0.2rem 0.7rem;
+}
+
+.filterCount {
+  font-size: 0.675rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.formTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.evalBadge {
+  background: var(--accent-orange);
+  color: #fff;
+  font-size: 0.675rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Les consignes gardent leurs retours à la ligne */
+.consignes {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Commentaires (même rendu que la page Cours) ── */
+.commentToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-faint);
+  font-size: 0.775rem;
+  font-family: inherit;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.commentToggle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.comments {
+  border-top: 1px solid var(--border);
+  margin-top: 0.5rem;
+  padding-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.commentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.commentsEmpty {
+  font-style: italic;
+}
+
+.comment {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+}
+
+.commentHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.commentAuteur {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.commentRole {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--accent);
+  background: var(--tint-pink);
+  padding: 0.05rem 0.45rem;
+  border-radius: 20px;
+}
+
+.commentDate {
+  font-size: 0.725rem;
+  color: var(--text-faint);
+  flex: 1;
+}
+
+.commentDelete {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  display: flex;
+  padding: 0.1rem;
+  border-radius: 3px;
+  transition: color 0.15s;
+}
+
+.commentDelete:hover {
+  color: var(--danger);
+}
+
+.card .commentContent {
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.commentForm {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.commentInput {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.commentInput:focus {
+  border-color: var(--accent);
+}
+
+.commentSend {
+  background: var(--accent-solid);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.commentSend:hover {
+  background: var(--accent-solid-hover);
+}
+
+.commentSend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ── Erreur de chargement ── */
 .loadError {
   display: flex;
@@ -473,7 +714,7 @@
 }
 
 .loadError button {
-  background: var(--accent);
+  background: var(--accent-solid);
   color: #fff;
   border: none;
   border-radius: 8px;

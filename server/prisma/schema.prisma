@@ -31,17 +31,18 @@ model User {
   groupe   Groupe @relation(fields: [groupeId], references: [id])
   groupeId Int
 
-  notes              Note[]
-  devoirsCreees      Devoir[]           @relation("AuteurDevoir")
-  pushSubscriptions  PushSubscription[]
-  messages           Message[]
-  reactions          Reaction[]
-  passwordResets     PasswordReset[]
-  documents          Document[]         @relation("AuteurDocument")
-  commentairesDocs   CommentaireDoc[]   @relation("AuteurCommentaireDoc")
-  sondages           Sondage[]          @relation("AuteurSondage")
-  votes              VoteSondage[]
-  devoirsRendus      DevoirRendu[]
+  notes               Note[]
+  devoirsCreees       Devoir[]            @relation("AuteurDevoir")
+  pushSubscriptions   PushSubscription[]
+  messages            Message[]
+  reactions           Reaction[]
+  passwordResets      PasswordReset[]
+  documents           Document[]          @relation("AuteurDocument")
+  commentairesDocs    CommentaireDoc[]    @relation("AuteurCommentaireDoc")
+  sondages            Sondage[]           @relation("AuteurSondage")
+  votes               VoteSondage[]
+  devoirsRendus       DevoirRendu[]
+  commentairesDevoirs CommentaireDevoir[] @relation("AuteurCommentaireDevoir")
 }
 
 model PushSubscription {
@@ -59,6 +60,7 @@ model Devoir {
   titre       String
   matiere     String
   description String?
+  type        String   @default("Devoir") // Devoir | Evaluation
   dateLimite  DateTime
   createdAt   DateTime @default(now())
 
@@ -68,7 +70,22 @@ model Devoir {
   auteur   User @relation("AuteurDevoir", fields: [auteurId], references: [id])
   auteurId Int
 
-  rendus DevoirRendu[]
+  rendus       DevoirRendu[]
+  commentaires CommentaireDevoir[]
+}
+
+model CommentaireDevoir {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+
+  auteur   User @relation("AuteurCommentaireDevoir", fields: [auteurId], references: [id], onDelete: Cascade)
+  auteurId Int
+
+  devoir   Devoir @relation(fields: [devoirId], references: [id], onDelete: Cascade)
+  devoirId Int
+
+  @@index([devoirId])
 }
 
 // Suivi "j'ai rendu ce devoir" par étudiant (état personnel, pas partagé avec le groupe).
@@ -116,25 +133,25 @@ model Message {
   createdAt DateTime  @default(now())
   editedAt  DateTime?
 
-  auteur   User    @relation(fields: [auteurId], references: [id], onDelete: Cascade)
+  auteur   User @relation(fields: [auteurId], references: [id], onDelete: Cascade)
   auteurId Int
 
   channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId Int
 
-  replyTo   Message?   @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replyTo   Message?  @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
   replyToId Int?
-  replies   Message[]  @relation("MessageReply")
+  replies   Message[] @relation("MessageReply")
 
   reactions Reaction[]
 }
 
 model Reaction {
-  id        Int     @id @default(autoincrement())
-  emoji     String
+  id    Int    @id @default(autoincrement())
+  emoji String
 
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
 
   message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
   messageId Int
@@ -165,11 +182,11 @@ model Cours {
   groupe   Groupe @relation(fields: [groupeId], references: [id])
   groupeId Int
 
-  @@index([groupeId, dateDebut])
   // Unique par (groupe, uid) et non par uid seul : ADE réutilise le même UID pour un
   // cours partagé entre plusieurs groupes (CM commun, TD partagé...). Chaque groupe qui
   // y assiste doit obtenir sa propre ligne, sinon seul le premier groupe synchronisé le voit.
   @@unique([groupeId, uid])
+  @@index([groupeId, dateDebut])
 }
 
 model Document {
@@ -195,8 +212,8 @@ model CommentaireDoc {
   content   String
   createdAt DateTime @default(now())
 
-  auteur     User     @relation("AuteurCommentaireDoc", fields: [auteurId], references: [id])
-  auteurId   Int
+  auteur   User @relation("AuteurCommentaireDoc", fields: [auteurId], references: [id])
+  auteurId Int
 
   document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
   documentId Int
@@ -208,24 +225,24 @@ model Sondage {
   clos      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  auteur    User    @relation("AuteurSondage", fields: [auteurId], references: [id])
-  auteurId  Int
+  auteur   User @relation("AuteurSondage", fields: [auteurId], references: [id])
+  auteurId Int
 
   channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId Int
 
-  options   OptionSondage[]
-  votes     VoteSondage[]
+  options OptionSondage[]
+  votes   VoteSondage[]
 }
 
 model OptionSondage {
-  id      Int    @id @default(autoincrement())
-  texte   String
+  id    Int    @id @default(autoincrement())
+  texte String
 
   sondage   Sondage @relation(fields: [sondageId], references: [id], onDelete: Cascade)
   sondageId Int
 
-  votes   VoteSondage[]
+  votes VoteSondage[]
 }
 
 model VoteSondage {
@@ -238,8 +255,8 @@ model VoteSondage {
   option   OptionSondage @relation(fields: [optionId], references: [id], onDelete: Cascade)
   optionId Int
 
-  @@unique([userId, sondageId])
-
   sondage   Sondage @relation(fields: [sondageId], references: [id], onDelete: Cascade)
   sondageId Int
+
+  @@unique([userId, sondageId])
 }

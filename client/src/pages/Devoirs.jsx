@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Plus, X, Pencil, Trash2, MessageSquare, ChevronDown, ChevronUp, Send } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../hooks/useSocket";
 import Layout from "../components/Layout";
@@ -28,18 +29,41 @@ function versDatetimeLocal(iso) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+const TYPES = [
+  { id: "Devoir", label: "Devoir" },
+  { id: "Evaluation", label: "Évaluation" },
+];
+
+const FORM_VIDE = { titre: "", matiere: "", description: "", dateLimite: "", type: "Devoir" };
+
+function formatDateCommentaire(iso) {
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function Devoirs() {
   const { user } = useAuth();
   const socket = useSocket();
   const [devoirs, setDevoirs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [form, setForm] = useState({ titre: "", matiere: "", description: "", dateLimite: "" });
+  const [form, setForm] = useState(FORM_VIDE);
   const [showForm, setShowForm] = useState(false);
   const [toDelete, setToDelete] = useState(null);
   const [editingDevoir, setEditingDevoir] = useState(null);
   const [editForm, setEditForm] = useState(null);
   const [onglet, setOnglet] = useState("aRendre"); // "aRendre" | "historique"
+  // Filtres de l'"agenda de rendu" (issue #51)
+  const [filtreType, setFiltreType] = useState("Tous");
+  const [filtreMatiere, setFiltreMatiere] = useState("Toutes");
+  // Commentaires : un seul devoir déplié à la fois, chargés à la demande
+  const [expandedId, setExpandedId] = useState(null);
+  const [commentaires, setCommentaires] = useState({});
+  const [commentInput, setCommentInput] = useState({});
   // Devoirs qu'on vient de (dé)cocher et qui vont quitter la vue actuelle : encore
   // affichés le temps de l'animation de sortie avant de disparaître pour de bon (sinon
   // la carte disparaît d'un coup). Clés au format "onglet-id" pour ne pas appliquer
@@ -100,7 +124,7 @@ export default function Devoirs() {
         dateLimite: new Date(form.dateLimite).toISOString(),
       });
       setDevoirs([...devoirs, data]);
-      setForm({ titre: "", matiere: "", description: "", dateLimite: "" });
+      setForm(FORM_VIDE);
       setShowForm(false);
       toast("Devoir cree");
     } catch {
@@ -114,6 +138,7 @@ export default function Devoirs() {
       titre: devoir.titre,
       matiere: devoir.matiere,
       description: devoir.description ?? "",
+      type: devoir.type ?? "Devoir",
       dateLimite: versDatetimeLocal(devoir.dateLimite),
     });
   }
@@ -168,6 +193,55 @@ export default function Devoirs() {
     }
   }
 
+  function ajusterCompteur(devoirId, delta) {
+    setDevoirs((prev) =>
+      prev.map((d) =>
+        d.id === devoirId
+          ? { ...d, _count: { commentaires: Math.max(0, (d._count?.commentaires || 0) + delta) } }
+          : d
+      )
+    );
+  }
+
+  async function toggleComments(devoirId) {
+    if (expandedId === devoirId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(devoirId);
+    if (commentaires[devoirId]) return;
+    try {
+      const { data } = await api.get(`/devoirs/${devoirId}/commentaires`);
+      setCommentaires((prev) => ({ ...prev, [devoirId]: data }));
+    } catch {
+      setExpandedId(null);
+      toast("Impossible de charger les commentaires", "error");
+    }
+  }
+
+  async function sendComment(devoirId) {
+    const content = commentInput[devoirId]?.trim();
+    if (!content) return;
+    try {
+      const { data } = await api.post(`/devoirs/${devoirId}/commentaires`, { content });
+      setCommentaires((prev) => ({ ...prev, [devoirId]: [...(prev[devoirId] || []), data] }));
+      setCommentInput((prev) => ({ ...prev, [devoirId]: "" }));
+      ajusterCompteur(devoirId, 1);
+    } catch {
+      toast("Impossible d'envoyer le commentaire", "error");
+    }
+  }
+
+  async function deleteComment(devoirId, commentId) {
+    try {
+      await api.delete(`/devoirs/commentaires/${commentId}`);
+      setCommentaires((prev) => ({ ...prev, [devoirId]: prev[devoirId].filter((c) => c.id !== commentId) }));
+      ajusterCompteur(devoirId, -1);
+    } catch {
+      toast("Impossible de supprimer le commentaire", "error");
+    }
+  }
+
   async function confirmDelete() {
     const id = toDelete;
     setToDelete(null);
@@ -186,12 +260,24 @@ export default function Devoirs() {
   // "Historique" ne doit montrer que ce qui appartient vraiment au passé : un devoir
   // rendu (peu importe la date), ou un devoir dont l'échéance est dépassée. Un devoir
   // à venir et pas encore rendu n'a rien à faire ici, il reste dans "À rendre" (issue #42).
-  const devoirsAffiches =
+  const devoirsDeLOnglet =
     onglet === "aRendre"
       ? devoirs.filter((d) => !d.rendu || sortants.has(`aRendre-${d.id}`))
       : devoirs
           .filter((d) => d.rendu || new Date(d.dateLimite) < now || sortants.has(`historique-${d.id}`))
           .sort((a, b) => new Date(b.dateLimite) - new Date(a.dateLimite));
+
+  // Compteurs et matières suivent l'onglet courant : un filtre ne doit jamais proposer
+  // une valeur qui donnerait une liste vide
+  const nbParType = (type) => devoirsDeLOnglet.filter((d) => d.type === type).length;
+  const matieres = ["Toutes", ...Array.from(new Set(devoirsDeLOnglet.map((d) => d.matiere))).sort()];
+
+  // Si la matière choisie n'existe plus dans cet onglet, on retombe sur "Toutes"
+  const matiereActive = matieres.includes(filtreMatiere) ? filtreMatiere : "Toutes";
+
+  const devoirsAffiches = devoirsDeLOnglet
+    .filter((d) => filtreType === "Tous" || d.type === filtreType)
+    .filter((d) => matiereActive === "Toutes" || d.matiere === matiereActive);
 
   return (
     <Layout>
@@ -199,7 +285,10 @@ export default function Devoirs() {
         <div className={styles.header}>
           <PageTitle>Devoirs</PageTitle>
           {canCreate && (
-            <button onClick={() => setShowForm(!showForm)}>{showForm ? "Annuler" : "+ Ajouter"}</button>
+            <button onClick={() => setShowForm(!showForm)}>
+              {showForm ? <X size={16} strokeWidth={1.5} /> : <Plus size={16} strokeWidth={1.5} />}
+              {showForm ? "Annuler" : "Ajouter un devoir"}
+            </button>
           )}
         </div>
 
@@ -218,8 +307,48 @@ export default function Devoirs() {
           </button>
         </div>
 
+        {/* Agenda de rendu : filtre par type puis par matière (issue #51) */}
+        <div className={styles.filters}>
+          <button
+            className={`${styles.filterBtn} ${filtreType === "Tous" ? styles.filterActive : ""}`}
+            onClick={() => setFiltreType("Tous")}
+          >
+            Tout <span className={styles.filterCount}>{devoirsDeLOnglet.length}</span>
+          </button>
+          {TYPES.map((t) => (
+            <button
+              key={t.id}
+              className={`${styles.filterBtn} ${filtreType === t.id ? styles.filterActive : ""}`}
+              onClick={() => setFiltreType(t.id)}
+            >
+              {t.label}s <span className={styles.filterCount}>{nbParType(t.id)}</span>
+            </button>
+          ))}
+        </div>
+        {matieres.length > 2 && (
+          <div className={styles.filters}>
+            {matieres.map((m) => (
+              <button
+                key={m}
+                className={`${styles.filterBtn} ${styles.filterBtnMatiere} ${matiereActive === m ? styles.filterActive : ""}`}
+                onClick={() => setFiltreMatiere(m)}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        )}
+
         {showForm && (
           <form className={styles.form} onSubmit={handleSubmit}>
+            <h2 className={styles.formTitle}>Nouveau devoir</h2>
+            <select name="type" value={form.type} onChange={handleChange}>
+              {TYPES.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
             <input name="titre" placeholder="Titre" value={form.titre} onChange={handleChange} required />
             <input
               name="matiere"
@@ -228,9 +357,10 @@ export default function Devoirs() {
               onChange={handleChange}
               required
             />
-            <input
+            <textarea
               name="description"
-              placeholder="Description (optionnel)"
+              placeholder="Consignes / description (optionnel)"
+              rows={4}
               value={form.description}
               onChange={handleChange}
             />
@@ -261,7 +391,11 @@ export default function Devoirs() {
           <div className={styles.list}>
             {devoirsAffiches.length === 0 && (
               <p className={styles.empty}>
-                {onglet === "aRendre" ? "Rien à rendre pour l'instant" : "Aucun devoir pour l'instant"}
+                {devoirsDeLOnglet.length > 0
+                  ? "Aucun résultat avec ces filtres"
+                  : onglet === "aRendre"
+                    ? "Rien à rendre pour l'instant"
+                    : "Aucun devoir pour l'instant"}
               </p>
             )}
             {devoirsAffiches.map((devoir) => {
@@ -272,7 +406,10 @@ export default function Devoirs() {
                   className={`${styles.card} ${enRetard ? styles.cardLate : ""} ${devoir.rendu ? styles.cardRendu : ""} ${sortants.has(`${onglet}-${devoir.id}`) ? styles.cardSortant : ""}`}
                 >
                   <div className={styles.cardHeader}>
-                    <span className={styles.matiere}>{devoir.matiere}</span>
+                    <div className={styles.badges}>
+                      <span className={styles.matiere}>{devoir.matiere}</span>
+                      {devoir.type === "Evaluation" && <span className={styles.evalBadge}>Évaluation</span>}
+                    </div>
                     <span className={enRetard ? styles.dateLate : styles.date}>
                       {enRetard && <span className={styles.lateBadge}>En retard</span>}
                       {new Date(devoir.dateLimite).toLocaleDateString("fr-FR", {
@@ -284,7 +421,7 @@ export default function Devoirs() {
                     </span>
                   </div>
                   <h3>{devoir.titre}</h3>
-                  {devoir.description && <p>{devoir.description}</p>}
+                  {devoir.description && <p className={styles.consignes}>{devoir.description}</p>}
                   <div className={styles.cardFooter}>
                     <label className={styles.renduCheck}>
                       <input
@@ -296,18 +433,101 @@ export default function Devoirs() {
                     </label>
                     <div className={styles.cardFooterRight}>
                       <span className={styles.auteur}>Ajouté par {devoir.auteur?.nom}</span>
+                      <button
+                        className={styles.commentToggle}
+                        onClick={() => toggleComments(devoir.id)}
+                        title="Commentaires"
+                      >
+                        <MessageSquare size={15} strokeWidth={1.5} />
+                        <span>{devoir._count?.commentaires || 0}</span>
+                        {expandedId === devoir.id ? (
+                          <ChevronUp size={13} strokeWidth={1.5} />
+                        ) : (
+                          <ChevronDown size={13} strokeWidth={1.5} />
+                        )}
+                      </button>
                       {canCreate && (
-                        <button className={styles.editBtn} onClick={() => openEditDevoir(devoir)}>
-                          Modifier
+                        <button
+                          className={styles.editBtn}
+                          onClick={() => openEditDevoir(devoir)}
+                          title="Modifier"
+                        >
+                          <Pencil size={14} strokeWidth={1.5} />
                         </button>
                       )}
                       {canCreate && (
-                        <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)}>
-                          Supprimer
+                        <button
+                          className={styles.deleteBtn}
+                          onClick={() => setToDelete(devoir.id)}
+                          title="Supprimer"
+                        >
+                          <Trash2 size={14} strokeWidth={1.5} />
                         </button>
                       )}
                     </div>
                   </div>
+
+                  {expandedId === devoir.id && (
+                    <div className={styles.comments}>
+                      <div className={styles.commentsList}>
+                        {!commentaires[devoir.id] ? (
+                          <p className={styles.commentsEmpty}>Chargement…</p>
+                        ) : commentaires[devoir.id].length === 0 ? (
+                          <p className={styles.commentsEmpty}>Aucun commentaire. Précisions, questions ?</p>
+                        ) : (
+                          commentaires[devoir.id].map((c) => (
+                            <div key={c.id} className={styles.comment}>
+                              <div className={styles.commentHeader}>
+                                <span className={styles.commentAuteur}>{c.auteur.nom}</span>
+                                {["admin", "delegue"].includes(c.auteur.role) && (
+                                  <span className={styles.commentRole}>
+                                    {c.auteur.role === "admin" ? "Admin" : "Délégué"}
+                                  </span>
+                                )}
+                                <span className={styles.commentDate}>
+                                  {formatDateCommentaire(c.createdAt)}
+                                </span>
+                                {(canCreate || c.auteur.id === user?.id) && (
+                                  <button
+                                    className={styles.commentDelete}
+                                    onClick={() => deleteComment(devoir.id, c.id)}
+                                    title="Supprimer le commentaire"
+                                  >
+                                    <X size={11} strokeWidth={1.5} />
+                                  </button>
+                                )}
+                              </div>
+                              <p className={styles.commentContent}>{c.content}</p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <form
+                        className={styles.commentForm}
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          sendComment(devoir.id);
+                        }}
+                      >
+                        <input
+                          className={styles.commentInput}
+                          placeholder="Ajouter un commentaire…"
+                          maxLength={1000}
+                          value={commentInput[devoir.id] || ""}
+                          onChange={(e) =>
+                            setCommentInput((prev) => ({ ...prev, [devoir.id]: e.target.value }))
+                          }
+                        />
+                        <button
+                          type="submit"
+                          className={styles.commentSend}
+                          disabled={!commentInput[devoir.id]?.trim()}
+                        >
+                          <Send size={14} strokeWidth={1.5} />
+                        </button>
+                      </form>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -319,6 +539,16 @@ export default function Devoirs() {
         <div className={styles.editOverlay} onClick={() => setEditingDevoir(null)}>
           <form className={styles.editModal} onClick={(e) => e.stopPropagation()} onSubmit={handleEditSubmit}>
             <h2 className={styles.editModalTitle}>Modifier le devoir</h2>
+            <select
+              value={editForm.type}
+              onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
+            >
+              {TYPES.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
             <input
               placeholder="Titre"
               value={editForm.titre}
@@ -331,8 +561,9 @@ export default function Devoirs() {
               onChange={(e) => setEditForm({ ...editForm, matiere: e.target.value })}
               required
             />
-            <input
-              placeholder="Description (optionnel)"
+            <textarea
+              placeholder="Consignes / description (optionnel)"
+              rows={4}
               value={editForm.description}
               onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
             />
