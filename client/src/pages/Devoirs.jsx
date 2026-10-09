@@ -20,6 +20,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import { SkeletonCards } from "../components/Skeleton";
 import { toast } from "../components/Toast";
 import { useOptions } from "../hooks/useOptions";
+import { useAutoGrow } from "../hooks/useAutoGrow";
 import api from "../api/index.js";
 import { GROUPES, groupeEcheance, urgenceEcheance, libelleEcheance } from "../utils/echeance";
 import styles from "./Devoirs.module.css";
@@ -131,6 +132,8 @@ export default function Devoirs() {
   const [toDelete, setToDelete] = useState(null);
   const [editingDevoir, setEditingDevoir] = useState(null);
   const [editForm, setEditForm] = useState(null);
+  const descriptionRef = useAutoGrow(form.description);
+  const editDescriptionRef = useAutoGrow(editForm?.description);
   const [onglet, setOnglet] = useState("aRendre"); // "aRendre" | "historique"
   // Filtres de l'"agenda de rendu" (issue #51)
   const [filtreType, setFiltreType] = useState("Tous");
@@ -647,13 +650,16 @@ export default function Devoirs() {
             <input
               name="titre"
               placeholder="Titre"
+              autoComplete="off"
               value={form.titre}
               onChange={handleChange}
               required
               autoFocus
             />
             <textarea
+              ref={descriptionRef}
               name="description"
+              autoComplete="off"
               placeholder="Consignes / description (optionnel)"
               rows={4}
               value={form.description}
@@ -831,6 +837,7 @@ export default function Devoirs() {
             </select>
             <input
               placeholder="Titre"
+              autoComplete="off"
               value={editForm.titre}
               onChange={(e) => setEditForm({ ...editForm, titre: e.target.value })}
               required
@@ -843,6 +850,8 @@ export default function Devoirs() {
               required
             />
             <textarea
+              ref={editDescriptionRef}
+              autoComplete="off"
               placeholder="Consignes / description (optionnel)"
               rows={4}
               value={editForm.description}

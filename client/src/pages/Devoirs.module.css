@@ -772,8 +772,10 @@
 
 .editModal textarea,
 .form textarea {
-  resize: vertical;
+  resize: none;
+  overflow-y: auto;
   min-height: 90px;
+  max-height: 50vh;
 }
 
 .editModalTitle {
