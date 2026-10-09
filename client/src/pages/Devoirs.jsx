@@ -132,7 +132,7 @@ export default function Devoirs() {
   const [toDelete, setToDelete] = useState(null);
   const [editingDevoir, setEditingDevoir] = useState(null);
   const [editForm, setEditForm] = useState(null);
-  const descriptionRef = useAutoGrow(form.description);
+  const descriptionRef = useAutoGrow(`${showForm}${form.description}`);
   const editDescriptionRef = useAutoGrow(editForm?.description);
   const [onglet, setOnglet] = useState("aRendre"); // "aRendre" | "historique"
   // Filtres de l'"agenda de rendu" (issue #51)
