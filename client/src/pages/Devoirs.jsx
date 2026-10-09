@@ -21,6 +21,7 @@ import { SkeletonCards } from "../components/Skeleton";
 import { toast } from "../components/Toast";
 import { useOptions } from "../hooks/useOptions";
 import { useAutoGrow } from "../hooks/useAutoGrow";
+import { majPastille } from "../utils/badge";
 import api from "../api/index.js";
 import { GROUPES, groupeEcheance, urgenceEcheance, libelleEcheance } from "../utils/echeance";
 import styles from "./Devoirs.module.css";
@@ -134,6 +135,12 @@ export default function Devoirs() {
   const [editForm, setEditForm] = useState(null);
   const descriptionRef = useAutoGrow(`${showForm}${form.description}`);
   const editDescriptionRef = useAutoGrow(editForm?.description);
+
+  // Pastille de l'icône : suit les devoirs cochés ici, même si le widget du Dashboard est masqué
+  const nbARendre = devoirs.filter((d) => !d.rendu).length;
+  useEffect(() => {
+    if (!loading) majPastille(nbARendre);
+  }, [loading, nbARendre]);
   const [onglet, setOnglet] = useState("aRendre"); // "aRendre" | "historique"
   // Filtres de l'"agenda de rendu" (issue #51)
   const [filtreType, setFiltreType] = useState("Tous");
