@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { BookOpen } from "lucide-react";
 import api from "../../api/index.js";
 import { majPastille } from "../../utils/badge";
+import { estARendre } from "../../utils/echeance";
 import WidgetCard from "./WidgetCard";
 
 export default function DevoirsWidget() {
@@ -16,7 +17,7 @@ export default function DevoirsWidget() {
 
   // Le compteur ne doit refléter que ce qu'il reste à faire : "rendu" prime sur la
   // date, sinon cocher un devoir ne fait jamais bouger le chiffre (issue #43).
-  const aRendre = devoirs?.filter((d) => !d.rendu) ?? [];
+  const aRendre = devoirs?.filter((d) => estARendre(d)) ?? [];
   const prochainDevoir =
     aRendre.length > 0
       ? [...aRendre].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite))[0]

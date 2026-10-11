@@ -20,6 +20,13 @@ export function peutCiblerLibrement(user) {
   return ["admin", "professeur"].includes(user.role);
 }
 
+// Un délégué peut viser sa propre promo entière, mais seulement pour une évaluation
+// (ex. un CM commun) : un devoir ordinaire reste limité à son groupe et ses options
+export function peutCiblerPromo(user, promo, type) {
+  if (peutCiblerLibrement(user)) return true;
+  return user.role === "delegue" && type === "Evaluation" && promo === user.promo;
+}
+
 export async function idsOptionsDe(userId) {
   const liens = await prisma.userOption.findMany({ where: { userId }, select: { optionId: true } });
   return liens.map((l) => l.optionId);

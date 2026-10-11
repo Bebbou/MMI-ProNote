@@ -7,6 +7,7 @@ import {
   filtreDevoirsVisibles,
   devoirEstVisible,
   peutGererDevoir,
+  peutCiblerPromo,
   roomsDevoir,
 } from "../utils/devoirAccess.js";
 
@@ -21,6 +22,29 @@ const devoirAutreGroupe = { groupeId: 11, optionId: null, promoCible: null, aute
 const devoirAnglais = { groupeId: 11, optionId: 5, promoCible: null, auteurId: 2, option: { promo: "MMI2" } };
 const devoirPromo = { groupeId: 10, optionId: null, promoCible: "MMI2", auteurId: 7 };
 const devoirProfAutrePromo = { groupeId: 50, optionId: null, promoCible: "MMI3", auteurId: 7 };
+
+describe("peutCiblerPromo", () => {
+  it("un délégué peut viser sa promo pour une évaluation", () => {
+    expect(peutCiblerPromo(delegueA1, "MMI2", "Evaluation")).toBe(true);
+  });
+
+  it("un délégué ne peut pas viser sa promo pour un devoir ordinaire", () => {
+    expect(peutCiblerPromo(delegueA1, "MMI2", "Devoir")).toBe(false);
+  });
+
+  it("un délégué ne peut pas viser une autre promo, même pour une évaluation", () => {
+    expect(peutCiblerPromo(delegueA1, "MMI3", "Evaluation")).toBe(false);
+  });
+
+  it("un étudiant ne peut jamais viser une promo", () => {
+    expect(peutCiblerPromo(eleveA1, "MMI2", "Evaluation")).toBe(false);
+  });
+
+  it("un professeur et un admin ciblent librement", () => {
+    expect(peutCiblerPromo(prof, "MMI3", "Devoir")).toBe(true);
+    expect(peutCiblerPromo(admin, "MMI3", "Devoir")).toBe(true);
+  });
+});
 
 describe("devoirEstVisible", () => {
   it("un devoir de groupe n'est visible que par son groupe", () => {
