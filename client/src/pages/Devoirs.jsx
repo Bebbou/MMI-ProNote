@@ -130,6 +130,7 @@ export default function Devoirs() {
   const [devoirs, setDevoirs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [envoi, setEnvoi] = useState(false);
   const [form, setForm] = useState(FORM_VIDE);
   const [showForm, setShowForm] = useState(false);
   const [toDelete, setToDelete] = useState(null);
@@ -141,8 +142,9 @@ export default function Devoirs() {
   // Pastille de l'icône : suit les devoirs cochés ici, même si le widget du Dashboard est masqué
   const nbARendre = devoirs.filter((d) => estARendre(d)).length;
   useEffect(() => {
-    if (!loading) majPastille(nbARendre);
-  }, [loading, nbARendre]);
+    // Pas de mise à jour si le chargement a échoué : une erreur réseau ne doit pas effacer la pastille
+    if (!loading && !loadError) majPastille(nbARendre);
+  }, [loading, loadError, nbARendre]);
   const [onglet, setOnglet] = useState("aRendre"); // "aRendre" | "historique"
   // Filtres de l'"agenda de rendu" (issue #51)
   const [filtreType, setFiltreType] = useState("Tous");
@@ -177,28 +179,36 @@ export default function Devoirs() {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("nouveauDevoir", (devoir) => {
-      setDevoirs((prev) =>
-        [...prev.filter((d) => d.id !== devoir.id), devoir].sort(
+    // On fusionne avec l'éventuelle version déjà présente pour garder la coche "rendu"
+    // (changement d'audience : le serveur envoie devoirSupprime puis nouveauDevoir)
+    const onNouveau = (devoir) => {
+      setDevoirs((prev) => {
+        const existant = prev.find((d) => d.id === devoir.id);
+        return [...prev.filter((d) => d.id !== devoir.id), { ...existant, ...devoir }].sort(
           (a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)
-        )
-      );
-    });
+        );
+      });
+    };
 
-    socket.on("devoirSupprime", ({ id }) => {
+    const onSupprime = ({ id }) => {
       setDevoirs((prev) => prev.filter((d) => d.id !== id));
-    });
+    };
 
     // Le serveur ne renvoie pas "rendu" (c'est un état personnel, propre à chaque
     // utilisateur) : on fusionne pour ne jamais écraser sa propre coche
-    socket.on("devoirModifie", (devoir) => {
+    const onModifie = (devoir) => {
       setDevoirs((prev) => prev.map((d) => (d.id === devoir.id ? { ...d, ...devoir } : d)));
-    });
+    };
 
+    socket.on("nouveauDevoir", onNouveau);
+    socket.on("devoirSupprime", onSupprime);
+    socket.on("devoirModifie", onModifie);
+
+    // Handlers nommés : off() sans handler retirerait aussi ceux des autres composants
     return () => {
-      socket.off("nouveauDevoir");
-      socket.off("devoirSupprime");
-      socket.off("devoirModifie");
+      socket.off("nouveauDevoir", onNouveau);
+      socket.off("devoirSupprime", onSupprime);
+      socket.off("devoirModifie", onModifie);
     };
   }, [socket]);
 
@@ -229,6 +239,8 @@ export default function Devoirs() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (envoi) return; // évite un double clic qui créerait deux devoirs
+    setEnvoi(true);
     try {
       // <input type="datetime-local"> renvoie une heure "nue" sans fuseau ; on la
       // convertit en UTC explicite dans le fuseau du navigateur avant l'envoi, sinon
@@ -249,6 +261,8 @@ export default function Devoirs() {
       toast(data.type === "Evaluation" ? "Évaluation créée" : "Devoir créé");
     } catch {
       toast("Impossible de créer le devoir", "error");
+    } finally {
+      setEnvoi(false);
     }
   }
 
@@ -451,7 +465,7 @@ export default function Devoirs() {
       : [{ id: "historique", label: null, items: devoirsAffiches }];
 
   // Résumé en tête de page
-  const nonRendus = devoirs.filter((d) => !d.rendu);
+  const nonRendus = devoirs.filter((d) => estARendre(d, now));
   const nbEvaluations = nonRendus.filter(
     (d) => d.type === "Evaluation" && new Date(d.dateLimite) >= now
   ).length;
@@ -461,7 +475,13 @@ export default function Devoirs() {
     filtreType !== "Tous" || matiereActive !== "Toutes" || audienceActive !== "tous" || requete !== "";
 
   function renderCarte(devoir) {
-    const urgence = devoir.rendu ? "rendu" : urgenceEcheance(devoir.dateLimite, now);
+    // Une évaluation passée n'est jamais "en retard" : elle ne se rend pas
+    const urgence =
+      devoir.rendu || (devoir.type === "Evaluation" && new Date(devoir.dateLimite) < now)
+        ? devoir.rendu
+          ? "rendu"
+          : "depasse"
+        : urgenceEcheance(devoir.dateLimite, now);
     const { principal, secondaire } = libelleEcheance(devoir.dateLimite, now);
     const nbCommentaires = devoir._count?.commentaires || 0;
 
@@ -568,7 +588,9 @@ export default function Devoirs() {
                           </span>
                         )}
                         <span className={styles.commentDate}>{formatDateCommentaire(c.createdAt)}</span>
-                        {(moderateur || c.auteur.id === user?.id) && (
+                        {(moderateur ||
+                          (user?.role === "professeur" && devoir.auteur?.id === user.id) ||
+                          c.auteur.id === user?.id) && (
                           <button
                             className={styles.commentDelete}
                             onClick={() => deleteComment(devoir.id, c.id)}
@@ -708,7 +730,7 @@ export default function Devoirs() {
                 required
               />
             </label>
-            <button type="submit">
+            <button type="submit" disabled={envoi}>
               {form.type === "Evaluation" ? "Créer l'évaluation" : "Créer le devoir"}
             </button>
           </form>
