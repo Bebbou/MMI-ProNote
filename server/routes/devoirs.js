@@ -4,6 +4,7 @@ import { requireAuth, requireRole } from "../middlewares/auth.js";
 import { notifierSansBloquer, ciblesDevoir } from "../utils/notifier.js";
 import {
   peutCiblerLibrement,
+  peutCiblerPromo,
   peutGererDevoir,
   idsOptionsDe,
   filtreDevoirsVisibles,
@@ -27,9 +28,9 @@ const includeDevoir = {
 // Résout l'audience demandée (`cible`) en { optionId, groupeId, promoCible }, ou { erreur }.
 //   ""            -> mon groupe
 //   "option:5"    -> les membres de l'option 5 (une option de MA promo)
-//   "promo:MMI2"  -> toute la promo         (admin et professeur seulement)
+//   "promo:MMI2"  -> toute la promo         (admin et professeur ; un délégué : sa promo, évaluation seulement)
 //   "groupe:12"   -> un autre groupe        (admin et professeur seulement)
-async function resoudreCible(user, cible) {
+async function resoudreCible(user, cible, typeDevoir) {
   const defaut = { optionId: null, groupeId: user.groupeId, promoCible: null };
   if (!cible) return defaut;
 
@@ -40,13 +41,17 @@ async function resoudreCible(user, cible) {
     return { ...defaut, optionId: option.id };
   }
 
-  if (!peutCiblerLibrement(user)) return { erreur: "Tu ne peux cibler que ton groupe ou une option." };
-
   if (type === "promo") {
+    if (!peutCiblerPromo(user, valeur, typeDevoir)) {
+      return { erreur: "Tu ne peux cibler que ton groupe, une option, ou ta promo pour une évaluation." };
+    }
     const existe = await prisma.groupe.findFirst({ where: { promo: valeur }, select: { id: true } });
     if (!existe) return { erreur: "Promo inconnue." };
     return { ...defaut, promoCible: valeur };
   }
+
+  if (!peutCiblerLibrement(user)) return { erreur: "Tu ne peux cibler que ton groupe ou une option." };
+
   if (type === "groupe") {
     const groupe = await prisma.groupe.findUnique({ where: { id: Number(valeur) } });
     if (!groupe) return { erreur: "Groupe inconnu." };
@@ -90,16 +95,31 @@ router.post("/:id/rendu", requireAuth, async (req, res) => {
   res.json({ rendu: true });
 });
 
+// Valide les champs saisis : types, longueurs, date lisible et plausible. Renvoie un
+// message d'erreur, ou null si tout est correct.
+function erreurSaisie({ titre, matiere, description, dateLimite }) {
+  if (!titre || !matiere || !dateLimite) return "Titre, matière et date sont requis.";
+  if (typeof titre !== "string" || typeof matiere !== "string") return "Titre et matière invalides.";
+  if (description != null && typeof description !== "string") return "Description invalide.";
+  if (titre.length > 150) return "Titre trop long (150 max).";
+  if (matiere.length > 100) return "Matière trop longue (100 max).";
+  if (description && description.length > 5000) return "Description trop longue (5000 max).";
+  const date = new Date(dateLimite);
+  if (Number.isNaN(date.getTime())) return "Date invalide.";
+  const annee = date.getUTCFullYear();
+  if (annee < 2000 || annee > 2100) return "Date hors limites.";
+  return null;
+}
+
 // POST /devoirs — crée un devoir (admin, délégué ou professeur). `cible` optionnel :
 // groupe (défaut), option, ou — pour un admin/professeur — une promo ou un autre groupe.
 router.post("/", requireAuth, requireRole("admin", "delegue", "professeur"), async (req, res) => {
   const { titre, matiere, description, dateLimite, type = "Devoir" } = req.body;
-  if (!titre || !matiere || !dateLimite) {
-    return res.status(400).json({ error: "Titre, matière et date limite sont requis." });
-  }
+  const invalide = erreurSaisie(req.body);
+  if (invalide) return res.status(400).json({ error: invalide });
   if (!TYPES.includes(type)) return res.status(400).json({ error: "Type invalide." });
 
-  const { optionId, groupeId, promoCible, erreur } = await resoudreCible(req.user, req.body.cible);
+  const { optionId, groupeId, promoCible, erreur } = await resoudreCible(req.user, req.body.cible, type);
   if (erreur) return res.status(400).json({ error: erreur });
 
   const devoir = await prisma.devoir.create({
@@ -122,10 +142,14 @@ router.post("/", requireAuth, requireRole("admin", "delegue", "professeur"), asy
   req.io.to(roomsDevoir(devoir)).emit("nouveauDevoir", devoir);
 
   // Notification push : membres de l'option, ou groupe entier
-  const date = new Date(devoir.dateLimite).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const date = new Date(devoir.dateLimite).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    timeZone: "Europe/Paris", // le serveur tourne en UTC
+  });
   const payload = {
     title: `${devoir.type === "Evaluation" ? "Nouvelle évaluation" : "Nouveau devoir"} · ${devoir.matiere}`,
-    body: `${devoir.titre} — à rendre pour le ${date}`,
+    body: `${devoir.titre} — ${devoir.type === "Evaluation" ? "le" : "à rendre pour le"} ${date}`,
     url: "/devoirs",
     tag: `devoir-${devoir.id}`,
   };
@@ -152,17 +176,21 @@ router.patch("/:id", requireAuth, requireRole("admin", "delegue", "professeur"),
   }
 
   const { titre, matiere, description, dateLimite, type = devoir.type } = req.body;
-  if (!titre || !matiere || !dateLimite) {
-    return res.status(400).json({ error: "Titre, matière et date limite sont requis." });
-  }
+  const invalide = erreurSaisie(req.body);
+  if (invalide) return res.status(400).json({ error: invalide });
   if (!TYPES.includes(type)) return res.status(400).json({ error: "Type invalide." });
 
   // `cible` absente = on ne touche pas à l'audience
   let audience = { optionId: devoir.optionId, groupeId: devoir.groupeId, promoCible: devoir.promoCible };
   if ("cible" in req.body) {
-    const r = await resoudreCible(req.user, req.body.cible);
+    const r = await resoudreCible(req.user, req.body.cible, type);
     if (r.erreur) return res.status(400).json({ error: r.erreur });
     audience = r;
+  }
+  // Une cible "promo" gardée telle quelle ne doit pas survivre à un passage en simple devoir
+  // pour un délégué (sa permission ne vaut que pour les évaluations)
+  if (type !== devoir.type && audience.promoCible && !peutCiblerPromo(req.user, audience.promoCible, type)) {
+    return res.status(400).json({ error: "Seule une évaluation peut viser toute la promo." });
   }
 
   const updated = await prisma.devoir.update({

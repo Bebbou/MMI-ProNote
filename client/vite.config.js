@@ -29,6 +29,11 @@ export default defineConfig({
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
         categories: ['education', 'productivity'],
+        shortcuts: [
+          { name: 'Devoirs', url: '/devoirs', icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }] },
+          { name: 'Emploi du temps', url: '/edt', icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }] },
+          { name: 'Notes', url: '/notes', icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }] },
+        ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],

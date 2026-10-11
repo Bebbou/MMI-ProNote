@@ -20,8 +20,10 @@ import ConfirmModal from "../components/ConfirmModal";
 import { SkeletonCards } from "../components/Skeleton";
 import { toast } from "../components/Toast";
 import { useOptions } from "../hooks/useOptions";
+import { useAutoGrow } from "../hooks/useAutoGrow";
+import { majPastille } from "../utils/badge";
 import api from "../api/index.js";
-import { GROUPES, groupeEcheance, urgenceEcheance, libelleEcheance } from "../utils/echeance";
+import { GROUPES, estARendre, groupeEcheance, urgenceEcheance, libelleEcheance } from "../utils/echeance";
 import styles from "./Devoirs.module.css";
 
 // Convertit une date ISO (UTC) en chaîne compatible <input type="datetime-local">,
@@ -49,8 +51,8 @@ function cibleDe(devoir, user) {
 
 // "Visible par" : à qui s'adresse le devoir. Un délégué ne cible que son groupe et ses
 // options ; un professeur ou un admin peut aussi viser une promo entière ou un autre groupe.
-function SelecteurCible({ value, onChange, user, options, groupes, libre }) {
-  if (!libre && options.length === 0) return null;
+function SelecteurCible({ value, onChange, user, options, groupes, libre, promoEval }) {
+  if (!libre && !promoEval && options.length === 0) return null;
   const promos = Array.from(new Set(groupes.map((g) => g.promo))).sort();
   const autresGroupes = groupes.filter((g) => g.nom !== user?.groupe || g.promo !== user?.promo);
 
@@ -59,6 +61,8 @@ function SelecteurCible({ value, onChange, user, options, groupes, libre }) {
       Visible par
       <select value={value} onChange={(e) => onChange(e.target.value)}>
         <option value="">Mon groupe ({user?.groupe})</option>
+        {/* Délégué : sa promo entière, réservée aux évaluations (ex. un CM commun) */}
+        {!libre && promoEval && <option value={`promo:${user?.promo}`}>Toute la promo {user?.promo}</option>}
         {libre && promos.length > 0 && (
           <optgroup label="Promos entières">
             {promos.map((p) => (
@@ -126,11 +130,21 @@ export default function Devoirs() {
   const [devoirs, setDevoirs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [envoi, setEnvoi] = useState(false);
   const [form, setForm] = useState(FORM_VIDE);
   const [showForm, setShowForm] = useState(false);
   const [toDelete, setToDelete] = useState(null);
   const [editingDevoir, setEditingDevoir] = useState(null);
   const [editForm, setEditForm] = useState(null);
+  const descriptionRef = useAutoGrow(`${showForm}${form.description}`);
+  const editDescriptionRef = useAutoGrow(editForm?.description);
+
+  // Pastille de l'icône : suit les devoirs cochés ici, même si le widget du Dashboard est masqué
+  const nbARendre = devoirs.filter((d) => estARendre(d)).length;
+  useEffect(() => {
+    // Pas de mise à jour si le chargement a échoué : une erreur réseau ne doit pas effacer la pastille
+    if (!loading && !loadError) majPastille(nbARendre);
+  }, [loading, loadError, nbARendre]);
   const [onglet, setOnglet] = useState("aRendre"); // "aRendre" | "historique"
   // Filtres de l'"agenda de rendu" (issue #51)
   const [filtreType, setFiltreType] = useState("Tous");
@@ -165,28 +179,36 @@ export default function Devoirs() {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("nouveauDevoir", (devoir) => {
-      setDevoirs((prev) =>
-        [...prev.filter((d) => d.id !== devoir.id), devoir].sort(
+    // On fusionne avec l'éventuelle version déjà présente pour garder la coche "rendu"
+    // (changement d'audience : le serveur envoie devoirSupprime puis nouveauDevoir)
+    const onNouveau = (devoir) => {
+      setDevoirs((prev) => {
+        const existant = prev.find((d) => d.id === devoir.id);
+        return [...prev.filter((d) => d.id !== devoir.id), { ...existant, ...devoir }].sort(
           (a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)
-        )
-      );
-    });
+        );
+      });
+    };
 
-    socket.on("devoirSupprime", ({ id }) => {
+    const onSupprime = ({ id }) => {
       setDevoirs((prev) => prev.filter((d) => d.id !== id));
-    });
+    };
 
     // Le serveur ne renvoie pas "rendu" (c'est un état personnel, propre à chaque
     // utilisateur) : on fusionne pour ne jamais écraser sa propre coche
-    socket.on("devoirModifie", (devoir) => {
+    const onModifie = (devoir) => {
       setDevoirs((prev) => prev.map((d) => (d.id === devoir.id ? { ...d, ...devoir } : d)));
-    });
+    };
 
+    socket.on("nouveauDevoir", onNouveau);
+    socket.on("devoirSupprime", onSupprime);
+    socket.on("devoirModifie", onModifie);
+
+    // Handlers nommés : off() sans handler retirerait aussi ceux des autres composants
     return () => {
-      socket.off("nouveauDevoir");
-      socket.off("devoirSupprime");
-      socket.off("devoirModifie");
+      socket.off("nouveauDevoir", onNouveau);
+      socket.off("devoirSupprime", onSupprime);
+      socket.off("devoirModifie", onModifie);
     };
   }, [socket]);
 
@@ -204,12 +226,21 @@ export default function Devoirs() {
     return () => document.removeEventListener("keydown", onKey);
   }, [editingDevoir]);
 
+  // La promo entière n'est offerte au délégué que pour une évaluation : si le type repasse
+  // à "Devoir", on revient à "mon groupe"
+  function cibleValide(type, cible) {
+    return !cibleLibre && type !== "Evaluation" && cible.startsWith("promo:") ? "" : cible;
+  }
+
   function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const next = { ...form, [e.target.name]: e.target.value };
+    setForm({ ...next, cible: cibleValide(next.type, next.cible) });
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (envoi) return; // évite un double clic qui créerait deux devoirs
+    setEnvoi(true);
     try {
       // <input type="datetime-local"> renvoie une heure "nue" sans fuseau ; on la
       // convertit en UTC explicite dans le fuseau du navigateur avant l'envoi, sinon
@@ -219,12 +250,19 @@ export default function Devoirs() {
         cible: form.cible,
         dateLimite: new Date(form.dateLimite).toISOString(),
       });
-      setDevoirs((prev) => [...prev, data].sort((a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)));
+      // Le socket "nouveauDevoir" a pu l'ajouter avant la réponse HTTP : on dédoublonne par id
+      setDevoirs((prev) =>
+        [...prev.filter((d) => d.id !== data.id), data].sort(
+          (a, b) => new Date(a.dateLimite) - new Date(b.dateLimite)
+        )
+      );
       setForm(FORM_VIDE);
       setShowForm(false);
       toast(data.type === "Evaluation" ? "Évaluation créée" : "Devoir créé");
     } catch {
       toast("Impossible de créer le devoir", "error");
+    } finally {
+      setEnvoi(false);
     }
   }
 
@@ -372,7 +410,10 @@ export default function Devoirs() {
   // à venir et pas encore rendu n'a rien à faire ici, il reste dans "À rendre" (issue #42).
   const devoirsDeLOnglet =
     onglet === "aRendre"
-      ? devoirs.filter((d) => !d.rendu || sortants.has(`aRendre-${d.id}`))
+      ? devoirs.filter(
+          // Une évaluation passée ne se "rend" pas : elle quitte l'agenda d'elle-même
+          (d) => estARendre(d, now) || sortants.has(`aRendre-${d.id}`)
+        )
       : devoirs
           .filter((d) => d.rendu || new Date(d.dateLimite) < now || sortants.has(`historique-${d.id}`))
           .sort((a, b) => new Date(b.dateLimite) - new Date(a.dateLimite));
@@ -424,17 +465,23 @@ export default function Devoirs() {
       : [{ id: "historique", label: null, items: devoirsAffiches }];
 
   // Résumé en tête de page
-  const nonRendus = devoirs.filter((d) => !d.rendu);
+  const nonRendus = devoirs.filter((d) => estARendre(d, now));
   const nbEvaluations = nonRendus.filter(
     (d) => d.type === "Evaluation" && new Date(d.dateLimite) >= now
   ).length;
-  const nbRetard = nonRendus.filter((d) => urgenceEcheance(d.dateLimite, now) === "retard").length;
+  const nbRetard = nonRendus.filter((d) => d.type !== "Evaluation" && urgenceEcheance(d.dateLimite, now) === "retard").length;
 
   const filtresActifs =
     filtreType !== "Tous" || matiereActive !== "Toutes" || audienceActive !== "tous" || requete !== "";
 
   function renderCarte(devoir) {
-    const urgence = devoir.rendu ? "rendu" : urgenceEcheance(devoir.dateLimite, now);
+    // Une évaluation passée n'est jamais "en retard" : elle ne se rend pas
+    const urgence =
+      devoir.rendu || (devoir.type === "Evaluation" && new Date(devoir.dateLimite) < now)
+        ? devoir.rendu
+          ? "rendu"
+          : "depasse"
+        : urgenceEcheance(devoir.dateLimite, now);
     const { principal, secondaire } = libelleEcheance(devoir.dateLimite, now);
     const nbCommentaires = devoir._count?.commentaires || 0;
 
@@ -541,7 +588,9 @@ export default function Devoirs() {
                           </span>
                         )}
                         <span className={styles.commentDate}>{formatDateCommentaire(c.createdAt)}</span>
-                        {(moderateur || c.auteur.id === user?.id) && (
+                        {(moderateur ||
+                          (user?.role === "professeur" && devoir.auteur?.id === user.id) ||
+                          c.auteur.id === user?.id) && (
                           <button
                             className={styles.commentDelete}
                             onClick={() => deleteComment(devoir.id, c.id)}
@@ -647,13 +696,16 @@ export default function Devoirs() {
             <input
               name="titre"
               placeholder="Titre"
+              autoComplete="off"
               value={form.titre}
               onChange={handleChange}
               required
               autoFocus
             />
             <textarea
+              ref={descriptionRef}
               name="description"
+              autoComplete="off"
               placeholder="Consignes / description (optionnel)"
               rows={4}
               value={form.description}
@@ -666,9 +718,10 @@ export default function Devoirs() {
               options={options}
               groupes={groupes}
               libre={cibleLibre}
+              promoEval={user?.role === "delegue" && form.type === "Evaluation"}
             />
             <label className={styles.dateLabel}>
-              Date limite
+              {form.type === "Evaluation" ? "Date" : "Date limite"}
               <input
                 name="dateLimite"
                 type="datetime-local"
@@ -677,7 +730,7 @@ export default function Devoirs() {
                 required
               />
             </label>
-            <button type="submit">
+            <button type="submit" disabled={envoi}>
               {form.type === "Evaluation" ? "Créer l'évaluation" : "Créer le devoir"}
             </button>
           </form>
@@ -821,7 +874,13 @@ export default function Devoirs() {
             <h2 className={styles.editModalTitle}>Modifier le devoir</h2>
             <select
               value={editForm.type}
-              onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
+              onChange={(e) =>
+                setEditForm({
+                  ...editForm,
+                  type: e.target.value,
+                  cible: cibleValide(e.target.value, editForm.cible),
+                })
+              }
             >
               {TYPES.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -831,6 +890,7 @@ export default function Devoirs() {
             </select>
             <input
               placeholder="Titre"
+              autoComplete="off"
               value={editForm.titre}
               onChange={(e) => setEditForm({ ...editForm, titre: e.target.value })}
               required
@@ -843,6 +903,8 @@ export default function Devoirs() {
               required
             />
             <textarea
+              ref={editDescriptionRef}
+              autoComplete="off"
               placeholder="Consignes / description (optionnel)"
               rows={4}
               value={editForm.description}
@@ -855,9 +917,10 @@ export default function Devoirs() {
               options={options}
               groupes={groupes}
               libre={cibleLibre}
+              promoEval={user?.role === "delegue" && editForm.type === "Evaluation"}
             />
             <label className={styles.dateLabel}>
-              Date limite
+              {editForm.type === "Evaluation" ? "Date" : "Date limite"}
               <input
                 type="datetime-local"
                 value={editForm.dateLimite}

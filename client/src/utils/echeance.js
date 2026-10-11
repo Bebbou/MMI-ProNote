@@ -23,6 +23,12 @@ function joursRestants(iso, now) {
   return Math.round((debutDeJournee(iso) - debutDeJournee(now)) / UN_JOUR_MS);
 }
 
+// Reste à rendre : pas coché, et pas une évaluation déjà passée (elle ne se "rend" pas)
+export function estARendre(devoir, now = new Date()) {
+  if (devoir.rendu) return false;
+  return !(devoir.type === "Evaluation" && new Date(devoir.dateLimite) < now);
+}
+
 export function groupeEcheance(iso, now = new Date()) {
   if (new Date(iso) < now) return "retard";
   const jours = joursRestants(iso, now);

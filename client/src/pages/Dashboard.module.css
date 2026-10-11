@@ -58,3 +58,55 @@
   font-size: 0.775rem;
   color: var(--text-faint);
 }
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -0.5rem;
+}
+
+.toolbarBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.panelList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.panelItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.panelItem label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.panelMoves {
+  display: flex;
+  gap: 0.25rem;
+}
