@@ -70,6 +70,19 @@
   align-items: center;
   gap: 0.4rem;
   font-size: 0.8rem;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.toolbarBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .panel {
@@ -104,9 +117,42 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.panelItem input[type='checkbox'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
 
 .panelMoves {
   display: flex;
   gap: 0.25rem;
+}
+
+.panelMoves button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  color: var(--text);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.panelMoves button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.panelMoves button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
