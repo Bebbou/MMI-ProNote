@@ -6,12 +6,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--prefix", "client"],
       "port": 5173
-    },
-    {
-      "name": "client-pr57",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "C:/Users/cvoll/AppData/Local/Temp/claude/79fa4f23c07cf7af/91e7792f-605d-47fc-8b1a-eadf4c4c4dcb/scratchpad/pr57/client", "--", "--port", "5174", "--strictPort"],
-      "port": 5174
     }
   ]
 }
