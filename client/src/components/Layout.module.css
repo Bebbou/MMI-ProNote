@@ -305,6 +305,12 @@
     display: none;
   }
 
+  /* Barre de 64px : le logo et la cloche s'empilent */
+  .sidebarTop {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
   .navLabel {
     display: none;
   }

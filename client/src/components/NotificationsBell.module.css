@@ -2,7 +2,7 @@
   position: relative;
 }
 
-/* La version "nav" vit dans la barre latérale (desktop/tablette), la version "header" dans
+/* La version "sidebar" vit dans la barre latérale (desktop/tablette), la version "header" dans
    l'en-tête mobile : chacune est masquée dans l'autre contexte */
 .header {
   display: none;
@@ -32,6 +32,41 @@
 .header .bouton:hover,
 .boutonOuvert {
   color: var(--accent);
+}
+
+/* Barre latérale : bouton rond, clairement une action et non un lien de page */
+.sidebar .bouton {
+  position: relative;
+  width: 2.25rem;
+  height: 2.25rem;
+  justify-content: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.sidebar .bouton:hover,
+.sidebar .boutonOuvert {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.sidebar .bouton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* La pastille s'accroche au coin du bouton et non à l'icône */
+.sidebar .icone {
+  position: static;
+}
+
+.sidebar .pastille {
+  top: -4px;
+  right: -4px;
 }
 
 .icone {
@@ -198,7 +233,7 @@
 
 /* Mobile : la cloche passe dans l'en-tête, le panneau s'étale sous lui */
 @media (max-width: 768px) {
-  .nav {
+  .sidebar {
     display: none;
   }
 

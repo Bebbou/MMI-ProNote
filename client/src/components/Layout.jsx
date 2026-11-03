@@ -94,6 +94,8 @@ export default function Layout({ children }) {
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarTop}>
           <img src={logoMmi} alt="MMI Béziers" className={styles.logo} />
+          {/* Ce n'est pas une page : icône à part, hors de la liste de navigation */}
+          <NotificationsBell variant="sidebar" {...notifs} />
           <button className={styles.closeBtn} onClick={() => setMenuOpen(false)} aria-label="Fermer le menu">
             <X size={18} strokeWidth={1.5} />
           </button>
@@ -103,11 +105,6 @@ export default function Layout({ children }) {
           <span className={styles.userGroupe}>{user?.groupe}</span>
         </div>
         <nav className={styles.nav}>
-          <NotificationsBell
-            variant="nav"
-            {...notifs}
-            classes={{ bouton: styles.navLink, label: styles.navLabel }}
-          />
           {allNavItems.map((item) => (
             <NavLink
               key={item.to}
