@@ -6,6 +6,7 @@ import PageTitle from "../components/PageTitle";
 import { WIDGETS } from "../components/widgets";
 import { useWidgetPrefs, apercuDeplacement } from "../hooks/useWidgetPrefs";
 import { useFlip } from "../hooks/useFlip";
+import { useDonneesDashboard } from "../hooks/useDonneesDashboard";
 import styles from "./Dashboard.module.css";
 
 const ROLE_LABELS = {
@@ -19,6 +20,8 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { prefs, basculer, deplacer, deplacerVers, reinitialiser } = useWidgetPrefs(user?.id);
   const [edition, setEdition] = useState(false);
+  // Chargé une fois ici : plusieurs tuiles se servent des mêmes devoirs et cours
+  const donnees = useDonneesDashboard();
 
   // Glisser-déposer avec les Pointer Events : un seul code pour la souris et le doigt
   // (l'API HTML5 drag-and-drop ne fonctionne pas au tactile).
@@ -134,7 +137,7 @@ export default function Dashboard() {
             .filter((w) => w.visible)
             .map(({ id }) => {
               const { Composant } = WIDGETS[id];
-              return <Composant key={id} />;
+              return <Composant key={id} donnees={donnees} />;
             })}
         </div>
       </div>
