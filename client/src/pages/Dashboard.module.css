@@ -97,6 +97,8 @@
 }
 
 .panelList {
+  /* Référence des offsetTop des lignes (mesure du glisser et animation) */
+  position: relative;
   list-style: none;
   padding: 0;
   margin: 0;
@@ -106,11 +108,77 @@
   gap: 0.4rem;
 }
 
+.panelAide {
+  margin: 0;
+  font-size: 0.775rem;
+  color: var(--text-faint);
+}
+
 .panelItem {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.4rem;
   font-size: 0.875rem;
+  padding: 0.15rem 0.5rem 0.15rem 0.15rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  /* `scale` (propriété à part) ne gêne pas le `transform` de l'animation FLIP */
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s,
+    scale 0.2s;
+}
+
+/* Ligne tenue pendant le glisser : elle se "soulève" au-dessus des autres */
+.panelItemGlisse {
+  position: relative;
+  z-index: 1;
+  scale: 1.02;
+  background: var(--bg-input);
+  border-color: var(--accent);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.18);
+}
+
+.poignee {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--text-faint);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: grab;
+  /* Sans ça, au doigt, le navigateur ferait défiler la page au lieu de laisser glisser */
+  touch-action: none;
+  transition:
+    color 0.15s,
+    background-color 0.15s;
+}
+
+.poignee:hover,
+.poignee:focus-visible {
+  color: var(--accent);
+  background: var(--bg-input);
+}
+
+.panelItemGlisse .poignee {
+  cursor: grabbing;
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panelItem,
+  .poignee {
+    transition: none;
+  }
+
+  .panelItemGlisse {
+    scale: none;
+  }
 }
 
 .panelItem label {
@@ -126,33 +194,4 @@
   height: 1.1rem;
   accent-color: var(--accent);
   cursor: pointer;
-}
-
-.panelMoves {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.panelMoves button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
-  color: var(--text);
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.panelMoves button:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.panelMoves button:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
 }
