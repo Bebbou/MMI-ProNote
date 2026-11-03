@@ -22,6 +22,16 @@ function lire(cle) {
   }
 }
 
+// Renvoie une copie de la liste où le widget `id` est retiré puis réinséré au rang `index`.
+// Sert à la fois à l'aperçu pendant le glisser et à l'enregistrement au dépôt.
+export function apercuDeplacement(prefs, id, index) {
+  const widget = prefs.find((w) => w.id === id);
+  if (!widget) return prefs;
+  const reste = prefs.filter((w) => w.id !== id);
+  reste.splice(index, 0, widget);
+  return reste;
+}
+
 export function useWidgetPrefs(userId) {
   const cle = `widgets:${userId ?? "anonyme"}`;
   const [prefs, setPrefs] = useState(
@@ -52,8 +62,15 @@ export function useWidgetPrefs(userId) {
     enregistrer(copie);
   };
 
+  // Place un widget directement à un rang donné (glisser-déposer)
+  const deplacerVers = (id, index) => {
+    const i = prefs.findIndex((w) => w.id === id);
+    if (i < 0 || i === index || index < 0 || index >= prefs.length) return;
+    enregistrer(apercuDeplacement(prefs, id, index));
+  };
+
   const reinitialiser = () =>
     enregistrer(WIDGETS_PAR_DEFAUT.map((id) => ({ id, visible: true })));
 
-  return { prefs, basculer, deplacer, reinitialiser };
+  return { prefs, basculer, deplacer, deplacerVers, reinitialiser };
 }
