@@ -366,22 +366,6 @@
   text-decoration: line-through;
 }
 
-.deleteBtn {
-  position: absolute;
-  top: 0.2rem;
-  right: 0.3rem;
-  background: none;
-  border: none;
-  color: var(--text-faint);
-  cursor: pointer;
-  font-size: 0.7rem;
-  transition: color 0.15s;
-}
-
-.deleteBtn:hover {
-  color: var(--danger);
-}
-
 /* --- Onglets jours : uniquement visibles en vue mobile (un seul jour à la fois) --- */
 
 .dayTabs {
@@ -584,6 +568,29 @@
   color: var(--text);
   font-weight: 600;
   text-align: right;
+}
+
+.detailActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.detailDelete {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--danger);
+  border-radius: 8px;
+  padding: 0.6rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.detailDelete:hover {
+  border-color: var(--danger);
 }
 
 .detailClose {

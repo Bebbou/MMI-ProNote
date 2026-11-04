@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
+import ConfirmModal from "../components/ConfirmModal";
+import { toast } from "../components/Toast";
 import api from "../api/index.js";
 import {
   FileText,
@@ -29,7 +31,7 @@ function formatDate(iso) {
 }
 
 export default function Documents() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   // Issue #25 : les professeurs publient des cours, mais ne gèrent que les leurs
   const peutPublier = isAdmin || user?.role === "professeur";
@@ -37,6 +39,7 @@ export default function Documents() {
 
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [filtreMat, setFiltreMat] = useState("Toutes");
   const [filtreProf, setFiltreProf] = useState("Tous");
   const [filtreType, setFiltreType] = useState("Tous");
@@ -51,6 +54,7 @@ export default function Documents() {
   const [showUpload, setShowUpload] = useState(false);
   const [editingDoc, setEditingDoc] = useState(null);
   const [editForm, setEditForm] = useState(null);
+  const [docASupprimer, setDocASupprimer] = useState(null);
 
   // Form upload
   const [form, setForm] = useState({
@@ -75,12 +79,19 @@ export default function Documents() {
     api.get("/auth/groupes").then((r) => setPromos(Array.from(new Set(r.data.map((g) => g.promo))).sort()));
   }, [peutPublier]);
 
-  useEffect(() => {
-    api.get("/documents").then((r) => {
-      setDocs(r.data);
-      setLoading(false);
-    });
+  const fetchDocs = useCallback(() => {
+    setLoading(true);
+    setLoadError(false);
+    api
+      .get("/documents")
+      .then((r) => setDocs(r.data))
+      .catch(() => setLoadError(true))
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchDocs();
+  }, [fetchDocs]);
 
   const filteredDocs = docs
     .filter((d) => !isAdmin || filtrePromo === "Toutes" || d.promo === filtrePromo)
@@ -95,39 +106,58 @@ export default function Documents() {
     }
     setExpandedId(docId);
     if (!commentaires[docId]) {
-      const r = await api.get(`/documents/${docId}/commentaires`);
-      setCommentaires((prev) => ({ ...prev, [docId]: r.data }));
+      try {
+        const r = await api.get(`/documents/${docId}/commentaires`);
+        setCommentaires((prev) => ({ ...prev, [docId]: r.data }));
+      } catch {
+        setExpandedId(null);
+        toast("Impossible de charger les commentaires", "error");
+      }
     }
   }
 
   async function sendComment(docId) {
     const content = commentInput[docId]?.trim();
     if (!content) return;
-    const r = await api.post(`/documents/${docId}/commentaires`, { content });
-    setCommentaires((prev) => ({ ...prev, [docId]: [...(prev[docId] || []), r.data] }));
-    setCommentInput((prev) => ({ ...prev, [docId]: "" }));
-    setDocs((prev) =>
-      prev.map((d) =>
-        d.id === docId ? { ...d, _count: { commentaires: (d._count?.commentaires || 0) + 1 } } : d
-      )
-    );
+    try {
+      const r = await api.post(`/documents/${docId}/commentaires`, { content });
+      setCommentaires((prev) => ({ ...prev, [docId]: [...(prev[docId] || []), r.data] }));
+      setCommentInput((prev) => ({ ...prev, [docId]: "" }));
+      setDocs((prev) =>
+        prev.map((d) =>
+          d.id === docId ? { ...d, _count: { commentaires: (d._count?.commentaires || 0) + 1 } } : d
+        )
+      );
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible d'envoyer le commentaire", "error");
+    }
   }
 
   async function deleteComment(docId, commentId) {
-    await api.delete(`/documents/commentaires/${commentId}`);
-    setCommentaires((prev) => ({ ...prev, [docId]: prev[docId].filter((c) => c.id !== commentId) }));
-    setDocs((prev) =>
-      prev.map((d) =>
-        d.id === docId ? { ...d, _count: { commentaires: (d._count?.commentaires || 1) - 1 } } : d
-      )
-    );
+    try {
+      await api.delete(`/documents/commentaires/${commentId}`);
+      setCommentaires((prev) => ({ ...prev, [docId]: prev[docId].filter((c) => c.id !== commentId) }));
+      setDocs((prev) =>
+        prev.map((d) =>
+          d.id === docId ? { ...d, _count: { commentaires: (d._count?.commentaires || 1) - 1 } } : d
+        )
+      );
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible de supprimer le commentaire", "error");
+    }
   }
 
-  async function deleteDoc(docId) {
-    if (!confirm("Supprimer ce document ?")) return;
-    await api.delete(`/documents/${docId}`);
-    setDocs((prev) => prev.filter((d) => d.id !== docId));
-    if (expandedId === docId) setExpandedId(null);
+  async function confirmerSuppressionDoc() {
+    const { id } = docASupprimer;
+    setDocASupprimer(null);
+    try {
+      await api.delete(`/documents/${id}`);
+      setDocs((prev) => prev.filter((d) => d.id !== id));
+      if (expandedId === id) setExpandedId(null);
+      toast("Document supprimé");
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible de supprimer le document", "error");
+    }
   }
 
   function openEdit(doc) {
@@ -144,27 +174,31 @@ export default function Documents() {
 
   async function handleEditSubmit(e) {
     e.preventDefault();
-    const { data } = await api.patch(`/documents/${editingDoc.id}`, editForm);
-    setDocs((prev) => prev.map((d) => (d.id === data.id ? data : d)));
-    setEditingDoc(null);
+    // En cas d'échec la modale reste ouverte : la saisie n'est pas perdue
+    try {
+      const { data } = await api.patch(`/documents/${editingDoc.id}`, editForm);
+      setDocs((prev) => prev.map((d) => (d.id === data.id ? data : d)));
+      setEditingDoc(null);
+      toast("Document modifié");
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible de modifier le document", "error");
+    }
   }
 
-  function downloadDoc(doc) {
-    const url = `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/documents/${doc.id}/download`;
-    const a = document.createElement("a");
-    a.href = url;
-    a.setAttribute("Authorization", `Bearer ${token}`);
-    // Use fetch to include auth header
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.blob())
-      .then((blob) => {
-        const burl = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = burl;
-        link.download = doc.fileName;
-        link.click();
-        URL.revokeObjectURL(burl);
-      });
+  // Passe par axios : le jeton est ajouté par l'intercepteur, et une réponse 403 ou 404
+  // part dans le catch au lieu d'être enregistrée comme si c'était le PDF.
+  async function downloadDoc(doc) {
+    try {
+      const { data } = await api.get(`/documents/${doc.id}/download`, { responseType: "blob" });
+      const burl = URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = burl;
+      link.download = doc.fileName;
+      link.click();
+      URL.revokeObjectURL(burl);
+    } catch {
+      toast("Impossible de télécharger le document", "error");
+    }
   }
 
   async function handleUpload(e) {
@@ -197,6 +231,7 @@ export default function Documents() {
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";
       setShowUpload(false);
+      toast("Document publié");
     } catch (err) {
       setUploadError(err.response?.data?.error || "Erreur lors de l'upload.");
     } finally {
@@ -224,7 +259,9 @@ export default function Documents() {
           <div>
             <h1 className={styles.title}>Cours & Ressources</h1>
             <p className={styles.subtitle}>
-              {docs.length} document{docs.length !== 1 ? "s" : ""} disponible{docs.length !== 1 ? "s" : ""}
+              {loadError
+                ? "Liste indisponible"
+                : `${docs.length} document${docs.length !== 1 ? "s" : ""} disponible${docs.length !== 1 ? "s" : ""}`}
               {stockage && (
                 <>
                   {" · "}
@@ -376,6 +413,11 @@ export default function Documents() {
         {/* Liste des documents */}
         {loading ? (
           <p className={styles.empty}>Chargement…</p>
+        ) : loadError ? (
+          <div className={styles.loadError}>
+            <p>Impossible de charger les documents.</p>
+            <button onClick={fetchDocs}>Réessayer</button>
+          </div>
         ) : filteredDocs.length === 0 ? (
           <p className={styles.empty}>Aucun document disponible.</p>
         ) : (
@@ -432,7 +474,7 @@ export default function Documents() {
                     {peutGerer(doc) && (
                       <button
                         className={styles.deleteBtn}
-                        onClick={() => deleteDoc(doc.id)}
+                        onClick={() => setDocASupprimer(doc)}
                         title="Supprimer"
                       >
                         <Trash2 size={14} strokeWidth={1.5} />
@@ -572,6 +614,14 @@ export default function Documents() {
           </form>
         </div>
       )}
+
+      <ConfirmModal
+        open={docASupprimer !== null}
+        title="Supprimer ce document ?"
+        message={docASupprimer && `« ${docASupprimer.titre} » et ses commentaires seront supprimés.`}
+        onConfirm={confirmerSuppressionDoc}
+        onCancel={() => setDocASupprimer(null)}
+      />
     </Layout>
   );
 }

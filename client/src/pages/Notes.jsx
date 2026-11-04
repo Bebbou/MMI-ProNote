@@ -36,13 +36,13 @@ export default function Notes() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const { data } = await api.post("/notes", form);
+      const { data } = await api.post("/notes", { ...form, coefficient: form.coefficient || 1 });
       setNotes([data, ...notes]);
       setForm({ matiere: "", valeur: "", coefficient: "" });
       setShowForm(false);
       toast("Note ajoutee");
-    } catch {
-      toast("Impossible d'ajouter la note", "error");
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible d'ajouter la note", "error");
     }
   }
 
@@ -58,13 +58,10 @@ export default function Notes() {
     }
   }
 
+  // Même calcul que NotesWidget : sans coefficient positif, pas de moyenne (évite "NaN/20")
+  const totalCoef = notes.reduce((acc, n) => acc + n.coefficient, 0);
   const moyenne =
-    notes.length === 0
-      ? null
-      : (
-          notes.reduce((acc, n) => acc + n.valeur * n.coefficient, 0) /
-          notes.reduce((acc, n) => acc + n.coefficient, 0)
-        ).toFixed(2);
+    totalCoef > 0 ? (notes.reduce((acc, n) => acc + n.valeur * n.coefficient, 0) / totalCoef).toFixed(2) : null;
 
   return (
     <Layout>
@@ -105,8 +102,9 @@ export default function Notes() {
               name="coefficient"
               type="number"
               min="0.5"
+              max="100"
               step="0.5"
-              placeholder="Coefficient"
+              placeholder="Coefficient (1 par défaut)"
               value={form.coefficient}
               onChange={handleChange}
             />

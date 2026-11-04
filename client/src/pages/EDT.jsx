@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 import PageTitle from "../components/PageTitle";
+import ConfirmModal from "../components/ConfirmModal";
+import { toast } from "../components/Toast";
 import api from "../api/index.js";
 import styles from "./EDT.module.css";
 
@@ -72,6 +74,7 @@ export default function EDT() {
     return jourSemaine >= 1 && jourSemaine <= 5 ? jourSemaine - 1 : 0;
   });
   const [coursDetail, setCoursDetail] = useState(null); // cours cliqué, affiché dans une modale
+  const [coursASupprimer, setCoursASupprimer] = useState(null);
   const [groupes, setGroupes] = useState([]);
   const [groupeId, setGroupeId] = useState(null); // groupe dont on consulte l'EDT (le sien par défaut)
 
@@ -172,20 +175,38 @@ export default function EDT() {
     // que le serveur (en UTC sur Railway) interpréterait à tort comme de l'UTC. On la
     // convertit ici en UTC explicite, pendant qu'on est encore dans le fuseau du
     // navigateur (donc le bon fuseau, celui de l'utilisateur) — issue #44.
-    const { data } = await api.post("/edt", {
-      ...form,
-      dateDebut: new Date(form.dateDebut).toISOString(),
-      dateFin: new Date(form.dateFin).toISOString(),
-      groupeId,
-    });
-    setCours([...cours, data]);
-    setForm({ matiere: "", dateDebut: "", dateFin: "", salle: "", prof: "" });
-    setShowForm(false);
+    try {
+      const { data } = await api.post("/edt", {
+        ...form,
+        dateDebut: new Date(form.dateDebut).toISOString(),
+        dateFin: new Date(form.dateFin).toISOString(),
+        groupeId,
+      });
+      setCours([...cours, data]);
+      setForm({ matiere: "", dateDebut: "", dateFin: "", salle: "", prof: "" });
+      setShowForm(false);
+      toast("Cours ajouté");
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible d'ajouter le cours", "error");
+    }
   }
 
-  async function handleDelete(id) {
-    await api.delete(`/edt/${id}`);
-    setCours(cours.filter((c) => c.id !== id));
+  // La modale de détail se ferme d'abord : une seule modale à l'écran à la fois
+  function demanderSuppression() {
+    setCoursASupprimer(coursDetail);
+    setCoursDetail(null);
+  }
+
+  async function confirmerSuppression() {
+    const { id } = coursASupprimer;
+    setCoursASupprimer(null);
+    try {
+      await api.delete(`/edt/${id}`);
+      setCours((prev) => prev.filter((c) => c.id !== id));
+      toast("Cours supprimé");
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible de supprimer le cours", "error");
+    }
   }
 
   return (
@@ -349,26 +370,6 @@ export default function EDT() {
                     <span className={styles.blocMatiere}>{c.matiere}</span>
                     {c.salle && <span className={styles.blocMeta}>{c.salle}</span>}
                     {c.prof && <span className={styles.blocMeta}>{c.prof}</span>}
-                    {user?.role === "admin" && (
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        className={styles.deleteBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(c.id);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            handleDelete(c.id);
-                          }
-                        }}
-                      >
-                        ✕
-                      </span>
-                    )}
                   </button>
                 );
               })}
@@ -401,12 +402,27 @@ export default function EDT() {
                 <dd>{coursDetail.prof || "Non renseigné"}</dd>
               </div>
             </dl>
-            <button type="button" className={styles.detailClose} onClick={() => setCoursDetail(null)}>
-              Fermer
-            </button>
+            <div className={styles.detailActions}>
+              {user?.role === "admin" && (
+                <button type="button" className={styles.detailDelete} onClick={demanderSuppression}>
+                  Supprimer
+                </button>
+              )}
+              <button type="button" className={styles.detailClose} onClick={() => setCoursDetail(null)}>
+                Fermer
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={coursASupprimer !== null}
+        title="Supprimer ce cours ?"
+        message={coursASupprimer && `${coursASupprimer.matiere} sera retiré de l'emploi du temps.`}
+        onConfirm={confirmerSuppression}
+        onCancel={() => setCoursASupprimer(null)}
+      />
     </Layout>
   );
 }
