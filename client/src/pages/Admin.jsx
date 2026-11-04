@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
+import { Plus } from "lucide-react";
 import Layout from "../components/Layout";
+import PageTitle from "../components/PageTitle";
 import ConfirmModal from "../components/ConfirmModal";
 import { SkeletonCards } from "../components/Skeleton";
 import { toast } from "../components/Toast";
@@ -190,7 +192,7 @@ export default function Admin() {
     return (
       <Layout>
         <div className={styles.page}>
-          <h1>Panel Admin</h1>
+          <PageTitle>Panel Admin</PageTitle>
           {loading ? (
             <SkeletonCards count={4} height={60} />
           ) : (
@@ -207,7 +209,7 @@ export default function Admin() {
   return (
     <Layout>
       <div className={styles.page}>
-        <h1>Panel Admin</h1>
+        <PageTitle>Panel Admin</PageTitle>
 
         <div className={styles.filters}>
           <label className={styles.filterLabel}>
@@ -327,7 +329,10 @@ export default function Admin() {
                   required
                 />
               </label>
-              <button type="submit">+ Créer le groupe</button>
+              <button type="submit" className={styles.creerBtn}>
+                <Plus size={16} strokeWidth={1.5} />
+                Créer le groupe
+              </button>
             </div>
             {newGroupeError && <p className={styles.error}>{newGroupeError}</p>}
           </form>
@@ -341,11 +346,11 @@ export default function Admin() {
                   </span>
                   <input
                     type="url"
+                    className={styles.icalInput}
                     placeholder="Lien iCal (ADE)"
                     aria-label={`Lien iCal de ${g.nom} (${g.promo})`}
                     value={icalDrafts[g.id] ?? ""}
                     onChange={(e) => setIcalDrafts({ ...icalDrafts, [g.id]: e.target.value })}
-                    style={{ minWidth: "320px" }}
                   />
                   {syncStatus[g.id] && <span className={styles.email}>{syncStatus[g.id]}</span>}
                 </div>

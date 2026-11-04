@@ -365,6 +365,43 @@
   transition: border-color 0.15s;
 }
 
+.icalInput {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: inherit;
+  min-width: min(320px, 100%);
+  transition: border-color 0.15s;
+}
+
+.icalInput:focus {
+  border-color: var(--accent);
+}
+
+.creerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--accent-solid);
+  color: var(--on-accent-solid);
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.1rem;
+  font-size: 0.825rem;
+  font-family: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.creerBtn:hover {
+  background: var(--accent-solid-hover);
+}
+
 .filterSearch:focus {
   border-color: var(--accent);
 }
@@ -410,4 +447,9 @@
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
+}
+
+/* Le nom du groupe reste sur une ligne à côté du champ iCal */
+.info:has(.icalInput) .nom {
+  white-space: nowrap;
 }

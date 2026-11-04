@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  max-width: 500px;
+  max-width: 720px;
 }
 
 .page h1 {

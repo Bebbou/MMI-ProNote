@@ -1,6 +1,4 @@
 .page {
-  max-width: 860px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -26,10 +24,10 @@
   color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
-  padding: 0.6rem 1rem;
-  font-size: 0.875rem;
+  padding: 0.45rem 1.1rem;
+  font-size: 0.825rem;
   font-family: inherit;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s;
@@ -519,10 +517,6 @@
   .header {
     flex-direction: column;
     align-items: flex-start;
-  }
-  .uploadBtn {
-    width: 100%;
-    justify-content: center;
   }
 }
 

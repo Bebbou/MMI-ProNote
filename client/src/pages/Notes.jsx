@@ -8,6 +8,9 @@ import { toast } from "../components/Toast";
 import api from "../api/index.js";
 import styles from "./Notes.module.css";
 
+// Virgule française, comme sur le Dashboard : 9,5 et non 9.5
+const nombre = (n) => n.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+
 export default function Notes() {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +65,7 @@ export default function Notes() {
   // Même calcul que NotesWidget : sans coefficient positif, pas de moyenne (évite "NaN/20")
   const totalCoef = notes.reduce((acc, n) => acc + n.coefficient, 0);
   const moyenne =
-    totalCoef > 0 ? (notes.reduce((acc, n) => acc + n.valeur * n.coefficient, 0) / totalCoef).toFixed(2) : null;
+    totalCoef > 0 ? notes.reduce((acc, n) => acc + n.valeur * n.coefficient, 0) / totalCoef : null;
 
   return (
     <Layout>
@@ -70,9 +73,9 @@ export default function Notes() {
         <div className={styles.header}>
           <div>
             <PageTitle>Mes notes</PageTitle>
-            {moyenne && (
+            {moyenne !== null && (
               <p className={styles.moyenne}>
-                Moyenne générale : <strong>{moyenne}/20</strong>
+                Moyenne générale : <strong>{nombre(moyenne)}/20</strong>
               </p>
             )}
           </div>
@@ -132,10 +135,10 @@ export default function Notes() {
               <div key={note.id} className={styles.card}>
                 <div className={styles.cardLeft}>
                   <span className={styles.matiere}>{note.matiere}</span>
-                  <span className={styles.coef}>Coef. {note.coefficient}</span>
+                  <span className={styles.coef}>Coef. {nombre(note.coefficient)}</span>
                 </div>
                 <div className={styles.cardRight}>
-                  <span className={styles.valeur}>{note.valeur}/20</span>
+                  <span className={styles.valeur}>{nombre(note.valeur)}/20</span>
                   <button
                     className={styles.deleteBtn}
                     onClick={() => setToDelete(note.id)}
