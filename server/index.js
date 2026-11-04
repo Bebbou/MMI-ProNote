@@ -15,14 +15,10 @@ import notesRoutes from "./routes/notes.js";
 import edtRoutes from "./routes/edt.js";
 import profilRoutes from "./routes/profil.js";
 import notificationsRoutes from "./routes/notifications.js";
-import chatRoutes from "./routes/chat.js";
 import documentsRoutes from "./routes/documents.js";
-import sondagesRoutes from "./routes/sondages.js";
 import optionsRoutes from "./routes/options.js";
-import { notifierSansBloquer } from "./utils/notifier.js";
 import { syncTousLesGroupes } from "./services/edtSync.js";
 import { envoyerRappels, purgerAnciennesNotifications } from "./services/rappels.js";
-import { utilisateurPeutAccederAuCanal } from "./utils/chatAccess.js";
 import { compteRequetes, lireStats, fluxEvenements, signalerConnexion } from "./utils/stats.js";
 
 const app = express();
@@ -101,9 +97,7 @@ app.use("/notes", notesRoutes);
 app.use("/edt", edtRoutes);
 app.use("/profil", profilRoutes);
 app.use("/notifications", notificationsRoutes);
-app.use("/chat", chatRoutes);
 app.use("/documents", documentsRoutes);
-app.use("/sondages", sondagesRoutes);
 app.use("/options", optionsRoutes);
 
 // Gestion d'erreurs globale : toute erreur non attrapée dans une route
@@ -115,7 +109,7 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: "Erreur serveur. Réessaie plus tard." });
 });
 
-// Socket.IO — auth + chat temps réel
+// Socket.IO — auth + événements temps réel
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
   if (!token) return next(new Error("Non authentifié"));
@@ -154,96 +148,8 @@ io.on("connection", (socket) => {
     socket.join(`groupe-${groupeId}`);
   });
 
-  // Idem pour les canaux de chat : on vérifie que ce canal est bien accessible
-  // à ce groupe avant de rejoindre la room (sinon fuite des messages temps réel)
-  socket.on("rejoindreChannel", async (channelId) => {
-    try {
-      const channel = await prisma.channel.findUnique({ where: { id: Number(channelId) } });
-      if (!(await utilisateurPeutAccederAuCanal(socket.user, channel))) return;
-      socket.join(`channel-${channelId}`);
-    } catch {}
-  });
-
-  socket.on("quitterChannel", (channelId) => {
-    socket.leave(`channel-${channelId}`);
-  });
-
-  socket.on("envoyerMessage", async ({ channelId, content, replyToId }) => {
-    if (!content?.trim() || !channelId) return;
-    try {
-      const channel = await prisma.channel.findUnique({ where: { id: channelId } });
-      if (!(await utilisateurPeutAccederAuCanal(socket.user, channel))) return;
-      // Bloquer les étudiants sur le canal Annonces
-      if (channel?.type === "annonce" && !["admin", "delegue"].includes(socket.user.role)) return;
-
-      const message = await prisma.message.create({
-        data: {
-          content: content.trim(),
-          channelId,
-          auteurId: socket.user.id,
-          ...(replyToId ? { replyToId } : {}),
-        },
-        include: {
-          auteur: { select: { id: true, nom: true } },
-          reactions: { include: { user: { select: { id: true, nom: true } } } },
-          replyTo: { select: { id: true, content: true, auteur: { select: { id: true, nom: true } } } },
-        },
-      });
-      io.to(`channel-${channelId}`).emit("nouveauMessage", message);
-
-      // Notif push pour les annonces
-      if (channel?.type === "annonce") {
-        notifierSansBloquer({
-          where: { groupe: { promo: channel.promo } },
-          categorie: "annonce",
-          exclureUserId: socket.user.id,
-          payload: {
-            title: `Annonce · ${message.auteur.nom}`,
-            body: message.content.slice(0, 120),
-            url: "/chat",
-            tag: `annonce-${message.id}`,
-          },
-        });
-      }
-    } catch {}
-  });
-
-  socket.on("startTyping", ({ channelId, nom }) => {
-    socket.to(`channel-${channelId}`).emit("userTyping", {
-      userId: socket.user.id,
-      nom,
-      channelId,
-    });
-  });
-
-  socket.on("stopTyping", ({ channelId }) => {
-    socket.to(`channel-${channelId}`).emit("userStopTyping", {
-      userId: socket.user.id,
-      channelId,
-    });
-  });
-
   socket.on("disconnect", () => {});
 });
-
-// "général" est unique et partagé par tous. "Annonces" existe une fois par promo
-// (une nouvelle promo qui apparaît dans Groupe en obtient une automatiquement).
-async function seedChannels() {
-  await prisma.channel.upsert({
-    where: { nom_promo: { nom: "général", promo: null } },
-    update: {},
-    create: { nom: "général", description: "Canal ouvert à tous", type: "general", promo: null },
-  });
-
-  const promos = await prisma.groupe.findMany({ distinct: ["promo"], select: { promo: true } });
-  for (const { promo } of promos) {
-    await prisma.channel.upsert({
-      where: { nom_promo: { nom: "Annonces", promo } },
-      update: {},
-      create: { nom: "Annonces", description: `Annonces ${promo}`, type: "annonce", promo },
-    });
-  }
-}
 
 process.on("uncaughtException", (e) => console.error("uncaughtException:", e));
 process.on("unhandledRejection", (e) => console.error("unhandledRejection:", e));
@@ -274,11 +180,6 @@ async function rappels() {
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, async () => {
   console.log(`Serveur démarré sur http://localhost:${PORT}`);
-  try {
-    await seedChannels();
-  } catch (e) {
-    console.warn("seedChannels ignoré :", e.message);
-  }
   syncEdt();
   setInterval(syncEdt, UNE_HEURE_MS);
   rappels();

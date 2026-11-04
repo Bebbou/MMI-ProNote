@@ -6,19 +6,16 @@ import PageTitle from "../components/PageTitle";
 import { WIDGETS } from "../components/widgets";
 import { useWidgetPrefs, apercuDeplacement } from "../hooks/useWidgetPrefs";
 import { useFlip } from "../hooks/useFlip";
+import { useDonneesDashboard } from "../hooks/useDonneesDashboard";
+import { ROLE_LABELS } from "../utils/roles";
 import styles from "./Dashboard.module.css";
-
-const ROLE_LABELS = {
-  admin: "Administrateur",
-  delegue: "Délégué",
-  professeur: "Professeur",
-  etudiant: "Étudiant",
-};
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { prefs, basculer, deplacer, deplacerVers, reinitialiser } = useWidgetPrefs(user?.id);
   const [edition, setEdition] = useState(false);
+  // Chargé une fois ici : plusieurs tuiles se servent des mêmes devoirs et cours
+  const donnees = useDonneesDashboard();
 
   // Glisser-déposer avec les Pointer Events : un seul code pour la souris et le doigt
   // (l'API HTML5 drag-and-drop ne fonctionne pas au tactile).
@@ -74,16 +71,17 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className={styles.page}>
-        <PageTitle>Bienvenue, {user?.nom}</PageTitle>
-        {(groupe || roleLabel) && (
-          <p className={styles.subtitle}>
-            {groupe && <span>Groupe {groupe}</span>}
-            {groupe && roleLabel && " · "}
-            {roleLabel && <span>{roleLabel}</span>}
-          </p>
-        )}
-
-        <div className={styles.toolbar}>
+        <div className={styles.entete}>
+          <div>
+            <PageTitle>Bienvenue, {user?.nom}</PageTitle>
+            {(groupe || roleLabel) && (
+              <p className={styles.subtitle}>
+                {groupe && <span>Groupe {groupe}</span>}
+                {groupe && roleLabel && " · "}
+                {roleLabel && <span>{roleLabel}</span>}
+              </p>
+            )}
+          </div>
           <button
             type="button"
             className={styles.toolbarBtn}
@@ -129,12 +127,21 @@ export default function Dashboard() {
           </div>
         )}
 
+        {Object.keys(donnees.erreurs).length > 0 && (
+          <div className={styles.bandeauErreur} role="alert">
+            <p>Certaines informations n'ont pas pu être chargées.</p>
+            <button type="button" onClick={donnees.recharger}>
+              Réessayer
+            </button>
+          </div>
+        )}
+
         <div className={styles.cards} ref={cartesRef}>
           {prefs
             .filter((w) => w.visible)
             .map(({ id }) => {
               const { Composant } = WIDGETS[id];
-              return <Composant key={id} />;
+              return <Composant key={id} donnees={donnees} />;
             })}
         </div>
       </div>

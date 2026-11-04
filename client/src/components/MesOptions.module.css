@@ -61,7 +61,7 @@
   justify-content: center;
   border: 2px solid var(--border);
   border-radius: 5px;
-  color: #fff;
+  color: var(--on-accent-solid);
   transition:
     background 0.15s,
     border-color 0.15s;
@@ -96,7 +96,7 @@
 }
 
 .suppr:hover {
-  color: var(--danger);
+  color: var(--danger-text);
   border-color: var(--danger);
 }
 
@@ -128,7 +128,7 @@
   align-items: center;
   gap: 0.3rem;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.5rem 1rem;
@@ -141,4 +141,12 @@
 
 .ajout button:hover {
   background: var(--accent-solid-hover);
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .ajout input,
+  .ajout button {
+    min-height: 44px;
+  }
 }

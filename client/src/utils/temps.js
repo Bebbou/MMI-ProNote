@@ -11,3 +11,12 @@ export function depuis(iso, now = new Date()) {
   if (jours < 30) return `il y a ${jours} j`;
   return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
+
+// Durée restante lisible : "24 min", "2 h", "1 h 39"
+export function dureeCourte(ms) {
+  const minutes = Math.max(1, Math.round(ms / 60000));
+  if (minutes < 60) return `${minutes} min`;
+  const heures = Math.floor(minutes / 60);
+  const reste = minutes % 60;
+  return reste === 0 ? `${heures} h` : `${heures} h ${String(reste).padStart(2, "0")}`;
+}

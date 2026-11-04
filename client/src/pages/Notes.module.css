@@ -26,13 +26,17 @@
 }
 
 .moyenne strong {
-  color: var(--accent);
+  color: var(--text);
+  font-size: 1.1rem;
   font-weight: 700;
 }
 
 .header button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.45rem 1.1rem;
@@ -75,7 +79,7 @@
 
 .form button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -132,7 +136,7 @@
 }
 
 .coef {
-  color: var(--accent-orange);
+  color: var(--text-faint);
   font-size: 0.775rem;
   font-weight: 500;
 }
@@ -146,7 +150,7 @@
 .valeur {
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--text);
 }
 
 .deleteBtn {
@@ -160,7 +164,7 @@
 }
 
 .deleteBtn:hover {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 @media (max-width: 768px) {
@@ -195,7 +199,7 @@
 
 .loadError button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.45rem 1.25rem;
@@ -203,4 +207,19 @@
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .deleteBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .header button {
+    min-height: 44px;
+  }
 }

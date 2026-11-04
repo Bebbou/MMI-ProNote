@@ -10,6 +10,7 @@ import { useTheme, THEMES } from "../hooks/useTheme.js";
 import PasswordInput from "../components/PasswordInput";
 import PageTitle from "../components/PageTitle";
 import AppFooter from "../components/AppFooter";
+import { ROLE_LABELS } from "../utils/roles";
 import MesOptions from "../components/MesOptions";
 import PreferencesNotifications from "../components/PreferencesNotifications";
 import styles from "./Profil.module.css";
@@ -47,6 +48,7 @@ export default function Profil() {
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setMessage("");
   }
 
   async function handleSubmit(e) {
@@ -66,7 +68,7 @@ export default function Profil() {
       setMessage(data.message);
       setForm({ actuel: "", nouveau: "", confirmation: "" });
     } catch (err) {
-      setError(err.response?.data?.error ?? "Erreur lors de la mise a jour.");
+      setError(err.response?.data?.error ?? "Erreur lors de la mise à jour.");
     }
   }
 
@@ -85,8 +87,8 @@ export default function Profil() {
             <span className={styles.groupe}>{user?.groupe}</span>
           </div>
           <div className={styles.infoRow}>
-            <span className={styles.label}>Role</span>
-            <span className={styles.role}>{user?.role}</span>
+            <span className={styles.label}>Rôle</span>
+            <span className={styles.role}>{ROLE_LABELS[user?.role] ?? user?.role}</span>
           </div>
         </div>
 
@@ -141,7 +143,7 @@ export default function Profil() {
                 <ul className={styles.notifListe}>
                   <li>Nouveaux devoirs et évaluations</li>
                   <li>Rappel la veille d'une échéance, si tu n'as pas rendu</li>
-                  <li>Nouveaux cours et annonces</li>
+                  <li>Nouveaux cours</li>
                 </ul>
                 <div className={styles.notifActions}>
                   <button
@@ -177,30 +179,51 @@ export default function Profil() {
         <div className={styles.section}>
           <h2>Changer le mot de passe</h2>
           <form className={styles.form} onSubmit={handleSubmit}>
-            <PasswordInput
-              name="actuel"
-              placeholder="Mot de passe actuel"
-              value={form.actuel}
-              onChange={handleChange}
-              required
-            />
-            <PasswordInput
-              name="nouveau"
-              placeholder="Nouveau mot de passe (6 caracteres min.)"
-              value={form.nouveau}
-              onChange={handleChange}
-              required
-            />
-            <PasswordInput
-              name="confirmation"
-              placeholder="Confirmer le nouveau mot de passe"
-              value={form.confirmation}
-              onChange={handleChange}
-              required
-            />
-            {error && <p className={styles.error}>{error}</p>}
-            {message && <p className={styles.success}>{message}</p>}
-            <button type="submit">Mettre a jour</button>
+            <div className={styles.champ}>
+              <label htmlFor="profil-actuel">Mot de passe actuel</label>
+              <PasswordInput
+                id="profil-actuel"
+                name="actuel"
+                autoComplete="current-password"
+                value={form.actuel}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className={styles.champ}>
+              <label htmlFor="profil-nouveau">Nouveau mot de passe (6 caractères minimum)</label>
+              <PasswordInput
+                id="profil-nouveau"
+                name="nouveau"
+                autoComplete="new-password"
+                minLength={6}
+                value={form.nouveau}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className={styles.champ}>
+              <label htmlFor="profil-confirmation">Confirmer le nouveau mot de passe</label>
+              <PasswordInput
+                id="profil-confirmation"
+                name="confirmation"
+                autoComplete="new-password"
+                value={form.confirmation}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            {error && (
+              <p className={styles.error} role="alert">
+                {error}
+              </p>
+            )}
+            {message && (
+              <p className={styles.success} role="status">
+                {message}
+              </p>
+            )}
+            <button type="submit">Mettre à jour</button>
           </form>
         </div>
 

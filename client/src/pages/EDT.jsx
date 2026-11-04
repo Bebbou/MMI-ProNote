@@ -1,7 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { Plus, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 import PageTitle from "../components/PageTitle";
+import ConfirmModal from "../components/ConfirmModal";
+import { toast } from "../components/Toast";
+import { useModal } from "../hooks/useModal";
 import api from "../api/index.js";
 import styles from "./EDT.module.css";
 
@@ -72,23 +76,52 @@ export default function EDT() {
     return jourSemaine >= 1 && jourSemaine <= 5 ? jourSemaine - 1 : 0;
   });
   const [coursDetail, setCoursDetail] = useState(null); // cours cliqué, affiché dans une modale
+  const [coursASupprimer, setCoursASupprimer] = useState(null);
+  const detailModalRef = useModal(!!coursDetail, () => setCoursDetail(null));
+  const [loadError, setLoadError] = useState(false);
+  const [chargement, setChargement] = useState(true);
   const [groupes, setGroupes] = useState([]);
   const [groupeId, setGroupeId] = useState(null); // groupe dont on consulte l'EDT (le sien par défaut)
 
   // Charge la liste des groupes, puis présélectionne le sien
-  useEffect(() => {
-    api.get("/edt/groupes").then((res) => {
-      setGroupes(res.data);
-      // Le nom seul ne suffit pas : plusieurs promos peuvent avoir un groupe "TDA1"
-      const mien = res.data.find((g) => g.nom === user?.groupe && g.promo === user?.promo);
-      setGroupeId(mien ? mien.id : (res.data[0]?.id ?? null));
-    });
+  const chargerGroupes = useCallback(() => {
+    setLoadError(false);
+    api
+      .get("/edt/groupes")
+      .then((res) => {
+        setGroupes(res.data);
+        // Le nom seul ne suffit pas : plusieurs promos peuvent avoir un groupe "TDA1"
+        const mien = res.data.find((g) => g.nom === user?.groupe && g.promo === user?.promo);
+        setGroupeId(mien ? mien.id : (res.data[0]?.id ?? null));
+        if (res.data.length === 0) setChargement(false);
+      })
+      .catch(() => {
+        setLoadError(true);
+        setChargement(false);
+      });
   }, [user]);
 
+  const chargerCours = useCallback((id) => {
+    setLoadError(false);
+    setChargement(true);
+    api
+      .get("/edt", { params: { groupeId: id } })
+      .then((res) => setCours(res.data))
+      .catch(() => {
+        // Ne pas laisser les cours du groupe précédent sous le nom du nouveau
+        setCours([]);
+        setLoadError(true);
+      })
+      .finally(() => setChargement(false));
+  }, []);
+
   useEffect(() => {
-    if (groupeId === null) return;
-    api.get("/edt", { params: { groupeId } }).then((res) => setCours(res.data));
-  }, [groupeId]);
+    chargerGroupes();
+  }, [chargerGroupes]);
+
+  useEffect(() => {
+    if (groupeId !== null) chargerCours(groupeId);
+  }, [groupeId, chargerCours]);
 
   const lundi = useMemo(() => {
     const base = lundiDeLaSemaine(new Date());
@@ -105,6 +138,8 @@ export default function EDT() {
       }),
     [lundi]
   );
+
+  const semaineAvecCours = cours.some((c) => jours.some((j) => memeJour(new Date(c.dateDebut), j.date)));
 
   // Cours de la semaine affichée, avec leurs bornes en Date + minutes
   const coursParJour = useMemo(() => {
@@ -165,6 +200,10 @@ export default function EDT() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (new Date(form.dateFin) <= new Date(form.dateDebut)) {
+      toast("La fin du cours doit être après le début", "error");
+      return;
+    }
     // Le cours est ajouté au groupe actuellement consulté (utile si un admin
     // regarde l'EDT d'un autre groupe que le sien)
     //
@@ -172,20 +211,41 @@ export default function EDT() {
     // que le serveur (en UTC sur Railway) interpréterait à tort comme de l'UTC. On la
     // convertit ici en UTC explicite, pendant qu'on est encore dans le fuseau du
     // navigateur (donc le bon fuseau, celui de l'utilisateur) — issue #44.
-    const { data } = await api.post("/edt", {
-      ...form,
-      dateDebut: new Date(form.dateDebut).toISOString(),
-      dateFin: new Date(form.dateFin).toISOString(),
-      groupeId,
-    });
-    setCours([...cours, data]);
-    setForm({ matiere: "", dateDebut: "", dateFin: "", salle: "", prof: "" });
-    setShowForm(false);
+    try {
+      const { data } = await api.post("/edt", {
+        ...form,
+        dateDebut: new Date(form.dateDebut).toISOString(),
+        dateFin: new Date(form.dateFin).toISOString(),
+        groupeId,
+      });
+      setCours([...cours, data]);
+      // Affiche la semaine du cours ajouté, sinon le toast annoncerait un cours invisible
+      const ecart = lundiDeLaSemaine(new Date(form.dateDebut)) - lundiDeLaSemaine(new Date());
+      setSemaineOffset(Math.round(ecart / (7 * 24 * 60 * 60 * 1000)));
+      setForm({ matiere: "", dateDebut: "", dateFin: "", salle: "", prof: "" });
+      setShowForm(false);
+      toast("Cours ajouté");
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible d'ajouter le cours", "error");
+    }
   }
 
-  async function handleDelete(id) {
-    await api.delete(`/edt/${id}`);
-    setCours(cours.filter((c) => c.id !== id));
+  // La modale de détail se ferme d'abord : une seule modale à l'écran à la fois
+  function demanderSuppression() {
+    setCoursASupprimer(coursDetail);
+    setCoursDetail(null);
+  }
+
+  async function confirmerSuppression() {
+    const { id } = coursASupprimer;
+    setCoursASupprimer(null);
+    try {
+      await api.delete(`/edt/${id}`);
+      setCours((prev) => prev.filter((c) => c.id !== id));
+      toast("Cours supprimé");
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible de supprimer le cours", "error");
+    }
   }
 
   return (
@@ -195,10 +255,20 @@ export default function EDT() {
           <PageTitle>Emploi du temps</PageTitle>
           {user?.role === "admin" && (
             <button onClick={() => setShowForm(!showForm)}>
-              {showForm ? "Annuler" : "+ Ajouter un cours"}
+              {showForm ? <X size={16} strokeWidth={1.5} /> : <Plus size={16} strokeWidth={1.5} />}
+              {showForm ? "Annuler" : "Ajouter un cours"}
             </button>
           )}
         </div>
+
+        {loadError && (
+          <div className={styles.loadError}>
+            <p>Impossible de charger l'emploi du temps.</p>
+            <button onClick={() => (groupeId === null ? chargerGroupes() : chargerCours(groupeId))}>
+              Réessayer
+            </button>
+          </div>
+        )}
 
         {groupes.length > 1 && (
           <div className={styles.groupeSelect}>
@@ -295,6 +365,11 @@ export default function EDT() {
           </form>
         )}
 
+        {chargement && <p className={styles.etatGrille}>Chargement de l'emploi du temps…</p>}
+        {!chargement && !loadError && !semaineAvecCours && (
+          <p className={styles.etatGrille}>Aucun cours cette semaine.</p>
+        )}
+
         <div className={styles.timetable} data-jour-mobile={jourMobile}>
           <div className={styles.corner} />
           {jours.map(({ nom, date }, i) => (
@@ -349,26 +424,6 @@ export default function EDT() {
                     <span className={styles.blocMatiere}>{c.matiere}</span>
                     {c.salle && <span className={styles.blocMeta}>{c.salle}</span>}
                     {c.prof && <span className={styles.blocMeta}>{c.prof}</span>}
-                    {user?.role === "admin" && (
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        className={styles.deleteBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(c.id);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            handleDelete(c.id);
-                          }
-                        }}
-                      >
-                        ✕
-                      </span>
-                    )}
                   </button>
                 );
               })}
@@ -379,10 +434,19 @@ export default function EDT() {
 
       {coursDetail && (
         <div className={styles.detailOverlay} onClick={() => setCoursDetail(null)}>
-          <div className={styles.detailModal} onClick={(e) => e.stopPropagation()}>
+          <div
+            ref={detailModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titre-detail-cours"
+            className={styles.detailModal}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.detailHeader}>
               <span className={`${styles.detailPastille} ${styles["couleur-" + couleurMatiere(coursDetail.matiere)]}`} />
-              <h3 className={styles.detailTitre}>{coursDetail.matiere}</h3>
+              <h3 id="titre-detail-cours" className={styles.detailTitre}>
+                {coursDetail.matiere}
+              </h3>
               {coursDetail.annule && <span className={styles.badgeAnnule}>Annulé</span>}
             </div>
             <dl className={styles.detailList}>
@@ -401,12 +465,27 @@ export default function EDT() {
                 <dd>{coursDetail.prof || "Non renseigné"}</dd>
               </div>
             </dl>
-            <button type="button" className={styles.detailClose} onClick={() => setCoursDetail(null)}>
-              Fermer
-            </button>
+            <div className={styles.detailActions}>
+              {user?.role === "admin" && (
+                <button type="button" className={styles.detailDelete} onClick={demanderSuppression}>
+                  Supprimer
+                </button>
+              )}
+              <button type="button" className={styles.detailClose} onClick={() => setCoursDetail(null)}>
+                Fermer
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={coursASupprimer !== null}
+        title="Supprimer ce cours ?"
+        message={coursASupprimer && `${coursASupprimer.matiere} sera retiré de l'emploi du temps.`}
+        onConfirm={confirmerSuppression}
+        onCancel={() => setCoursASupprimer(null)}
+      />
     </Layout>
   );
 }

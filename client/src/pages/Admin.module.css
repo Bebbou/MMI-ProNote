@@ -64,7 +64,7 @@
 }
 
 .groupe {
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 0.75rem;
   font-weight: 700;
   background: var(--tint-pink);
@@ -74,7 +74,7 @@
 
 .validateBtn {
   background: none;
-  color: var(--success);
+  color: var(--success-text);
   border: 1px solid var(--success);
   border-radius: 8px;
   padding: 0.35rem 0.9rem;
@@ -89,7 +89,7 @@
 
 .validateBtn:hover {
   background: var(--success);
-  color: #fff;
+  color: var(--on-success);
 }
 
 .roleSelect {
@@ -132,7 +132,7 @@
 
 .editBtn:hover {
   border-color: var(--accent-blue);
-  color: var(--accent-blue);
+  color: var(--blue-text);
 }
 
 .deleteBtn {
@@ -151,7 +151,7 @@
 
 .deleteBtn:hover {
   border-color: var(--danger);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ── Modals ── */
@@ -246,7 +246,7 @@
 
 .modalActions > button[type="submit"] {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.5rem 1.25rem;
@@ -261,31 +261,8 @@
   background: var(--accent-solid-hover);
 }
 
-.modalWarning {
-  font-size: 0.85rem;
-  color: var(--text-faint);
-  line-height: 1.5;
-}
-
-.confirmDeleteBtn {
-  background: var(--danger);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1.25rem;
-  font-family: inherit;
-  font-size: 0.825rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.confirmDeleteBtn:hover {
-  opacity: 0.85;
-}
-
 .error {
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 0.825rem;
   margin-top: 0.5rem;
 }
@@ -348,7 +325,7 @@
 
 .clearFiltersBtn:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 @media (max-width: 768px) {
@@ -388,6 +365,43 @@
   transition: border-color 0.15s;
 }
 
+.icalInput {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: inherit;
+  min-width: min(320px, 100%);
+  transition: border-color 0.15s;
+}
+
+.icalInput:focus {
+  border-color: var(--accent);
+}
+
+.creerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--accent-solid);
+  color: var(--on-accent-solid);
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.1rem;
+  font-size: 0.825rem;
+  font-family: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.creerBtn:hover {
+  background: var(--accent-solid-hover);
+}
+
 .filterSearch:focus {
   border-color: var(--accent);
 }
@@ -410,5 +424,53 @@
 
 .moreBtn:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
+}
+
+.loadError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 0;
+  color: var(--text-faint);
+  font-size: 0.875rem;
+}
+
+.loadError button {
+  background: var(--accent-solid);
+  color: var(--on-accent-solid);
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 1.25rem;
+  font-size: 0.825rem;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Le nom du groupe reste sur une ligne à côté du champ iCal */
+.info:has(.icalInput) .nom {
+  white-space: nowrap;
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .editBtn,
+  .deleteBtn,
+  .validateBtn,
+  .creerBtn,
+  .roleSelect,
+  .filterSearch,
+  .icalInput,
+  .filterLabel select {
+    min-height: 44px;
+  }
+}
+
+@media (pointer: coarse) {
+  .modalForm input,
+  .modalForm select {
+    min-height: 44px;
+  }
 }

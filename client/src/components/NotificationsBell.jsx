@@ -6,9 +6,10 @@ import styles from "./NotificationsBell.module.css";
 
 const ICONES = { devoir: BookOpen, rappel: Clock, cours: FolderOpen, annonce: Megaphone };
 
-// Cloche des notifications. Deux présentations : "nav" (élément de la barre latérale) et
-// "header" (icône de l'en-tête mobile). Les données viennent de Layout (une seule actualisation).
-export default function NotificationsBell({ variant, items, nonLues, marquerLues, classes = {} }) {
+// Cloche des notifications. Deux présentations : "sidebar" (bouton rond en haut de la barre
+// latérale) et "header" (icône de l'en-tête mobile). Les données viennent de Layout (une seule
+// actualisation).
+export default function NotificationsBell({ variant, items, nonLues, marquerLues }) {
   const [ouvert, setOuvert] = useState(false);
   // Notifications non lues à l'ouverture : on les garde en surbrillance même si on les
   // marque lues tout de suite côté serveur
@@ -44,16 +45,15 @@ export default function NotificationsBell({ variant, items, nonLues, marquerLues
   return (
     <div className={`${styles.racine} ${styles[variant]}`} ref={racine}>
       <button
-        className={`${styles.bouton} ${classes.bouton ?? ""} ${ouvert ? styles.boutonOuvert : ""}`}
+        className={`${styles.bouton} ${ouvert ? styles.boutonOuvert : ""}`}
         onClick={basculer}
         aria-label={nonLues > 0 ? `Notifications (${nonLues} non lues)` : "Notifications"}
         aria-expanded={ouvert}
       >
         <span className={styles.icone}>
-          <Bell size={variant === "header" ? 18 : 15} strokeWidth={1.5} />
+          <Bell size={variant === "header" ? 18 : 17} strokeWidth={1.5} />
           {nonLues > 0 && <span className={styles.pastille}>{nonLues > 9 ? "9+" : nonLues}</span>}
         </span>
-        {variant === "nav" && <span className={classes.label}>Notifications</span>}
       </button>
 
       {ouvert && (
@@ -61,7 +61,7 @@ export default function NotificationsBell({ variant, items, nonLues, marquerLues
           <div className={styles.entete}>Notifications</div>
           {items.length === 0 ? (
             <p className={styles.vide}>
-              Rien pour l'instant. Les nouveaux devoirs, cours et annonces apparaîtront ici.
+              Rien pour l'instant. Les nouveaux devoirs et cours apparaîtront ici.
             </p>
           ) : (
             <ul className={styles.liste}>

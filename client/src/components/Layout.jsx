@@ -1,4 +1,4 @@
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   Home,
@@ -11,19 +11,17 @@ import {
   Sun,
   Menu,
   X,
-  MessageSquare,
   FolderOpen,
   User,
 } from "lucide-react";
 import { useTheme, THEMES } from "../hooks/useTheme";
 import { useState, useEffect, useRef } from "react";
-import ChatPanel from "./ChatPanel";
 import MmiDecor from "./MmiDecor";
 import { Toaster } from "./Toast";
 import PwaPrompts from "./PwaPrompts";
 import NotificationsBell from "./NotificationsBell";
 import { useNotifications } from "../hooks/useNotifications";
-import logoMmi from "../assets/logo_mmi.jpg";
+import logoMmi from "../assets/logo_mmi.png";
 import styles from "./Layout.module.css";
 
 const navItems = [
@@ -31,8 +29,7 @@ const navItems = [
   { to: "/devoirs", label: "Devoirs", icon: BookOpen },
   { to: "/notes", label: "Notes", icon: BarChart2 },
   { to: "/edt", label: "EDT", icon: Calendar },
-  { to: "/chat", label: "Chat", icon: MessageSquare },
-  { to: "/documents", label: "Cours", icon: FolderOpen },
+  { to: "/documents", label: "Documents", icon: FolderOpen },
   { to: "/profil", label: "Profil", icon: User },
 ];
 
@@ -40,8 +37,8 @@ const bottomNavItems = [
   { to: "/dashboard", label: "Accueil", icon: Home },
   { to: "/devoirs", label: "Devoirs", icon: BookOpen },
   { to: "/edt", label: "EDT", icon: Calendar },
-  { to: "/chat", label: "Chat", icon: MessageSquare },
-  { to: "/profil", label: "Profil", icon: User },
+  { to: "/notes", label: "Notes", icon: BarChart2 },
+  { to: "/documents", label: "Documents", icon: FolderOpen },
 ];
 
 const THEME_DOTS = {
@@ -54,16 +51,12 @@ const THEME_DOTS = {
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme } = useTheme();
   const notifs = useNotifications(!!user);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
-  // Le panel est inutile sur la page /chat (même contenu) : on ne le monte pas
-  const [chatOpen, setChatOpen] = useState(false);
-  const showChatPanel = location.pathname !== "/chat";
   const themeRef = useRef(null);
   const mobileThemeRef = useRef(null);
 
@@ -81,7 +74,8 @@ export default function Layout({ children }) {
 
   function handleLogout() {
     logout();
-    navigate("/login");
+    // Navigation complète : sans from dans l'URL, et rien de la session ne reste en mémoire
+    window.location.assign("/login");
   }
 
   const allNavItems = [
@@ -94,6 +88,8 @@ export default function Layout({ children }) {
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarTop}>
           <img src={logoMmi} alt="MMI Béziers" className={styles.logo} />
+          {/* Ce n'est pas une page : icône à part, hors de la liste de navigation */}
+          <NotificationsBell variant="sidebar" {...notifs} />
           <button className={styles.closeBtn} onClick={() => setMenuOpen(false)} aria-label="Fermer le menu">
             <X size={18} strokeWidth={1.5} />
           </button>
@@ -103,11 +99,6 @@ export default function Layout({ children }) {
           <span className={styles.userGroupe}>{user?.groupe}</span>
         </div>
         <nav className={styles.nav}>
-          <NotificationsBell
-            variant="nav"
-            {...notifs}
-            classes={{ bouton: styles.navLink, label: styles.navLabel }}
-          />
           {allNavItems.map((item) => (
             <NavLink
               key={item.to}
@@ -162,13 +153,13 @@ export default function Layout({ children }) {
         </a>
         <button className={styles.logout} onClick={handleLogout}>
           <LogOut size={13} strokeWidth={1.5} />
-          <span className={styles.navLabel}>Deconnexion</span>
+          <span className={styles.navLabel}>Déconnexion</span>
         </button>
       </aside>
 
       {menuOpen && <div className={styles.overlay} onClick={() => setMenuOpen(false)} />}
 
-      <div className={`${styles.content} ${showChatPanel && chatOpen ? styles.contentChatOpen : ""}`}>
+      <div className={styles.content}>
         <header className={styles.mobileHeader}>
           <button className={styles.menuBtn} onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Menu size={20} strokeWidth={1.5} />
@@ -209,7 +200,6 @@ export default function Layout({ children }) {
         <Toaster />
         <PwaPrompts />
         <main className={styles.main}>{children}</main>
-        {showChatPanel && <ChatPanel open={chatOpen} onToggle={() => setChatOpen((v) => !v)} />}
 
         <nav className={styles.bottomNav}>
           {bottomNavItems.map((item) => {

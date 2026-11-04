@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Plus,
+  SlidersHorizontal,
   X,
   Pencil,
   Trash2,
@@ -20,6 +21,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import { SkeletonCards } from "../components/Skeleton";
 import { toast } from "../components/Toast";
 import { useOptions } from "../hooks/useOptions";
+import { useModal } from "../hooks/useModal";
 import { useAutoGrow } from "../hooks/useAutoGrow";
 import { majPastille } from "../utils/badge";
 import api from "../api/index.js";
@@ -151,6 +153,9 @@ export default function Devoirs() {
   const [filtreMatiere, setFiltreMatiere] = useState("Toutes");
   const [recherche, setRecherche] = useState("");
   const [filtreAudience, setFiltreAudience] = useState("tous"); // "tous" | "groupe" | "promo" | id d'option
+  const [filtresOuverts, setFiltresOuverts] = useState(false);
+  const boutonFiltresRef = useRef(null);
+  const editModalRef = useModal(!!editingDevoir, () => setEditingDevoir(null));
   // Commentaires : un seul devoir déplié à la fois, chargés à la demande
   const [expandedId, setExpandedId] = useState(null);
   const [commentaires, setCommentaires] = useState({});
@@ -218,14 +223,6 @@ export default function Devoirs() {
     api.get("/auth/groupes").then((r) => setGroupes(r.data));
   }, [user?.role]);
 
-  // Échap ferme la modale d'édition
-  useEffect(() => {
-    if (!editingDevoir) return;
-    const onKey = (e) => e.key === "Escape" && setEditingDevoir(null);
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [editingDevoir]);
-
   // La promo entière n'est offerte au délégué que pour une évaluation : si le type repasse
   // à "Devoir", on revient à "mon groupe"
   function cibleValide(type, cible) {
@@ -259,8 +256,8 @@ export default function Devoirs() {
       setForm(FORM_VIDE);
       setShowForm(false);
       toast(data.type === "Evaluation" ? "Évaluation créée" : "Devoir créé");
-    } catch {
-      toast("Impossible de créer le devoir", "error");
+    } catch (err) {
+      toast(err.response?.data?.error ?? "Impossible de créer le devoir", "error");
     } finally {
       setEnvoi(false);
     }
@@ -280,6 +277,7 @@ export default function Devoirs() {
 
   async function handleEditSubmit(e) {
     e.preventDefault();
+    setEnvoi(true);
     try {
       const { data } = await api.patch(`/devoirs/${editingDevoir.id}`, {
         ...editForm,
@@ -293,8 +291,10 @@ export default function Devoirs() {
       );
       setEditingDevoir(null);
       toast("Devoir modifié");
-    } catch {
-      toast("Impossible de modifier le devoir", "error");
+    } catch (err) {
+      toast(err.response?.data?.error ?? "Impossible de modifier le devoir", "error");
+    } finally {
+      setEnvoi(false);
     }
   }
 
@@ -474,14 +474,39 @@ export default function Devoirs() {
   const filtresActifs =
     filtreType !== "Tous" || matiereActive !== "Toutes" || audienceActive !== "tous" || requete !== "";
 
+  // Le compteur ne porte que sur ce qui est caché dans le panneau, et sur les valeurs
+  // effectives : un filtre retombé sur "Toutes" en changeant d'onglet ne compte plus.
+  const nbFiltresPanneau = (matiereActive !== "Toutes" ? 1 : 0) + (audienceActive !== "tous" ? 1 : 0);
+  // Un filtre actif garde sa section, même s'il n'y a plus de choix à proposer :
+  // sinon il agirait sur la liste sans qu'on puisse le retirer.
+  const avecMatieres = matieres.length > 2 || matiereActive !== "Toutes";
+  const avecAudience = audiences.length > 0 || avecPromo || audienceActive !== "tous";
+  const avecPanneau = avecMatieres || avecAudience;
+
+  function reinitialiserFiltres() {
+    setFiltreType("Tous");
+    setFiltreMatiere("Toutes");
+    setFiltreAudience("tous");
+    setRecherche("");
+  }
+
+  function fermerFiltresAvecEchap(e) {
+    if (e.key !== "Escape" || !filtresOuverts) return;
+    setFiltresOuverts(false);
+    boutonFiltresRef.current?.focus();
+  }
+
   function renderCarte(devoir) {
     // Une évaluation passée n'est jamais "en retard" : elle ne se rend pas
-    const urgence =
+    const etat =
       devoir.rendu || (devoir.type === "Evaluation" && new Date(devoir.dateLimite) < now)
         ? devoir.rendu
           ? "rendu"
           : "depasse"
         : urgenceEcheance(devoir.dateLimite, now);
+    // Dans "À rendre", un devoir dépassé reste à faire : il garde le marqueur de retard,
+    // même au-delà de 24 h. Dans "Historique", il reste neutre.
+    const urgence = onglet === "aRendre" && etat === "depasse" ? "retard" : etat;
     const { principal, secondaire } = libelleEcheance(devoir.dateLimite, now);
     const nbCommentaires = devoir._count?.commentaires || 0;
 
@@ -547,6 +572,7 @@ export default function Devoirs() {
                 className={`${styles.commentToggle} ${nbCommentaires > 0 ? styles.commentToggleActif : ""}`}
                 onClick={() => toggleComments(devoir.id)}
                 title="Commentaires"
+                aria-label={`Commentaires : ${nbCommentaires}`}
                 aria-expanded={expandedId === devoir.id}
               >
                 <MessageSquare size={15} strokeWidth={1.5} />
@@ -558,12 +584,22 @@ export default function Devoirs() {
                 )}
               </button>
               {peutGerer(devoir) && (
-                <button className={styles.editBtn} onClick={() => openEditDevoir(devoir)} title="Modifier">
+                <button
+                  className={styles.editBtn}
+                  onClick={() => openEditDevoir(devoir)}
+                  title="Modifier"
+                  aria-label={`Modifier ${devoir.titre}`}
+                >
                   <Pencil size={14} strokeWidth={1.5} />
                 </button>
               )}
               {peutGerer(devoir) && (
-                <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)} title="Supprimer">
+                <button
+                  className={styles.deleteBtn}
+                  onClick={() => setToDelete(devoir.id)}
+                  title="Supprimer"
+                  aria-label={`Supprimer ${devoir.titre}`}
+                >
                   <Trash2 size={14} strokeWidth={1.5} />
                 </button>
               )}
@@ -595,6 +631,7 @@ export default function Devoirs() {
                             className={styles.commentDelete}
                             onClick={() => deleteComment(devoir.id, c.id)}
                             title="Supprimer le commentaire"
+                            aria-label="Supprimer le commentaire"
                           >
                             <X size={11} strokeWidth={1.5} />
                           </button>
@@ -736,39 +773,22 @@ export default function Devoirs() {
           </form>
         )}
 
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${onglet === "aRendre" ? styles.tabActive : ""}`}
-            onClick={() => setOnglet("aRendre")}
-          >
-            À rendre
-          </button>
-          <button
-            className={`${styles.tab} ${onglet === "historique" ? styles.tabActive : ""}`}
-            onClick={() => setOnglet("historique")}
-          >
-            Historique
-          </button>
-        </div>
-
-        {/* Agenda de rendu : type, matière et recherche (issue #51) */}
-        <div className={styles.toolbar}>
-          <div className={styles.filters}>
+        <div className={styles.barre}>
+          <div className={styles.tabs}>
             <button
-              className={`${styles.filterBtn} ${filtreType === "Tous" ? styles.filterActive : ""}`}
-              onClick={() => setFiltreType("Tous")}
+              className={`${styles.tab} ${onglet === "aRendre" ? styles.tabActive : ""}`}
+              aria-pressed={onglet === "aRendre"}
+              onClick={() => setOnglet("aRendre")}
             >
-              Tout <span className={styles.filterCount}>{devoirsDeLOnglet.length}</span>
+              À rendre
             </button>
-            {TYPES.map((t) => (
-              <button
-                key={t.id}
-                className={`${styles.filterBtn} ${filtreType === t.id ? styles.filterActive : ""}`}
-                onClick={() => setFiltreType(t.id)}
-              >
-                {t.label}s <span className={styles.filterCount}>{nbParType(t.id)}</span>
-              </button>
-            ))}
+            <button
+              className={`${styles.tab} ${onglet === "historique" ? styles.tabActive : ""}`}
+              aria-pressed={onglet === "historique"}
+              onClick={() => setOnglet("historique")}
+            >
+              Historique
+            </button>
           </div>
           <label className={styles.search}>
             <Search size={14} strokeWidth={1.5} />
@@ -781,38 +801,97 @@ export default function Devoirs() {
             />
           </label>
         </div>
-        {(audiences.length > 0 || avecPromo) && (
-          <div className={styles.filters}>
-            <span className={styles.filtreLabel}>Visible par</span>
-            {[
-              { id: "tous", nom: "Tous" },
-              { id: "groupe", nom: "Groupe" },
-              ...(avecPromo ? [{ id: "promo", nom: "Toute la promo" }] : []),
-              ...audiences,
-            ].map((a) => (
+
+        {/* Agenda de rendu : le type reste visible, le reste passe dans le panneau (issue #51) */}
+        <div className={styles.zoneFiltres} onKeyDown={fermerFiltresAvecEchap}>
+          <div className={styles.toolbar}>
+            <div className={styles.filters}>
               <button
-                key={a.id}
-                className={`${styles.filterBtn} ${styles.filterBtnMatiere} ${audienceActive === a.id ? styles.filterActive : ""}`}
-                onClick={() => setFiltreAudience(a.id)}
+                className={`${styles.filterBtn} ${filtreType === "Tous" ? styles.filterActive : ""}`}
+                aria-pressed={filtreType === "Tous"}
+                onClick={() => setFiltreType("Tous")}
               >
-                {a.nom}
+                Tout <span className={styles.filterCount}>{devoirsDeLOnglet.length}</span>
               </button>
-            ))}
-          </div>
-        )}
-        {matieres.length > 2 && (
-          <div className={styles.filters}>
-            {matieres.map((m) => (
+              {TYPES.map((t) => (
+                <button
+                  key={t.id}
+                  className={`${styles.filterBtn} ${filtreType === t.id ? styles.filterActive : ""}`}
+                  aria-pressed={filtreType === t.id}
+                  onClick={() => setFiltreType(t.id)}
+                >
+                  {t.label}s <span className={styles.filterCount}>{nbParType(t.id)}</span>
+                </button>
+              ))}
+            </div>
+            {avecPanneau && (
               <button
-                key={m}
-                className={`${styles.filterBtn} ${styles.filterBtnMatiere} ${matiereActive === m ? styles.filterActive : ""}`}
-                onClick={() => setFiltreMatiere(m)}
+                ref={boutonFiltresRef}
+                className={`${styles.filterBtn} ${nbFiltresPanneau > 0 ? styles.filterActive : ""}`}
+                aria-expanded={filtresOuverts}
+                aria-controls={filtresOuverts ? "panneau-filtres" : undefined}
+                aria-label={
+                  nbFiltresPanneau > 0
+                    ? `Filtres, ${nbFiltresPanneau} actif${nbFiltresPanneau > 1 ? "s" : ""}`
+                    : "Filtres"
+                }
+                onClick={() => setFiltresOuverts((v) => !v)}
               >
-                {m}
+                <SlidersHorizontal size={14} strokeWidth={1.5} />
+                Filtres{nbFiltresPanneau > 0 && ` (${nbFiltresPanneau})`}
               </button>
-            ))}
+            )}
           </div>
-        )}
+
+          {avecPanneau && filtresOuverts && (
+            <div id="panneau-filtres" role="group" aria-label="Filtres" className={styles.panneauFiltres}>
+              {avecMatieres && (
+                <label className={styles.champFiltre}>
+                  <span className={styles.filtreLabel}>Matière</span>
+                  <select value={matiereActive} onChange={(e) => setFiltreMatiere(e.target.value)}>
+                    {matieres.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {avecAudience && (
+                <div className={styles.filters} role="group" aria-label="Visible par">
+                  <span className={styles.filtreLabel}>Visible par</span>
+                  {[
+                    { id: "tous", nom: "Tous" },
+                    { id: "groupe", nom: "Groupe" },
+                    ...(avecPromo ? [{ id: "promo", nom: "Toute la promo" }] : []),
+                    ...audiences,
+                  ].map((a) => (
+                    <button
+                      key={a.id}
+                      className={`${styles.filterBtn} ${styles.filterBtnMatiere} ${audienceActive === a.id ? styles.filterActive : ""}`}
+                      aria-pressed={audienceActive === a.id}
+                      onClick={() => setFiltreAudience(a.id)}
+                    >
+                      {a.nom}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {filtresActifs && (
+                <button className={styles.resetBtn} onClick={reinitialiserFiltres}>
+                  Réinitialiser les filtres
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Annonce le résultat du filtrage aux lecteurs d'écran */}
+        <p className={styles.srOnly} aria-live="polite">
+          {!loading &&
+            !loadError &&
+            `${devoirsAffiches.length} devoir${devoirsAffiches.length !== 1 ? "s" : ""} affiché${devoirsAffiches.length !== 1 ? "s" : ""}`}
+        </p>
 
         {loading && <SkeletonCards count={3} height={100} />}
 
@@ -830,15 +909,7 @@ export default function Devoirs() {
                 {filtresActifs && devoirsDeLOnglet.length > 0 ? (
                   <>
                     <p>Aucun résultat avec ces filtres.</p>
-                    <button
-                      className={styles.resetBtn}
-                      onClick={() => {
-                        setFiltreType("Tous");
-                        setFiltreMatiere("Toutes");
-                        setFiltreAudience("tous");
-                        setRecherche("");
-                      }}
-                    >
+                    <button className={styles.resetBtn} onClick={reinitialiserFiltres}>
                       Réinitialiser les filtres
                     </button>
                   </>
@@ -869,9 +940,18 @@ export default function Devoirs() {
       </div>
 
       {editingDevoir && (
-        <div className={styles.editOverlay} onClick={() => setEditingDevoir(null)}>
-          <form className={styles.editModal} onClick={(e) => e.stopPropagation()} onSubmit={handleEditSubmit}>
-            <h2 className={styles.editModalTitle}>Modifier le devoir</h2>
+        <div className={styles.editOverlay}>
+          <form
+            ref={editModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titre-edition-devoir"
+            className={styles.editModal}
+            onSubmit={handleEditSubmit}
+          >
+            <h2 id="titre-edition-devoir" className={styles.editModalTitle}>
+              Modifier le devoir
+            </h2>
             <select
               value={editForm.type}
               onChange={(e) =>
@@ -932,7 +1012,9 @@ export default function Devoirs() {
               <button type="button" className={styles.cancelBtn} onClick={() => setEditingDevoir(null)}>
                 Annuler
               </button>
-              <button type="submit">Enregistrer</button>
+              <button type="submit" disabled={envoi}>
+                {envoi ? "Enregistrement…" : "Enregistrer"}
+              </button>
             </div>
           </form>
         </div>

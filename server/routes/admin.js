@@ -96,19 +96,6 @@ router.post("/groupes", async (req, res) => {
 
   const groupe = await prisma.groupe.create({ data: { nom: nom.trim(), promo: promo.trim() } });
 
-  // Crée aussi le canal "Annonces" de cette promo tout de suite, si c'est sa première
-  // apparition — sinon il faudrait attendre le prochain redémarrage du serveur.
-  await prisma.channel.upsert({
-    where: { nom_promo: { nom: "Annonces", promo: groupe.promo } },
-    update: {},
-    create: {
-      nom: "Annonces",
-      description: `Annonces ${groupe.promo}`,
-      type: "annonce",
-      promo: groupe.promo,
-    },
-  });
-
   res.status(201).json(groupe);
 });
 

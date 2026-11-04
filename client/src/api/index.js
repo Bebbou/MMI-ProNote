@@ -25,7 +25,9 @@ api.interceptors.response.use(
     if (status === 401 && !isAuthRoute && localStorage.getItem("token")) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/login";
+      // Après reconnexion, on revient sur la page en cours (voir cheminRetour dans App.jsx)
+      const retour = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/login?expire=1&from=${retour}`;
     }
 
     return Promise.reject(error);

@@ -20,8 +20,11 @@
 }
 
 .header button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.45rem 1.1rem;
@@ -97,13 +100,12 @@
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--text);
-  text-transform: capitalize;
 }
 
 .today {
   background: none;
   border: none;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
@@ -147,7 +149,7 @@
 
 .form button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -209,7 +211,7 @@
 
 .dayNum {
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .timeAxis {
@@ -318,7 +320,7 @@
 
 .blocHeure {
   font-size: 0.62rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -340,7 +342,7 @@
 
 .blocMeta {
   font-size: 0.65rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
@@ -350,7 +352,7 @@
 
 .badgeAnnule {
   background: var(--danger);
-  color: #fff;
+  color: var(--on-danger);
   border-radius: 4px;
   padding: 0.05rem 0.35rem;
   font-size: 0.6rem;
@@ -364,22 +366,6 @@
 
 .blocAnnule .blocMatiere {
   text-decoration: line-through;
-}
-
-.deleteBtn {
-  position: absolute;
-  top: 0.2rem;
-  right: 0.3rem;
-  background: none;
-  border: none;
-  color: var(--text-faint);
-  cursor: pointer;
-  font-size: 0.7rem;
-  transition: color 0.15s;
-}
-
-.deleteBtn:hover {
-  color: var(--danger);
 }
 
 /* --- Onglets jours : uniquement visibles en vue mobile (un seul jour à la fois) --- */
@@ -422,7 +408,7 @@
 }
 
 .dayTabActive .dayTabNom {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .dayTabNum {
@@ -586,6 +572,57 @@
   text-align: right;
 }
 
+.etatGrille {
+  color: var(--text-faint);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.loadError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 0;
+  color: var(--text-faint);
+  font-size: 0.875rem;
+}
+
+.loadError button {
+  background: var(--accent-solid);
+  color: var(--on-accent-solid);
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 1.25rem;
+  font-size: 0.825rem;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.detailActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.detailDelete {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--danger-text);
+  border-radius: 8px;
+  padding: 0.6rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.detailDelete:hover {
+  border-color: var(--danger);
+}
+
 .detailClose {
   width: 100%;
   background: var(--bg-input);
@@ -612,4 +649,43 @@
 @keyframes edtPopIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .detailDelete,
+  .detailClose {
+    min-height: 44px;
+  }
+}
+
+/* Mobile : le titre de la semaine au-dessus, les deux boutons côte à côte */
+@media (max-width: 768px) {
+  .weekNav > button {
+    flex: 1;
+  }
+
+  .weekLabel {
+    order: -1;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* Les onglets de jour indiquent déjà le jour affiché : l'en-tête ferait doublon */
+@media (max-width: 640px) {
+  .corner,
+  .timetable .dayHeader {
+    display: none;
+  }
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .header button,
+  .weekNav > button,
+  .groupeSelect select {
+    min-height: 44px;
+  }
 }

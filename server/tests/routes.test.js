@@ -15,6 +15,7 @@ vi.mock("../db.js", () => ({
     commentaireDoc: { findMany: vi.fn() },
     devoir: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
     commentaireDevoir: { findMany: vi.fn(), create: vi.fn() },
+    note: { create: vi.fn() },
   },
 }));
 vi.mock("../utils/notifier.js", () => ({ notifierSansBloquer: vi.fn(), ciblesDevoir: vi.fn() }));
@@ -22,6 +23,7 @@ vi.mock("../utils/notifier.js", () => ({ notifierSansBloquer: vi.fn(), ciblesDev
 import prisma from "../db.js";
 import documentsRoutes from "../routes/documents.js";
 import devoirsRoutes from "../routes/devoirs.js";
+import notesRoutes from "../routes/notes.js";
 
 process.env.JWT_SECRET = "secret-de-test";
 
@@ -33,6 +35,7 @@ app.use((req, res, next) => {
 });
 app.use("/documents", documentsRoutes);
 app.use("/devoirs", devoirsRoutes);
+app.use("/notes", notesRoutes);
 app.use((err, req, res, next) => res.status(500).json({ error: err.message })); // eslint-disable-line no-unused-vars
 
 // Connecte un utilisateur : le middleware recharge son rôle et son groupe depuis la base
@@ -182,5 +185,44 @@ describe("devoirs : visibilité et droits (issues #51 et #25)", () => {
       .get("/devoirs/5/commentaires")
       .set(connecte({ groupeId: 10 }))
       .expect(200);
+  });
+});
+
+describe("notes : validation de la valeur et du coefficient", () => {
+  const ajoute = (corps) =>
+    request(app)
+      .post("/notes")
+      .set(connecte())
+      .send({ matiere: "Web", valeur: 15, ...corps });
+
+  beforeEach(() => {
+    prisma.note.create.mockImplementation(({ data }) => Promise.resolve({ id: 1, ...data }));
+  });
+
+  it.each([[""], [null], [undefined]])("un coefficient laissé vide (%j) vaut 1", async (coefficient) => {
+    const res = await ajoute({ coefficient }).expect(201);
+    expect(res.body.coefficient).toBe(1);
+  });
+
+  it("accepte un coefficient valide, envoyé en texte par le formulaire", async () => {
+    const res = await ajoute({ valeur: "12.5", coefficient: "2.5" }).expect(201);
+    expect(res.body).toMatchObject({ valeur: 12.5, coefficient: 2.5 });
+  });
+
+  it("accepte un coefficient à la borne maximale", async () => {
+    await ajoute({ coefficient: 100 }).expect(201);
+  });
+
+  it.each([[0], ["0"], [-1], [100.5], ["abc"], ["   "], ["Infinity"], [true], [[2]]])(
+    "refuse le coefficient %j",
+    async (coefficient) => {
+      await ajoute({ coefficient }).expect(400);
+      expect(prisma.note.create).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each([[""], ["abc"], [-1], [20.5], [null]])("refuse la valeur %j", async (valeur) => {
+    await ajoute({ valeur }).expect(400);
+    expect(prisma.note.create).not.toHaveBeenCalled();
   });
 });

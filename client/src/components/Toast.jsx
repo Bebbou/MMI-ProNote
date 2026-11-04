@@ -20,20 +20,25 @@ export function Toaster() {
     function onToast(e) {
       const t = e.detail;
       setToasts((prev) => [...prev, t]);
+      // Une erreur se lit et se comprend : elle reste plus longtemps qu'un succès
       setTimeout(() => {
         setToasts((prev) => prev.filter((x) => x.id !== t.id));
-      }, 3200);
+      }, t.type === "error" ? 6500 : 3200);
     }
     window.addEventListener("app-toast", onToast);
     return () => window.removeEventListener("app-toast", onToast);
   }, []);
 
-  if (toasts.length === 0) return null;
-
+  // Le conteneur reste monté même vide : un lecteur d'écran n'annonce que les
+  // changements dans une zone aria-live qui existait déjà
   return (
-    <div className={styles.stack}>
+    <div className={styles.stack} role="status" aria-live="polite">
       {toasts.map((t) => (
-        <div key={t.id} className={`${styles.toast} ${t.type === "error" ? styles.error : styles.success}`}>
+        <div
+          key={t.id}
+          role={t.type === "error" ? "alert" : undefined}
+          className={`${styles.toast} ${t.type === "error" ? styles.error : styles.success}`}
+        >
           {t.message}
         </div>
       ))}

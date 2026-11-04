@@ -1,14 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
+import { Plus } from "lucide-react";
 import Layout from "../components/Layout";
+import PageTitle from "../components/PageTitle";
+import ConfirmModal from "../components/ConfirmModal";
+import { SkeletonCards } from "../components/Skeleton";
+import { toast } from "../components/Toast";
+import { useModal } from "../hooks/useModal";
 import api from "../api/index.js";
 import styles from "./Admin.module.css";
 
 const TAILLE_PAGE = 25;
+const ROLES = { etudiant: "Étudiant", delegue: "Délégué", professeur: "Professeur", admin: "Admin" };
+
+function toastErreur(err, message) {
+  toast(err.response?.data?.error ?? message, "error");
+}
 
 export default function Admin() {
   const { user: moi } = useAuth();
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [roleAChanger, setRoleAChanger] = useState(null); // { user, role } en attente de confirmation
   const [editUser, setEditUser] = useState(null);
   const [editForm, setEditForm] = useState({ nom: "", email: "", groupeId: "" });
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -18,6 +32,7 @@ export default function Admin() {
   const [newGroupe, setNewGroupe] = useState({ nom: "", promo: "" });
   const [newGroupeError, setNewGroupeError] = useState("");
   const [confirmDeleteGroupe, setConfirmDeleteGroupe] = useState(null);
+  const editModalRef = useModal(!!editUser, () => setEditUser(null));
   const [filtrePromo, setFiltrePromo] = useState("Toutes");
   const [filtreGroupeId, setFiltreGroupeId] = useState("Tous");
   // Recherche, rôle et pagination : la liste devient longue avec plusieurs promos
@@ -25,18 +40,33 @@ export default function Admin() {
   const [filtreRole, setFiltreRole] = useState("Tous");
   const [limite, setLimite] = useState(TAILLE_PAGE);
 
-  useEffect(() => {
-    api.get("/admin/users").then((res) => setUsers(res.data));
-    api.get("/admin/groupes").then((res) => {
-      setGroupes(res.data);
-      setIcalDrafts(Object.fromEntries(res.data.map((g) => [g.id, g.icalUrl ?? ""])));
-    });
+  // Une seule requête en échec suffit à afficher l'erreur : une page à moitié chargée
+  // laisserait croire qu'il n'y a aucun compte ou aucun groupe
+  const fetchAdmin = useCallback(() => {
+    setLoading(true);
+    setLoadError(false);
+    Promise.all([api.get("/admin/users"), api.get("/admin/groupes")])
+      .then(([resUsers, resGroupes]) => {
+        setUsers(resUsers.data);
+        setGroupes(resGroupes.data);
+        setIcalDrafts(Object.fromEntries(resGroupes.data.map((g) => [g.id, g.icalUrl ?? ""])));
+      })
+      .catch(() => setLoadError(true))
+      .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    fetchAdmin();
+  }, [fetchAdmin]);
+
   async function handleSaveIcal(id) {
-    const { data } = await api.patch(`/admin/groupes/${id}`, { icalUrl: icalDrafts[id] });
-    setGroupes(groupes.map((g) => (g.id === id ? data : g)));
-    setSyncStatus({ ...syncStatus, [id]: "Enregistré." });
+    try {
+      const { data } = await api.patch(`/admin/groupes/${id}`, { icalUrl: icalDrafts[id] });
+      setGroupes(groupes.map((g) => (g.id === id ? data : g)));
+      setSyncStatus({ ...syncStatus, [id]: "Enregistré." });
+    } catch (err) {
+      setSyncStatus({ ...syncStatus, [id]: err.response?.data?.error ?? "Impossible d'enregistrer le flux." });
+    }
   }
 
   async function handleCreateGroupe(e) {
@@ -55,13 +85,14 @@ export default function Admin() {
   }
 
   async function handleDeleteGroupe(id) {
+    setConfirmDeleteGroupe(null);
     try {
       await api.delete(`/admin/groupes/${id}`);
       setGroupes(groupes.filter((g) => g.id !== id));
+      toast("Groupe supprimé");
     } catch (err) {
-      alert(err.response?.data?.error ?? "Impossible de supprimer ce groupe.");
+      toastErreur(err, "Impossible de supprimer ce groupe");
     }
-    setConfirmDeleteGroupe(null);
   }
 
   async function handleSyncNow(id) {
@@ -78,13 +109,26 @@ export default function Admin() {
   }
 
   async function handleValider(id) {
-    await api.patch(`/admin/users/${id}/valider`);
-    setUsers(users.map((u) => (u.id === id ? { ...u, valide: true } : u)));
+    try {
+      await api.patch(`/admin/users/${id}/valider`);
+      setUsers(users.map((u) => (u.id === id ? { ...u, valide: true } : u)));
+      toast("Compte validé");
+    } catch (err) {
+      toastErreur(err, "Impossible de valider ce compte");
+    }
   }
 
-  async function handleRole(id, role) {
-    await api.patch(`/admin/users/${id}/role`, { role });
-    setUsers(users.map((u) => (u.id === id ? { ...u, role } : u)));
+  // Le select est contrôlé par u.role : tant que ce n'est pas confirmé, il garde l'ancien rôle
+  async function confirmerRole() {
+    const { user, role } = roleAChanger;
+    setRoleAChanger(null);
+    try {
+      await api.patch(`/admin/users/${user.id}/role`, { role });
+      setUsers(users.map((u) => (u.id === user.id ? { ...u, role } : u)));
+      toast("Rôle modifié");
+    } catch (err) {
+      toastErreur(err, "Impossible de modifier le rôle");
+    }
   }
 
   function openEdit(u) {
@@ -94,19 +138,30 @@ export default function Admin() {
 
   async function handleEdit(e) {
     e.preventDefault();
-    const { data } = await api.patch(`/admin/users/${editUser.id}`, editForm);
-    setUsers(
-      users.map((u) =>
-        u.id === data.id ? { ...u, nom: data.nom, email: data.email, groupe: data.groupe } : u
-      )
-    );
-    setEditUser(null);
+    // En cas d'échec la modale reste ouverte : la saisie n'est pas perdue
+    try {
+      const { data } = await api.patch(`/admin/users/${editUser.id}`, editForm);
+      setUsers(
+        users.map((u) =>
+          u.id === data.id ? { ...u, nom: data.nom, email: data.email, groupe: data.groupe } : u
+        )
+      );
+      setEditUser(null);
+      toast("Compte modifié");
+    } catch (err) {
+      toastErreur(err, "Impossible de modifier ce compte");
+    }
   }
 
   async function handleDelete(id) {
-    await api.delete(`/admin/users/${id}`);
-    setUsers(users.filter((u) => u.id !== id));
     setConfirmDelete(null);
+    try {
+      await api.delete(`/admin/users/${id}`);
+      setUsers(users.filter((u) => u.id !== id));
+      toast("Compte supprimé");
+    } catch (err) {
+      toastErreur(err, "Impossible de supprimer ce compte");
+    }
   }
 
   // Filtres par promo (MMI2/MMI3...) et par groupe — issue #46, utile une fois
@@ -133,10 +188,28 @@ export default function Admin() {
   const enAttente = usersFiltres.filter((u) => !u.valide);
   const valides = usersFiltres.filter((u) => u.valide);
 
+  if (loading || loadError) {
+    return (
+      <Layout>
+        <div className={styles.page}>
+          <PageTitle>Panel Admin</PageTitle>
+          {loading ? (
+            <SkeletonCards count={4} height={60} />
+          ) : (
+            <div className={styles.loadError}>
+              <p>Impossible de charger les comptes et les groupes.</p>
+              <button onClick={fetchAdmin}>Réessayer</button>
+            </div>
+          )}
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className={styles.page}>
-        <h1>Panel Admin</h1>
+        <PageTitle>Panel Admin</PageTitle>
 
         <div className={styles.filters}>
           <label className={styles.filterLabel}>
@@ -224,7 +297,7 @@ export default function Admin() {
                       Modifier
                     </button>
                     <button className={styles.deleteBtn} onClick={() => setConfirmDelete(u)}>
-                      Supprimer
+                      Refuser
                     </button>
                   </div>
                 </div>
@@ -256,7 +329,10 @@ export default function Admin() {
                   required
                 />
               </label>
-              <button type="submit">+ Créer le groupe</button>
+              <button type="submit" className={styles.creerBtn}>
+                <Plus size={16} strokeWidth={1.5} />
+                Créer le groupe
+              </button>
             </div>
             {newGroupeError && <p className={styles.error}>{newGroupeError}</p>}
           </form>
@@ -270,10 +346,11 @@ export default function Admin() {
                   </span>
                   <input
                     type="url"
+                    className={styles.icalInput}
                     placeholder="Lien iCal (ADE)"
+                    aria-label={`Lien iCal de ${g.nom} (${g.promo})`}
                     value={icalDrafts[g.id] ?? ""}
                     onChange={(e) => setIcalDrafts({ ...icalDrafts, [g.id]: e.target.value })}
-                    style={{ minWidth: "320px" }}
                   />
                   {syncStatus[g.id] && <span className={styles.email}>{syncStatus[g.id]}</span>}
                 </div>
@@ -315,12 +392,14 @@ export default function Admin() {
                     value={u.role}
                     disabled={u.id === moi?.id}
                     title={u.id === moi?.id ? "Tu ne peux pas modifier ton propre rôle" : undefined}
-                    onChange={(e) => handleRole(u.id, e.target.value)}
+                    aria-label={`Rôle de ${u.nom}`}
+                    onChange={(e) => setRoleAChanger({ user: u, role: e.target.value })}
                   >
-                    <option value="etudiant">Étudiant</option>
-                    <option value="delegue">Délégué</option>
-                    <option value="professeur">Professeur</option>
-                    <option value="admin">Admin</option>
+                    {Object.entries(ROLES).map(([id, label]) => (
+                      <option key={id} value={id}>
+                        {label}
+                      </option>
+                    ))}
                   </select>
                   <button className={styles.editBtn} onClick={() => openEdit(u)}>
                     Modifier
@@ -348,9 +427,15 @@ export default function Admin() {
 
       {/* Modal édition */}
       {editUser && (
-        <div className={styles.modalOverlay} onClick={() => setEditUser(null)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h2>Modifier {editUser.nom}</h2>
+        <div className={styles.modalOverlay}>
+          <div
+            ref={editModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titre-edition-utilisateur"
+            className={styles.modal}
+          >
+            <h2 id="titre-edition-utilisateur">Modifier {editUser.nom}</h2>
             <form onSubmit={handleEdit} className={styles.modalForm}>
               <label>
                 Nom
@@ -402,50 +487,34 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Modal confirmation suppression */}
-      {confirmDelete && (
-        <div className={styles.modalOverlay} onClick={() => setConfirmDelete(null)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h2>Supprimer {confirmDelete.nom} ?</h2>
-            <p className={styles.modalWarning}>
-              Cette action est irréversible. Toutes les notes de cet utilisateur seront supprimées.
-            </p>
-            <div className={styles.modalActions}>
-              <button type="button" className={styles.cancelBtn} onClick={() => setConfirmDelete(null)}>
-                Annuler
-              </button>
-              <button className={styles.confirmDeleteBtn} onClick={() => handleDelete(confirmDelete.id)}>
-                Supprimer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={roleAChanger !== null}
+        title={`Changer le rôle de ${roleAChanger?.user.nom} ?`}
+        message={
+          roleAChanger?.role === "admin"
+            ? "Ce compte aura un accès complet : comptes, rôles, groupes et emploi du temps."
+            : `${ROLES[roleAChanger?.user.role]} vers ${ROLES[roleAChanger?.role]}.`
+        }
+        confirmLabel="Changer le rôle"
+        onConfirm={confirmerRole}
+        onCancel={() => setRoleAChanger(null)}
+      />
 
-      {/* Modal confirmation suppression de groupe */}
-      {confirmDeleteGroupe && (
-        <div className={styles.modalOverlay} onClick={() => setConfirmDeleteGroupe(null)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h2>
-              Supprimer {confirmDeleteGroupe.nom} ({confirmDeleteGroupe.promo}) ?
-            </h2>
-            <p className={styles.modalWarning}>
-              Impossible si des comptes, devoirs ou cours y sont encore rattachés.
-            </p>
-            <div className={styles.modalActions}>
-              <button type="button" className={styles.cancelBtn} onClick={() => setConfirmDeleteGroupe(null)}>
-                Annuler
-              </button>
-              <button
-                className={styles.confirmDeleteBtn}
-                onClick={() => handleDeleteGroupe(confirmDeleteGroupe.id)}
-              >
-                Supprimer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={confirmDelete !== null}
+        title={`Supprimer ${confirmDelete?.nom} ?`}
+        message="Cette action est irréversible. Toutes les notes de cet utilisateur seront supprimées."
+        onConfirm={() => handleDelete(confirmDelete.id)}
+        onCancel={() => setConfirmDelete(null)}
+      />
+
+      <ConfirmModal
+        open={confirmDeleteGroupe !== null}
+        title={`Supprimer ${confirmDeleteGroupe?.nom} (${confirmDeleteGroupe?.promo}) ?`}
+        message="Impossible si des comptes, devoirs ou cours y sont encore rattachés."
+        onConfirm={() => handleDeleteGroupe(confirmDeleteGroupe.id)}
+        onCancel={() => setConfirmDeleteGroupe(null)}
+      />
     </Layout>
   );
 }

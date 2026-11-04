@@ -10,7 +10,6 @@ const CHAMPS_PREFS = {
   devoirs: "notifDevoirs",
   rappels: "notifRappels",
   cours: "notifCours",
-  annonces: "notifAnnonces",
 };
 
 // GET /notifications — les 30 dernières de l'utilisateur et le nombre de non lues
@@ -45,7 +44,7 @@ router.get("/preferences", requireAuth, async (req, res) => {
   res.json(Object.fromEntries(Object.entries(CHAMPS_PREFS).map(([cle, col]) => [cle, user[col]])));
 });
 
-// PUT /notifications/preferences — { devoirs?: bool, rappels?: bool, cours?: bool, annonces?: bool }
+// PUT /notifications/preferences — { devoirs?: bool, rappels?: bool, cours?: bool }
 router.put("/preferences", requireAuth, async (req, res) => {
   const data = {};
   for (const [cle, col] of Object.entries(CHAMPS_PREFS)) {

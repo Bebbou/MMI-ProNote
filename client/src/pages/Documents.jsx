@@ -1,6 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
+import PageTitle from "../components/PageTitle";
+import ConfirmModal from "../components/ConfirmModal";
+import { toast } from "../components/Toast";
+import { useModal } from "../hooks/useModal";
 import api from "../api/index.js";
 import {
   FileText,
@@ -29,7 +33,7 @@ function formatDate(iso) {
 }
 
 export default function Documents() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   // Issue #25 : les professeurs publient des cours, mais ne gèrent que les leurs
   const peutPublier = isAdmin || user?.role === "professeur";
@@ -37,6 +41,7 @@ export default function Documents() {
 
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [filtreMat, setFiltreMat] = useState("Toutes");
   const [filtreProf, setFiltreProf] = useState("Tous");
   const [filtreType, setFiltreType] = useState("Tous");
@@ -51,6 +56,8 @@ export default function Documents() {
   const [showUpload, setShowUpload] = useState(false);
   const [editingDoc, setEditingDoc] = useState(null);
   const [editForm, setEditForm] = useState(null);
+  const [docASupprimer, setDocASupprimer] = useState(null);
+  const editModalRef = useModal(!!editingDoc, () => setEditingDoc(null));
 
   // Form upload
   const [form, setForm] = useState({
@@ -75,18 +82,41 @@ export default function Documents() {
     api.get("/auth/groupes").then((r) => setPromos(Array.from(new Set(r.data.map((g) => g.promo))).sort()));
   }, [peutPublier]);
 
-  useEffect(() => {
-    api.get("/documents").then((r) => {
-      setDocs(r.data);
-      setLoading(false);
-    });
+  const fetchDocs = useCallback(() => {
+    setLoading(true);
+    setLoadError(false);
+    api
+      .get("/documents")
+      .then((r) => setDocs(r.data))
+      .catch(() => setLoadError(true))
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchDocs();
+  }, [fetchDocs]);
+
+  const matieres = ["Toutes", ...Array.from(new Set(docs.map((d) => d.matiere)))];
+  const profs = ["Tous", ...Array.from(new Set(docs.map((d) => d.prof).filter(Boolean)))];
+  const types = ["Tous", ...Array.from(new Set(docs.map((d) => d.type).filter(Boolean)))];
+
+  // Si le dernier document d'une matière disparaît, son filtre retombe sur "Toutes"
+  const matiereActive = matieres.includes(filtreMat) ? filtreMat : "Toutes";
+  const profActif = profs.includes(filtreProf) ? filtreProf : "Tous";
+  const typeActif = types.includes(filtreType) ? filtreType : "Tous";
 
   const filteredDocs = docs
     .filter((d) => !isAdmin || filtrePromo === "Toutes" || d.promo === filtrePromo)
-    .filter((d) => filtreMat === "Toutes" || d.matiere === filtreMat)
-    .filter((d) => filtreProf === "Tous" || d.prof === filtreProf)
-    .filter((d) => filtreType === "Tous" || d.type === filtreType);
+    .filter((d) => matiereActive === "Toutes" || d.matiere === matiereActive)
+    .filter((d) => profActif === "Tous" || d.prof === profActif)
+    .filter((d) => typeActif === "Tous" || d.type === typeActif);
+
+  function reinitialiserFiltres() {
+    setFiltreMat("Toutes");
+    setFiltreProf("Tous");
+    setFiltreType("Tous");
+    setFiltrePromo("Toutes");
+  }
 
   async function toggleComments(docId) {
     if (expandedId === docId) {
@@ -95,39 +125,58 @@ export default function Documents() {
     }
     setExpandedId(docId);
     if (!commentaires[docId]) {
-      const r = await api.get(`/documents/${docId}/commentaires`);
-      setCommentaires((prev) => ({ ...prev, [docId]: r.data }));
+      try {
+        const r = await api.get(`/documents/${docId}/commentaires`);
+        setCommentaires((prev) => ({ ...prev, [docId]: r.data }));
+      } catch {
+        setExpandedId(null);
+        toast("Impossible de charger les commentaires", "error");
+      }
     }
   }
 
   async function sendComment(docId) {
     const content = commentInput[docId]?.trim();
     if (!content) return;
-    const r = await api.post(`/documents/${docId}/commentaires`, { content });
-    setCommentaires((prev) => ({ ...prev, [docId]: [...(prev[docId] || []), r.data] }));
-    setCommentInput((prev) => ({ ...prev, [docId]: "" }));
-    setDocs((prev) =>
-      prev.map((d) =>
-        d.id === docId ? { ...d, _count: { commentaires: (d._count?.commentaires || 0) + 1 } } : d
-      )
-    );
+    try {
+      const r = await api.post(`/documents/${docId}/commentaires`, { content });
+      setCommentaires((prev) => ({ ...prev, [docId]: [...(prev[docId] || []), r.data] }));
+      setCommentInput((prev) => ({ ...prev, [docId]: "" }));
+      setDocs((prev) =>
+        prev.map((d) =>
+          d.id === docId ? { ...d, _count: { commentaires: (d._count?.commentaires || 0) + 1 } } : d
+        )
+      );
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible d'envoyer le commentaire", "error");
+    }
   }
 
   async function deleteComment(docId, commentId) {
-    await api.delete(`/documents/commentaires/${commentId}`);
-    setCommentaires((prev) => ({ ...prev, [docId]: prev[docId].filter((c) => c.id !== commentId) }));
-    setDocs((prev) =>
-      prev.map((d) =>
-        d.id === docId ? { ...d, _count: { commentaires: (d._count?.commentaires || 1) - 1 } } : d
-      )
-    );
+    try {
+      await api.delete(`/documents/commentaires/${commentId}`);
+      setCommentaires((prev) => ({ ...prev, [docId]: prev[docId].filter((c) => c.id !== commentId) }));
+      setDocs((prev) =>
+        prev.map((d) =>
+          d.id === docId ? { ...d, _count: { commentaires: (d._count?.commentaires || 1) - 1 } } : d
+        )
+      );
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible de supprimer le commentaire", "error");
+    }
   }
 
-  async function deleteDoc(docId) {
-    if (!confirm("Supprimer ce document ?")) return;
-    await api.delete(`/documents/${docId}`);
-    setDocs((prev) => prev.filter((d) => d.id !== docId));
-    if (expandedId === docId) setExpandedId(null);
+  async function confirmerSuppressionDoc() {
+    const { id } = docASupprimer;
+    setDocASupprimer(null);
+    try {
+      await api.delete(`/documents/${id}`);
+      setDocs((prev) => prev.filter((d) => d.id !== id));
+      if (expandedId === id) setExpandedId(null);
+      toast("Document supprimé");
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible de supprimer le document", "error");
+    }
   }
 
   function openEdit(doc) {
@@ -144,27 +193,31 @@ export default function Documents() {
 
   async function handleEditSubmit(e) {
     e.preventDefault();
-    const { data } = await api.patch(`/documents/${editingDoc.id}`, editForm);
-    setDocs((prev) => prev.map((d) => (d.id === data.id ? data : d)));
-    setEditingDoc(null);
+    // En cas d'échec la modale reste ouverte : la saisie n'est pas perdue
+    try {
+      const { data } = await api.patch(`/documents/${editingDoc.id}`, editForm);
+      setDocs((prev) => prev.map((d) => (d.id === data.id ? data : d)));
+      setEditingDoc(null);
+      toast("Document modifié");
+    } catch (err) {
+      toast(err.response?.data?.error || "Impossible de modifier le document", "error");
+    }
   }
 
-  function downloadDoc(doc) {
-    const url = `${import.meta.env.VITE_API_URL ?? "http://localhost:3000"}/documents/${doc.id}/download`;
-    const a = document.createElement("a");
-    a.href = url;
-    a.setAttribute("Authorization", `Bearer ${token}`);
-    // Use fetch to include auth header
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.blob())
-      .then((blob) => {
-        const burl = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = burl;
-        link.download = doc.fileName;
-        link.click();
-        URL.revokeObjectURL(burl);
-      });
+  // Passe par axios : le jeton est ajouté par l'intercepteur, et une réponse 403 ou 404
+  // part dans le catch au lieu d'être enregistrée comme si c'était le PDF.
+  async function downloadDoc(doc) {
+    try {
+      const { data } = await api.get(`/documents/${doc.id}/download`, { responseType: "blob" });
+      const burl = URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = burl;
+      link.download = doc.fileName;
+      link.click();
+      URL.revokeObjectURL(burl);
+    } catch {
+      toast("Impossible de télécharger le document", "error");
+    }
   }
 
   async function handleUpload(e) {
@@ -197,16 +250,13 @@ export default function Documents() {
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";
       setShowUpload(false);
+      toast("Document publié");
     } catch (err) {
       setUploadError(err.response?.data?.error || "Erreur lors de l'upload.");
     } finally {
       setUploading(false);
     }
   }
-
-  const matieres = ["Toutes", ...Array.from(new Set(docs.map((d) => d.matiere)))];
-  const profs = ["Tous", ...Array.from(new Set(docs.map((d) => d.prof).filter(Boolean)))];
-  const types = ["Tous", ...Array.from(new Set(docs.map((d) => d.type).filter(Boolean)))];
 
   return (
     <Layout>
@@ -222,9 +272,11 @@ export default function Documents() {
 
         <div className={styles.header}>
           <div>
-            <h1 className={styles.title}>Cours & Ressources</h1>
+            <PageTitle>Documents</PageTitle>
             <p className={styles.subtitle}>
-              {docs.length} document{docs.length !== 1 ? "s" : ""} disponible{docs.length !== 1 ? "s" : ""}
+              {loadError
+                ? "Liste indisponible"
+                : `${docs.length} document${docs.length !== 1 ? "s" : ""} disponible${docs.length !== 1 ? "s" : ""}`}
               {stockage && (
                 <>
                   {" · "}
@@ -238,7 +290,7 @@ export default function Documents() {
           {peutPublier && (
             <button className={styles.uploadBtn} onClick={() => setShowUpload((v) => !v)}>
               {showUpload ? <X size={16} strokeWidth={1.5} /> : <Plus size={16} strokeWidth={1.5} />}
-              {showUpload ? "Annuler" : "Ajouter un cours"}
+              {showUpload ? "Annuler" : "Ajouter un document"}
             </button>
           )}
         </div>
@@ -249,8 +301,9 @@ export default function Documents() {
             <h2 className={styles.formTitle}>Nouveau document</h2>
             <div className={styles.formGrid}>
               <div className={styles.field}>
-                <label>Titre *</label>
+                <label htmlFor="ajout-titre">Titre *</label>
                 <input
+                  id="ajout-titre"
                   value={form.titre}
                   onChange={(e) => setForm((f) => ({ ...f, titre: e.target.value }))}
                   placeholder="Ex: Cours HTML/CSS — Semaine 3"
@@ -258,8 +311,9 @@ export default function Documents() {
                 />
               </div>
               <div className={styles.field}>
-                <label>Matière *</label>
+                <label htmlFor="ajout-matiere">Matière *</label>
                 <input
+                  id="ajout-matiere"
                   list="matieres-existantes"
                   value={form.matiere}
                   onChange={(e) => setForm((f) => ({ ...f, matiere: e.target.value }))}
@@ -268,24 +322,26 @@ export default function Documents() {
                 />
               </div>
               <div className={styles.field}>
-                <label>Enseignant</label>
+                <label htmlFor="ajout-enseignant">Enseignant</label>
                 <input
+                  id="ajout-enseignant"
                   value={form.prof}
                   onChange={(e) => setForm((f) => ({ ...f, prof: e.target.value }))}
                   placeholder="Ex: Talleux (optionnel)"
                 />
               </div>
               <div className={styles.field}>
-                <label>Type *</label>
-                <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
+                <label htmlFor="ajout-type">Type *</label>
+                <select id="ajout-type" value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
                   {TYPES.map((t) => (
                     <option key={t}>{t}</option>
                   ))}
                 </select>
               </div>
               <div className={styles.field}>
-                <label>Promo *</label>
+                <label htmlFor="ajout-promo">Promo *</label>
                 <select
+                  id="ajout-promo"
                   value={form.promo}
                   onChange={(e) => setForm((f) => ({ ...f, promo: e.target.value }))}
                 >
@@ -295,16 +351,18 @@ export default function Documents() {
                 </select>
               </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
-                <label>Description</label>
+                <label htmlFor="ajout-description">Description</label>
                 <input
+                  id="ajout-description"
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Brève description du contenu (optionnel)"
                 />
               </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
-                <label>Fichier PDF *</label>
+                <label htmlFor="ajout-fichier-pdf">Fichier PDF *</label>
                 <input
+                  id="ajout-fichier-pdf"
                   ref={fileRef}
                   type="file"
                   accept="application/pdf"
@@ -321,11 +379,13 @@ export default function Documents() {
         )}
 
         {isAdmin && promos.length > 1 && (
-          <div className={styles.filters}>
+          <div className={styles.filters} role="group" aria-label="Promo">
+            <span className={styles.filtreLabel}>Promo</span>
             {["Toutes", ...promos].map((p) => (
               <button
                 key={p}
                 className={`${styles.filterBtn} ${filtrePromo === p ? styles.filterActive : ""}`}
+                aria-pressed={filtrePromo === p}
                 onClick={() => setFiltrePromo(p)}
               >
                 {p === "Toutes" ? "Toutes les promos" : p}
@@ -335,11 +395,13 @@ export default function Documents() {
         )}
 
         {/* Filtres : ressource, enseignant, type (issue #37) */}
-        <div className={styles.filters}>
+        <div className={styles.filters} role="group" aria-label="Matière">
+          <span className={styles.filtreLabel}>Matière</span>
           {matieres.map((m) => (
             <button
               key={m}
-              className={`${styles.filterBtn} ${filtreMat === m ? styles.filterActive : ""}`}
+              className={`${styles.filterBtn} ${matiereActive === m ? styles.filterActive : ""}`}
+              aria-pressed={matiereActive === m}
               onClick={() => setFiltreMat(m)}
             >
               {m}
@@ -347,11 +409,13 @@ export default function Documents() {
           ))}
         </div>
         {types.length > 1 && (
-          <div className={styles.filters}>
+          <div className={styles.filters} role="group" aria-label="Type">
+            <span className={styles.filtreLabel}>Type</span>
             {types.map((t) => (
               <button
                 key={t}
-                className={`${styles.filterBtn} ${styles.filterBtnType} ${filtreType === t ? styles.filterActive : ""}`}
+                className={`${styles.filterBtn} ${styles.filterBtnType} ${typeActif === t ? styles.filterActive : ""}`}
+                aria-pressed={typeActif === t}
                 onClick={() => setFiltreType(t)}
               >
                 {t}
@@ -360,11 +424,13 @@ export default function Documents() {
           </div>
         )}
         {profs.length > 1 && (
-          <div className={styles.filters}>
+          <div className={styles.filters} role="group" aria-label="Enseignant">
+            <span className={styles.filtreLabel}>Enseignant</span>
             {profs.map((p) => (
               <button
                 key={p}
-                className={`${styles.filterBtn} ${styles.filterBtnProf} ${filtreProf === p ? styles.filterActive : ""}`}
+                className={`${styles.filterBtn} ${styles.filterBtnProf} ${profActif === p ? styles.filterActive : ""}`}
+                aria-pressed={profActif === p}
                 onClick={() => setFiltreProf(p)}
               >
                 {p}
@@ -376,8 +442,22 @@ export default function Documents() {
         {/* Liste des documents */}
         {loading ? (
           <p className={styles.empty}>Chargement…</p>
+        ) : loadError ? (
+          <div className={styles.loadError}>
+            <p>Impossible de charger les documents.</p>
+            <button onClick={fetchDocs}>Réessayer</button>
+          </div>
         ) : filteredDocs.length === 0 ? (
-          <p className={styles.empty}>Aucun document disponible.</p>
+          docs.length > 0 ? (
+            <div className={styles.empty}>
+              <p>Aucun document avec ces filtres.</p>
+              <button type="button" className={styles.resetBtn} onClick={reinitialiserFiltres}>
+                Réinitialiser les filtres
+              </button>
+            </div>
+          ) : (
+            <p className={styles.empty}>Aucun document disponible.</p>
+          )
         ) : (
           <div className={styles.list}>
             {filteredDocs.map((doc) => (
@@ -407,6 +487,8 @@ export default function Documents() {
                       className={styles.commentToggle}
                       onClick={() => toggleComments(doc.id)}
                       title="Commentaires"
+                      aria-label={`Commentaires : ${doc._count?.commentaires || 0}`}
+                      aria-expanded={expandedId === doc.id}
                     >
                       <MessageSquare size={15} strokeWidth={1.5} />
                       <span>{doc._count?.commentaires || 0}</span>
@@ -425,15 +507,21 @@ export default function Documents() {
                       Télécharger
                     </button>
                     {peutGerer(doc) && (
-                      <button className={styles.editBtn} onClick={() => openEdit(doc)} title="Modifier">
+                      <button
+                        className={styles.editBtn}
+                        onClick={() => openEdit(doc)}
+                        title="Modifier"
+                        aria-label={`Modifier ${doc.titre}`}
+                      >
                         <Pencil size={14} strokeWidth={1.5} />
                       </button>
                     )}
                     {peutGerer(doc) && (
                       <button
                         className={styles.deleteBtn}
-                        onClick={() => deleteDoc(doc.id)}
+                        onClick={() => setDocASupprimer(doc)}
                         title="Supprimer"
+                        aria-label={`Supprimer ${doc.titre}`}
                       >
                         <Trash2 size={14} strokeWidth={1.5} />
                       </button>
@@ -459,6 +547,7 @@ export default function Documents() {
                                 <button
                                   className={styles.commentDelete}
                                   onClick={() => deleteComment(doc.id, c.id)}
+                                  aria-label="Supprimer le commentaire"
                                 >
                                   <X size={11} strokeWidth={1.5} />
                                 </button>
@@ -500,21 +589,32 @@ export default function Documents() {
 
       {/* Modale d'édition des tags (ressource/enseignant/type) — issue #37 */}
       {editingDoc && (
-        <div className={styles.editOverlay} onClick={() => setEditingDoc(null)}>
-          <form className={styles.editModal} onClick={(e) => e.stopPropagation()} onSubmit={handleEditSubmit}>
-            <h2 className={styles.formTitle}>Modifier « {editingDoc.titre} »</h2>
+        <div className={styles.editOverlay}>
+          <form
+            ref={editModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titre-edition-document"
+            className={styles.editModal}
+            onSubmit={handleEditSubmit}
+          >
+            <h2 id="titre-edition-document" className={styles.formTitle}>
+              Modifier « {editingDoc.titre} »
+            </h2>
             <div className={styles.formGrid}>
               <div className={styles.field}>
-                <label>Titre *</label>
+                <label htmlFor="edition-titre">Titre *</label>
                 <input
+                  id="edition-titre"
                   value={editForm.titre}
                   onChange={(e) => setEditForm((f) => ({ ...f, titre: e.target.value }))}
                   required
                 />
               </div>
               <div className={styles.field}>
-                <label>Matière *</label>
+                <label htmlFor="edition-matiere">Matière *</label>
                 <input
+                  id="edition-matiere"
                   list="matieres-existantes"
                   value={editForm.matiere}
                   onChange={(e) => setEditForm((f) => ({ ...f, matiere: e.target.value }))}
@@ -523,16 +623,18 @@ export default function Documents() {
                 />
               </div>
               <div className={styles.field}>
-                <label>Enseignant</label>
+                <label htmlFor="edition-enseignant">Enseignant</label>
                 <input
+                  id="edition-enseignant"
                   value={editForm.prof}
                   onChange={(e) => setEditForm((f) => ({ ...f, prof: e.target.value }))}
                   placeholder="Ex: Talleux (optionnel)"
                 />
               </div>
               <div className={styles.field}>
-                <label>Type *</label>
+                <label htmlFor="edition-type">Type *</label>
                 <select
+                  id="edition-type"
                   value={editForm.type}
                   onChange={(e) => setEditForm((f) => ({ ...f, type: e.target.value }))}
                 >
@@ -542,8 +644,9 @@ export default function Documents() {
                 </select>
               </div>
               <div className={styles.field}>
-                <label>Promo *</label>
+                <label htmlFor="edition-promo">Promo *</label>
                 <select
+                  id="edition-promo"
                   value={editForm.promo}
                   onChange={(e) => setEditForm((f) => ({ ...f, promo: e.target.value }))}
                 >
@@ -553,8 +656,9 @@ export default function Documents() {
                 </select>
               </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
-                <label>Description</label>
+                <label htmlFor="edition-description">Description</label>
                 <input
+                  id="edition-description"
                   value={editForm.description}
                   onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Brève description du contenu (optionnel)"
@@ -572,6 +676,14 @@ export default function Documents() {
           </form>
         </div>
       )}
+
+      <ConfirmModal
+        open={docASupprimer !== null}
+        title="Supprimer ce document ?"
+        message={docASupprimer && `« ${docASupprimer.titre} » et ses commentaires seront supprimés.`}
+        onConfirm={confirmerSuppressionDoc}
+        onCancel={() => setDocASupprimer(null)}
+      />
     </Layout>
   );
 }

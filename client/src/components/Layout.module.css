@@ -10,13 +10,6 @@
   flex-direction: column;
   margin-left: 240px;
   min-width: 0;
-  transition: margin-right 0.2s ease;
-}
-
-/* Panel de chat ouvert : le contenu est poussé au lieu d'être recouvert
-   (même largeur que .inner dans ChatPanel.module.css) */
-.contentChatOpen {
-  margin-right: 340px;
 }
 
 /* ── Sidebar ── */
@@ -61,11 +54,16 @@
 .logo {
   width: 48px;
   height: 48px;
-  border-radius: 10px;
   object-fit: contain;
-  background: #fff;
-  padding: 3px;
   flex-shrink: 0;
+}
+
+/* Les lettres du logo sont noires : sur fond sombre, il lui faut une pastille claire */
+[data-theme="dark"] .logo,
+[data-theme="obsidian"] .logo {
+  background: #fff;
+  border-radius: 50%;
+  padding: 3px;
 }
 
 .userInfo {
@@ -86,7 +84,7 @@
 
 .userGroupe {
   font-size: 0.75rem;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 500;
 }
 
@@ -117,7 +115,7 @@
 
 .active {
   background: var(--tint-pink);
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
 }
 
@@ -149,7 +147,7 @@
 .themeBtn:hover,
 .themeBtnOpen {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .themeDropdown {
@@ -193,7 +191,7 @@
 }
 
 .themeItemActive {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
 }
 
@@ -227,7 +225,7 @@
 .partyBtn:hover {
   background: var(--accent-solid);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent-solid);
 }
 
 .logout {
@@ -250,7 +248,7 @@
 
 .logout:hover {
   border-color: var(--danger);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ── Main content ── */
@@ -305,6 +303,12 @@
     display: none;
   }
 
+  /* Barre de 64px : le logo et la cloche s'empilent */
+  .sidebarTop {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
   .navLabel {
     display: none;
   }
@@ -344,11 +348,6 @@
 @media (max-width: 768px) {
   .layout {
     flex-direction: column;
-  }
-
-  .content,
-  .contentChatOpen {
-    margin-right: 0;
   }
 
   .content {
@@ -412,7 +411,7 @@
   .menuBtn:hover,
   .themeIconBtn:hover,
   .themeIconBtnOpen {
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   .mobileThemePicker {
@@ -438,7 +437,7 @@
   .mobileTitle {
     font-weight: 800;
     font-size: 0.95rem;
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   /* Main content sans padding en bas (géré par content) */
@@ -478,6 +477,23 @@
   }
 
   .bottomNavActive {
-    color: var(--accent);
+    color: var(--accent-text);
+  }
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .navLink,
+  .themeBtn,
+  .partyBtn,
+  .logout {
+    min-height: 44px;
+  }
+
+  .menuBtn,
+  .closeBtn,
+  .themeIconBtn {
+    min-width: 44px;
+    min-height: 44px;
   }
 }

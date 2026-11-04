@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  max-width: 500px;
+  max-width: 720px;
 }
 
 .page h1 {
@@ -38,7 +38,7 @@
 }
 
 .groupe {
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 0.775rem;
   font-weight: 700;
   background: var(--tint-pink);
@@ -66,6 +66,18 @@
   gap: 0.75rem;
 }
 
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.champ label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .form input {
   background: var(--bg-input);
   border: 1px solid var(--border);
@@ -84,7 +96,7 @@
 
 .form > button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.65rem;
@@ -285,7 +297,7 @@
 
 .notifBtn {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
 }
 
@@ -295,7 +307,7 @@
 
 .notifBtnOn {
   background: var(--tint-pink);
-  color: var(--accent);
+  color: var(--accent-text);
   border: 1px solid var(--accent);
 }
 
@@ -320,7 +332,7 @@
 
 .notifTest:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .notifBtn:disabled {
@@ -329,19 +341,19 @@
 }
 
 .error {
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 0.8rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--tint-danger);
+  border: 1px solid var(--danger);
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
 }
 
 .success {
-  color: var(--success);
+  color: var(--success-text);
   font-size: 0.8rem;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--tint-success);
+  border: 1px solid var(--success);
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
 }
@@ -349,5 +361,12 @@
 @media (max-width: 768px) {
   .page {
     max-width: 100%;
+  }
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .form > button {
+    min-height: 44px;
   }
 }

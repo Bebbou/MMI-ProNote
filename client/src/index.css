@@ -20,7 +20,22 @@
   --tint-orange: #fff3ee;
   --text: #1a1a1a;
   --text-muted: #3d3d3d;
-  --text-faint: #888888;
+  --text-faint: #6c6c6c;
+  /* Couleurs vives assombries pour rester lisibles quand elles servent à écrire.
+     --accent et les autres gardent les bordures, les fonds et les décorations. */
+  --accent-text: #a55176;
+  --blue-text: #1c749a;
+  --orange-text: #b74b13;
+  --danger-text: #d22424;
+  --success-text: #117d39;
+  --tint-danger: #fef2f2;
+  --tint-success: #f0fdf4;
+  /* Texte posé sur un fond plein : blanc ou foncé selon ce qui reste lisible */
+  --on-accent-solid: var(--text);
+  --on-danger: #ffffff;
+  --on-success: #0e0e0e;
+  --on-accent-orange: #1a1a1a;
+  --focus-ring: var(--text);
   --danger: #dc2626;
   --success: #16a34a;
   --warning: #f26419;
@@ -47,7 +62,17 @@
   --tint-orange: #2a1205;
   --text: #e0e0e0;
   --text-muted: #c1b492;
-  --text-faint: #555555;
+  --text-faint: #7c7c7c;
+  --accent-text: var(--accent);
+  --blue-text: var(--accent-blue);
+  --orange-text: var(--accent-orange);
+  --danger-text: var(--danger);
+  --success-text: var(--success);
+  --tint-danger: #2a0f0f;
+  --tint-success: #0c2414;
+  --on-accent-solid: #ffffff;
+  --on-danger: #0e0e0e;
+  --focus-ring: var(--accent);
   --danger: #ff4d4d;
   --success: #00c136;
   --warning: #f59e0b;
@@ -70,7 +95,13 @@
   --tint-orange: #fff3ee;
   --text: #0d2135;
   --text-muted: #2e5578;
-  --text-faint: #7aaac8;
+  --text-faint: #4b6e88;
+  --accent-text: #327096;
+  --blue-text: #327096;
+  --orange-text: #b34a12;
+  --danger-text: #ce2424;
+  --success-text: #117b38;
+  --accent-solid-hover: #6ab0da;
   --danger: #dc2626;
   --success: #16a34a;
   --warning: #f26419;
@@ -93,7 +124,13 @@
   --tint-orange: #fff3ee;
   --text: #2d0f1e;
   --text-muted: #6b2c49;
-  --text-faint: #b87a9a;
+  --text-faint: #8e5a75;
+  --accent-text: #a7456f;
+  --blue-text: #1a6e92;
+  --orange-text: #ad4712;
+  --danger-text: #c82323;
+  --success-text: #107736;
+  --accent-solid-hover: #ed7fae;
   --danger: #dc2626;
   --success: #16a34a;
   --warning: #f26419;
@@ -119,7 +156,17 @@
   --tint-orange: #2a1205;
   --text: #e2dff5;
   --text-muted: #a09cc0;
-  --text-faint: #4e4a6a;
+  --text-faint: #817d9a;
+  --accent-text: var(--accent);
+  --blue-text: var(--accent-blue);
+  --orange-text: var(--accent-orange);
+  --danger-text: var(--danger);
+  --success-text: var(--success);
+  --tint-danger: #2a1020;
+  --tint-success: #0f2a1c;
+  --on-accent-solid: #ffffff;
+  --on-danger: #0e0e0e;
+  --focus-ring: var(--accent);
   --danger: #ff4d6a;
   --success: #3ddc84;
   --warning: #ffb347;
@@ -156,6 +203,13 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* !important : beaucoup de champs ont un outline: none plus spécifique, et le focus
+   clavier doit rester visible partout */
+:focus-visible {
+  outline: 2px solid var(--focus-ring) !important;
+  outline-offset: 2px;
 }
 
 ::-webkit-scrollbar {

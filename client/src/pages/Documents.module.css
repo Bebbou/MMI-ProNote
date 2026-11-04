@@ -1,6 +1,4 @@
 .page {
-  max-width: 860px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -13,11 +11,6 @@
   justify-content: space-between;
   gap: 1rem;
 }
-.title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--text);
-}
 .subtitle {
   font-size: 0.875rem;
   color: var(--text-faint);
@@ -28,13 +21,13 @@
   align-items: center;
   gap: 0.4rem;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
-  padding: 0.6rem 1rem;
-  font-size: 0.875rem;
+  padding: 0.45rem 1.1rem;
+  font-size: 0.825rem;
   font-family: inherit;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s;
@@ -97,13 +90,13 @@
   cursor: pointer;
 }
 .error {
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 0.825rem;
 }
 .submitBtn {
   align-self: flex-start;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.6rem 1.25rem;
@@ -125,7 +118,17 @@
 .filters {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
+}
+
+.filtreLabel {
+  min-width: 5.5rem;
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 .filterBtn {
   background: var(--bg-card);
@@ -148,18 +151,18 @@
 .filterActive {
   background: var(--tint-pink);
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--text);
   font-weight: 600;
 }
 .filterBtnType.filterActive {
   background: var(--tint-blue);
   border-color: var(--accent-blue);
-  color: var(--accent-blue);
+  color: var(--text);
 }
 .filterBtnProf.filterActive {
   background: var(--tint-orange);
   border-color: var(--accent-orange);
-  color: var(--accent-orange);
+  color: var(--text);
 }
 
 /* ── Liste ── */
@@ -173,6 +176,40 @@
   font-size: 0.875rem;
   text-align: center;
   padding: 3rem 0;
+}
+
+.resetBtn {
+  margin-top: 0.75rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 0.4rem 1rem;
+}
+
+.loadError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 0;
+  color: var(--text-faint);
+  font-size: 0.875rem;
+}
+
+.loadError button {
+  background: var(--accent-solid);
+  color: var(--on-accent-solid);
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 1.25rem;
+  font-size: 0.825rem;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
 }
 
 /* ── Card ── */
@@ -194,7 +231,7 @@
   padding: 1.1rem 1.25rem;
 }
 .cardIcon {
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--tint-pink);
   border-radius: 10px;
   width: 44px;
@@ -217,7 +254,7 @@
 }
 .matiereBadge {
   background: var(--tint-pink);
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 0.7rem;
   font-weight: 700;
   border-radius: 20px;
@@ -225,7 +262,7 @@
 }
 .typeBadge {
   background: var(--tint-blue);
-  color: var(--accent-blue);
+  color: var(--blue-text);
   font-size: 0.7rem;
   font-weight: 700;
   border-radius: 20px;
@@ -233,7 +270,7 @@
 }
 .profBadge {
   background: var(--tint-orange);
-  color: var(--accent-orange);
+  color: var(--orange-text);
   font-size: 0.7rem;
   font-weight: 600;
   border-radius: 20px;
@@ -288,26 +325,26 @@
     border-color 0.15s;
 }
 .commentToggle:hover {
-  color: var(--accent);
+  color: var(--accent-text);
   border-color: var(--accent);
 }
 .downloadBtn {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  background: var(--accent-solid);
-  color: #fff;
-  border: none;
+  background: none;
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.4rem 0.8rem;
   font-size: 0.775rem;
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: border-color 0.15s;
 }
 .downloadBtn:hover {
-  background: var(--accent-solid-hover);
+  border-color: var(--accent);
 }
 .editBtn {
   background: none;
@@ -323,7 +360,7 @@
     border-color 0.15s;
 }
 .editBtn:hover {
-  color: var(--accent);
+  color: var(--accent-text);
   border-color: var(--accent);
 }
 .deleteBtn {
@@ -340,7 +377,7 @@
     border-color 0.15s;
 }
 .deleteBtn:hover {
-  color: var(--danger);
+  color: var(--danger-text);
   border-color: var(--danger);
 }
 
@@ -423,7 +460,7 @@
 .commentAuteur {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .commentDate {
   font-size: 0.725rem;
@@ -441,7 +478,7 @@
   transition: color 0.15s;
 }
 .commentDelete:hover {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 .commentContent {
   font-size: 0.85rem;
@@ -470,7 +507,7 @@
 }
 .commentSend {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.5rem 0.75rem;
@@ -503,14 +540,41 @@
     flex-direction: column;
     align-items: flex-start;
   }
-  .uploadBtn {
-    width: 100%;
-    justify-content: center;
-  }
 }
 
 /* Stockage presque plein : on prévient avant que l'upload soit refusé */
 .stockageAlerte {
-  color: var(--danger);
+  color: var(--danger-text);
   font-weight: 600;
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .filterBtn {
+    min-height: 44px;
+  }
+
+  .editBtn,
+  .deleteBtn {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .commentDelete {
+    min-width: 44px;
+    min-height: 44px;
+    margin: -12px;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .uploadBtn,
+  .commentToggle,
+  .downloadBtn {
+    min-height: 44px;
+  }
 }
