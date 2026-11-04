@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
+import ConfirmModal from "../components/ConfirmModal";
+import { useModal } from "../hooks/useModal";
 import api from "../api/index.js";
 import styles from "./Admin.module.css";
 
@@ -18,6 +20,7 @@ export default function Admin() {
   const [newGroupe, setNewGroupe] = useState({ nom: "", promo: "" });
   const [newGroupeError, setNewGroupeError] = useState("");
   const [confirmDeleteGroupe, setConfirmDeleteGroupe] = useState(null);
+  const editModalRef = useModal(!!editUser, () => setEditUser(null));
   const [filtrePromo, setFiltrePromo] = useState("Toutes");
   const [filtreGroupeId, setFiltreGroupeId] = useState("Tous");
   // Recherche, rôle et pagination : la liste devient longue avec plusieurs promos
@@ -348,9 +351,15 @@ export default function Admin() {
 
       {/* Modal édition */}
       {editUser && (
-        <div className={styles.modalOverlay} onClick={() => setEditUser(null)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h2>Modifier {editUser.nom}</h2>
+        <div className={styles.modalOverlay}>
+          <div
+            ref={editModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titre-edition-utilisateur"
+            className={styles.modal}
+          >
+            <h2 id="titre-edition-utilisateur">Modifier {editUser.nom}</h2>
             <form onSubmit={handleEdit} className={styles.modalForm}>
               <label>
                 Nom
@@ -402,50 +411,21 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Modal confirmation suppression */}
-      {confirmDelete && (
-        <div className={styles.modalOverlay} onClick={() => setConfirmDelete(null)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h2>Supprimer {confirmDelete.nom} ?</h2>
-            <p className={styles.modalWarning}>
-              Cette action est irréversible. Toutes les notes de cet utilisateur seront supprimées.
-            </p>
-            <div className={styles.modalActions}>
-              <button type="button" className={styles.cancelBtn} onClick={() => setConfirmDelete(null)}>
-                Annuler
-              </button>
-              <button className={styles.confirmDeleteBtn} onClick={() => handleDelete(confirmDelete.id)}>
-                Supprimer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={confirmDelete !== null}
+        title={`Supprimer ${confirmDelete?.nom} ?`}
+        message="Cette action est irréversible. Toutes les notes de cet utilisateur seront supprimées."
+        onConfirm={() => handleDelete(confirmDelete.id)}
+        onCancel={() => setConfirmDelete(null)}
+      />
 
-      {/* Modal confirmation suppression de groupe */}
-      {confirmDeleteGroupe && (
-        <div className={styles.modalOverlay} onClick={() => setConfirmDeleteGroupe(null)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h2>
-              Supprimer {confirmDeleteGroupe.nom} ({confirmDeleteGroupe.promo}) ?
-            </h2>
-            <p className={styles.modalWarning}>
-              Impossible si des comptes, devoirs ou cours y sont encore rattachés.
-            </p>
-            <div className={styles.modalActions}>
-              <button type="button" className={styles.cancelBtn} onClick={() => setConfirmDeleteGroupe(null)}>
-                Annuler
-              </button>
-              <button
-                className={styles.confirmDeleteBtn}
-                onClick={() => handleDeleteGroupe(confirmDeleteGroupe.id)}
-              >
-                Supprimer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={confirmDeleteGroupe !== null}
+        title={`Supprimer ${confirmDeleteGroupe?.nom} (${confirmDeleteGroupe?.promo}) ?`}
+        message="Impossible si des comptes, devoirs ou cours y sont encore rattachés."
+        onConfirm={() => handleDeleteGroupe(confirmDeleteGroupe.id)}
+        onCancel={() => setConfirmDeleteGroupe(null)}
+      />
     </Layout>
   );
 }

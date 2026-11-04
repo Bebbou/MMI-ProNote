@@ -261,29 +261,6 @@
   background: var(--accent-solid-hover);
 }
 
-.modalWarning {
-  font-size: 0.85rem;
-  color: var(--text-faint);
-  line-height: 1.5;
-}
-
-.confirmDeleteBtn {
-  background: var(--danger);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1.25rem;
-  font-family: inherit;
-  font-size: 0.825rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.confirmDeleteBtn:hover {
-  opacity: 0.85;
-}
-
 .error {
   color: var(--danger);
   font-size: 0.825rem;

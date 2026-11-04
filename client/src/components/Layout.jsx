@@ -32,7 +32,7 @@ const navItems = [
   { to: "/notes", label: "Notes", icon: BarChart2 },
   { to: "/edt", label: "EDT", icon: Calendar },
   { to: "/chat", label: "Chat", icon: MessageSquare },
-  { to: "/documents", label: "Cours", icon: FolderOpen },
+  { to: "/documents", label: "Documents", icon: FolderOpen },
   { to: "/profil", label: "Profil", icon: User },
 ];
 
@@ -159,7 +159,7 @@ export default function Layout({ children }) {
         </a>
         <button className={styles.logout} onClick={handleLogout}>
           <LogOut size={13} strokeWidth={1.5} />
-          <span className={styles.navLabel}>Deconnexion</span>
+          <span className={styles.navLabel}>Déconnexion</span>
         </button>
       </aside>
 

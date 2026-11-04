@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
+import PageTitle from "../components/PageTitle";
 import ConfirmModal from "../components/ConfirmModal";
 import { toast } from "../components/Toast";
+import { useModal } from "../hooks/useModal";
 import api from "../api/index.js";
 import {
   FileText,
@@ -55,6 +57,7 @@ export default function Documents() {
   const [editingDoc, setEditingDoc] = useState(null);
   const [editForm, setEditForm] = useState(null);
   const [docASupprimer, setDocASupprimer] = useState(null);
+  const editModalRef = useModal(!!editingDoc, () => setEditingDoc(null));
 
   // Form upload
   const [form, setForm] = useState({
@@ -257,7 +260,7 @@ export default function Documents() {
 
         <div className={styles.header}>
           <div>
-            <h1 className={styles.title}>Cours & Ressources</h1>
+            <PageTitle>Documents</PageTitle>
             <p className={styles.subtitle}>
               {loadError
                 ? "Liste indisponible"
@@ -275,7 +278,7 @@ export default function Documents() {
           {peutPublier && (
             <button className={styles.uploadBtn} onClick={() => setShowUpload((v) => !v)}>
               {showUpload ? <X size={16} strokeWidth={1.5} /> : <Plus size={16} strokeWidth={1.5} />}
-              {showUpload ? "Annuler" : "Ajouter un cours"}
+              {showUpload ? "Annuler" : "Ajouter un document"}
             </button>
           )}
         </div>
@@ -542,9 +545,18 @@ export default function Documents() {
 
       {/* Modale d'édition des tags (ressource/enseignant/type) — issue #37 */}
       {editingDoc && (
-        <div className={styles.editOverlay} onClick={() => setEditingDoc(null)}>
-          <form className={styles.editModal} onClick={(e) => e.stopPropagation()} onSubmit={handleEditSubmit}>
-            <h2 className={styles.formTitle}>Modifier « {editingDoc.titre} »</h2>
+        <div className={styles.editOverlay}>
+          <form
+            ref={editModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titre-edition-document"
+            className={styles.editModal}
+            onSubmit={handleEditSubmit}
+          >
+            <h2 id="titre-edition-document" className={styles.formTitle}>
+              Modifier « {editingDoc.titre} »
+            </h2>
             <div className={styles.formGrid}>
               <div className={styles.field}>
                 <label>Titre *</label>

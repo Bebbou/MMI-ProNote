@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { Plus, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 import PageTitle from "../components/PageTitle";
 import ConfirmModal from "../components/ConfirmModal";
 import { toast } from "../components/Toast";
+import { useModal } from "../hooks/useModal";
 import api from "../api/index.js";
 import styles from "./EDT.module.css";
 
@@ -75,23 +77,44 @@ export default function EDT() {
   });
   const [coursDetail, setCoursDetail] = useState(null); // cours cliqué, affiché dans une modale
   const [coursASupprimer, setCoursASupprimer] = useState(null);
+  const detailModalRef = useModal(!!coursDetail, () => setCoursDetail(null));
+  const [loadError, setLoadError] = useState(false);
   const [groupes, setGroupes] = useState([]);
   const [groupeId, setGroupeId] = useState(null); // groupe dont on consulte l'EDT (le sien par défaut)
 
   // Charge la liste des groupes, puis présélectionne le sien
-  useEffect(() => {
-    api.get("/edt/groupes").then((res) => {
-      setGroupes(res.data);
-      // Le nom seul ne suffit pas : plusieurs promos peuvent avoir un groupe "TDA1"
-      const mien = res.data.find((g) => g.nom === user?.groupe && g.promo === user?.promo);
-      setGroupeId(mien ? mien.id : (res.data[0]?.id ?? null));
-    });
+  const chargerGroupes = useCallback(() => {
+    setLoadError(false);
+    api
+      .get("/edt/groupes")
+      .then((res) => {
+        setGroupes(res.data);
+        // Le nom seul ne suffit pas : plusieurs promos peuvent avoir un groupe "TDA1"
+        const mien = res.data.find((g) => g.nom === user?.groupe && g.promo === user?.promo);
+        setGroupeId(mien ? mien.id : (res.data[0]?.id ?? null));
+      })
+      .catch(() => setLoadError(true));
   }, [user]);
 
+  const chargerCours = useCallback((id) => {
+    setLoadError(false);
+    api
+      .get("/edt", { params: { groupeId: id } })
+      .then((res) => setCours(res.data))
+      .catch(() => {
+        // Ne pas laisser les cours du groupe précédent sous le nom du nouveau
+        setCours([]);
+        setLoadError(true);
+      });
+  }, []);
+
   useEffect(() => {
-    if (groupeId === null) return;
-    api.get("/edt", { params: { groupeId } }).then((res) => setCours(res.data));
-  }, [groupeId]);
+    chargerGroupes();
+  }, [chargerGroupes]);
+
+  useEffect(() => {
+    if (groupeId !== null) chargerCours(groupeId);
+  }, [groupeId, chargerCours]);
 
   const lundi = useMemo(() => {
     const base = lundiDeLaSemaine(new Date());
@@ -216,10 +239,20 @@ export default function EDT() {
           <PageTitle>Emploi du temps</PageTitle>
           {user?.role === "admin" && (
             <button onClick={() => setShowForm(!showForm)}>
-              {showForm ? "Annuler" : "+ Ajouter un cours"}
+              {showForm ? <X size={16} strokeWidth={1.5} /> : <Plus size={16} strokeWidth={1.5} />}
+              {showForm ? "Annuler" : "Ajouter un cours"}
             </button>
           )}
         </div>
+
+        {loadError && (
+          <div className={styles.loadError}>
+            <p>Impossible de charger l'emploi du temps.</p>
+            <button onClick={() => (groupeId === null ? chargerGroupes() : chargerCours(groupeId))}>
+              Réessayer
+            </button>
+          </div>
+        )}
 
         {groupes.length > 1 && (
           <div className={styles.groupeSelect}>
@@ -380,10 +413,19 @@ export default function EDT() {
 
       {coursDetail && (
         <div className={styles.detailOverlay} onClick={() => setCoursDetail(null)}>
-          <div className={styles.detailModal} onClick={(e) => e.stopPropagation()}>
+          <div
+            ref={detailModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titre-detail-cours"
+            className={styles.detailModal}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.detailHeader}>
               <span className={`${styles.detailPastille} ${styles["couleur-" + couleurMatiere(coursDetail.matiere)]}`} />
-              <h3 className={styles.detailTitre}>{coursDetail.matiere}</h3>
+              <h3 id="titre-detail-cours" className={styles.detailTitre}>
+                {coursDetail.matiere}
+              </h3>
               {coursDetail.annule && <span className={styles.badgeAnnule}>Annulé</span>}
             </div>
             <dl className={styles.detailList}>

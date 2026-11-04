@@ -31,6 +31,9 @@
 }
 
 .header button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   background: var(--accent-solid);
   color: #fff;
   border: none;

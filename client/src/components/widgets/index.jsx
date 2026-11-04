@@ -18,7 +18,7 @@ export const WIDGETS = {
     Composant: () => <WidgetCard to="/chat" label="Chat" icon={MessageSquare} />,
   },
   documents: {
-    label: "Cours & Ressources",
-    Composant: () => <WidgetCard to="/documents" label="Cours" icon={FolderOpen} />,
+    label: "Documents",
+    Composant: () => <WidgetCard to="/documents" label="Documents" icon={FolderOpen} />,
   },
 };

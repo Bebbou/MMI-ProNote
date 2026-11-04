@@ -21,6 +21,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import { SkeletonCards } from "../components/Skeleton";
 import { toast } from "../components/Toast";
 import { useOptions } from "../hooks/useOptions";
+import { useModal } from "../hooks/useModal";
 import { useAutoGrow } from "../hooks/useAutoGrow";
 import { majPastille } from "../utils/badge";
 import api from "../api/index.js";
@@ -154,6 +155,7 @@ export default function Devoirs() {
   const [filtreAudience, setFiltreAudience] = useState("tous"); // "tous" | "groupe" | "promo" | id d'option
   const [filtresOuverts, setFiltresOuverts] = useState(false);
   const boutonFiltresRef = useRef(null);
+  const editModalRef = useModal(!!editingDevoir, () => setEditingDevoir(null));
   // Commentaires : un seul devoir déplié à la fois, chargés à la demande
   const [expandedId, setExpandedId] = useState(null);
   const [commentaires, setCommentaires] = useState({});
@@ -222,13 +224,6 @@ export default function Devoirs() {
   }, [user?.role]);
 
   // Échap ferme la modale d'édition
-  useEffect(() => {
-    if (!editingDevoir) return;
-    const onKey = (e) => e.key === "Escape" && setEditingDevoir(null);
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [editingDevoir]);
-
   // La promo entière n'est offerte au délégué que pour une évaluation : si le type repasse
   // à "Devoir", on revient à "mon groupe"
   function cibleValide(type, cible) {
@@ -928,9 +923,18 @@ export default function Devoirs() {
       </div>
 
       {editingDevoir && (
-        <div className={styles.editOverlay} onClick={() => setEditingDevoir(null)}>
-          <form className={styles.editModal} onClick={(e) => e.stopPropagation()} onSubmit={handleEditSubmit}>
-            <h2 className={styles.editModalTitle}>Modifier le devoir</h2>
+        <div className={styles.editOverlay}>
+          <form
+            ref={editModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titre-edition-devoir"
+            className={styles.editModal}
+            onSubmit={handleEditSubmit}
+          >
+            <h2 id="titre-edition-devoir" className={styles.editModalTitle}>
+              Modifier le devoir
+            </h2>
             <select
               value={editForm.type}
               onChange={(e) =>

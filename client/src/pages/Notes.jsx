@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Plus, X } from "lucide-react";
 import Layout from "../components/Layout";
 import PageTitle from "../components/PageTitle";
 import ConfirmModal from "../components/ConfirmModal";
@@ -40,7 +41,7 @@ export default function Notes() {
       setNotes([data, ...notes]);
       setForm({ matiere: "", valeur: "", coefficient: "" });
       setShowForm(false);
-      toast("Note ajoutee");
+      toast("Note ajoutée");
     } catch (err) {
       toast(err.response?.data?.error || "Impossible d'ajouter la note", "error");
     }
@@ -52,7 +53,7 @@ export default function Notes() {
     try {
       await api.delete(`/notes/${id}`);
       setNotes(notes.filter((n) => n.id !== id));
-      toast("Note supprimee");
+      toast("Note supprimée");
     } catch {
       toast("Impossible de supprimer la note", "error");
     }
@@ -75,7 +76,10 @@ export default function Notes() {
               </p>
             )}
           </div>
-          <button onClick={() => setShowForm(!showForm)}>{showForm ? "Annuler" : "+ Ajouter"}</button>
+          <button onClick={() => setShowForm(!showForm)}>
+            {showForm ? <X size={16} strokeWidth={1.5} /> : <Plus size={16} strokeWidth={1.5} />}
+            {showForm ? "Annuler" : "Ajouter une note"}
+          </button>
         </div>
 
         {showForm && (
@@ -145,7 +149,7 @@ export default function Notes() {
       <ConfirmModal
         open={toDelete !== null}
         title="Supprimer cette note ?"
-        message="Cette action est definitive."
+        message="Cette action est définitive."
         onConfirm={confirmDelete}
         onCancel={() => setToDelete(null)}
       />

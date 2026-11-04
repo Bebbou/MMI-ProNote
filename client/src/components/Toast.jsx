@@ -28,10 +28,10 @@ export function Toaster() {
     return () => window.removeEventListener("app-toast", onToast);
   }, []);
 
-  if (toasts.length === 0) return null;
-
+  // Le conteneur reste monté même vide : un lecteur d'écran n'annonce que les
+  // changements dans une zone aria-live qui existait déjà
   return (
-    <div className={styles.stack}>
+    <div className={styles.stack} role="status" aria-live="polite">
       {toasts.map((t) => (
         <div key={t.id} className={`${styles.toast} ${t.type === "error" ? styles.error : styles.success}`}>
           {t.message}

@@ -1,3 +1,5 @@
+import { useId } from "react";
+import { useModal } from "../hooks/useModal";
 import styles from "./ConfirmModal.module.css";
 
 /*
@@ -12,12 +14,24 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }) {
+  const modalRef = useModal(open, onCancel);
+  const titreId = useId();
+
   if (!open) return null;
 
   return (
     <div className={styles.overlay} onClick={onCancel}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h3 className={styles.title}>{title}</h3>
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titreId}
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 id={titreId} className={styles.title}>
+          {title}
+        </h3>
         {message && <p className={styles.message}>{message}</p>}
         <div className={styles.actions}>
           <button className={styles.cancelBtn} onClick={onCancel}>
