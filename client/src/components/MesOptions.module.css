@@ -142,3 +142,11 @@
 .ajout button:hover {
   background: var(--accent-solid-hover);
 }
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .ajout input,
+  .ajout button {
+    min-height: 44px;
+  }
+}

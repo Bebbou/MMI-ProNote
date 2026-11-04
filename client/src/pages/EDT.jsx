@@ -79,6 +79,7 @@ export default function EDT() {
   const [coursASupprimer, setCoursASupprimer] = useState(null);
   const detailModalRef = useModal(!!coursDetail, () => setCoursDetail(null));
   const [loadError, setLoadError] = useState(false);
+  const [chargement, setChargement] = useState(true);
   const [groupes, setGroupes] = useState([]);
   const [groupeId, setGroupeId] = useState(null); // groupe dont on consulte l'EDT (le sien par défaut)
 
@@ -92,12 +93,17 @@ export default function EDT() {
         // Le nom seul ne suffit pas : plusieurs promos peuvent avoir un groupe "TDA1"
         const mien = res.data.find((g) => g.nom === user?.groupe && g.promo === user?.promo);
         setGroupeId(mien ? mien.id : (res.data[0]?.id ?? null));
+        if (res.data.length === 0) setChargement(false);
       })
-      .catch(() => setLoadError(true));
+      .catch(() => {
+        setLoadError(true);
+        setChargement(false);
+      });
   }, [user]);
 
   const chargerCours = useCallback((id) => {
     setLoadError(false);
+    setChargement(true);
     api
       .get("/edt", { params: { groupeId: id } })
       .then((res) => setCours(res.data))
@@ -105,7 +111,8 @@ export default function EDT() {
         // Ne pas laisser les cours du groupe précédent sous le nom du nouveau
         setCours([]);
         setLoadError(true);
-      });
+      })
+      .finally(() => setChargement(false));
   }, []);
 
   useEffect(() => {
@@ -131,6 +138,8 @@ export default function EDT() {
       }),
     [lundi]
   );
+
+  const semaineAvecCours = cours.some((c) => jours.some((j) => memeJour(new Date(c.dateDebut), j.date)));
 
   // Cours de la semaine affichée, avec leurs bornes en Date + minutes
   const coursParJour = useMemo(() => {
@@ -191,6 +200,10 @@ export default function EDT() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (new Date(form.dateFin) <= new Date(form.dateDebut)) {
+      toast("La fin du cours doit être après le début", "error");
+      return;
+    }
     // Le cours est ajouté au groupe actuellement consulté (utile si un admin
     // regarde l'EDT d'un autre groupe que le sien)
     //
@@ -206,6 +219,9 @@ export default function EDT() {
         groupeId,
       });
       setCours([...cours, data]);
+      // Affiche la semaine du cours ajouté, sinon le toast annoncerait un cours invisible
+      const ecart = lundiDeLaSemaine(new Date(form.dateDebut)) - lundiDeLaSemaine(new Date());
+      setSemaineOffset(Math.round(ecart / (7 * 24 * 60 * 60 * 1000)));
       setForm({ matiere: "", dateDebut: "", dateFin: "", salle: "", prof: "" });
       setShowForm(false);
       toast("Cours ajouté");
@@ -347,6 +363,11 @@ export default function EDT() {
             />
             <button type="submit">Ajouter</button>
           </form>
+        )}
+
+        {chargement && <p className={styles.etatGrille}>Chargement de l'emploi du temps…</p>}
+        {!chargement && !loadError && !semaineAvecCours && (
+          <p className={styles.etatGrille}>Aucun cours cette semaine.</p>
         )}
 
         <div className={styles.timetable} data-jour-mobile={jourMobile}>

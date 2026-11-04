@@ -7,14 +7,8 @@ import { WIDGETS } from "../components/widgets";
 import { useWidgetPrefs, apercuDeplacement } from "../hooks/useWidgetPrefs";
 import { useFlip } from "../hooks/useFlip";
 import { useDonneesDashboard } from "../hooks/useDonneesDashboard";
+import { ROLE_LABELS } from "../utils/roles";
 import styles from "./Dashboard.module.css";
-
-const ROLE_LABELS = {
-  admin: "Administrateur",
-  delegue: "Délégué",
-  professeur: "Professeur",
-  etudiant: "Étudiant",
-};
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -129,6 +123,15 @@ export default function Dashboard() {
             </ul>
             <button type="button" className={styles.toolbarBtn} onClick={reinitialiser}>
               Réinitialiser
+            </button>
+          </div>
+        )}
+
+        {Object.keys(donnees.erreurs).length > 0 && (
+          <div className={styles.bandeauErreur} role="alert">
+            <p>Certaines informations n'ont pas pu être chargées.</p>
+            <button type="button" onClick={donnees.recharger}>
+              Réessayer
             </button>
           </div>
         )}

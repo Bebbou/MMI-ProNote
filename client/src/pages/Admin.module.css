@@ -467,3 +467,10 @@
     min-height: 44px;
   }
 }
+
+@media (pointer: coarse) {
+  .modalForm input,
+  .modalForm select {
+    min-height: 44px;
+  }
+}

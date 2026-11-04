@@ -96,11 +96,27 @@ export default function Documents() {
     fetchDocs();
   }, [fetchDocs]);
 
+  const matieres = ["Toutes", ...Array.from(new Set(docs.map((d) => d.matiere)))];
+  const profs = ["Tous", ...Array.from(new Set(docs.map((d) => d.prof).filter(Boolean)))];
+  const types = ["Tous", ...Array.from(new Set(docs.map((d) => d.type).filter(Boolean)))];
+
+  // Si le dernier document d'une matière disparaît, son filtre retombe sur "Toutes"
+  const matiereActive = matieres.includes(filtreMat) ? filtreMat : "Toutes";
+  const profActif = profs.includes(filtreProf) ? filtreProf : "Tous";
+  const typeActif = types.includes(filtreType) ? filtreType : "Tous";
+
   const filteredDocs = docs
     .filter((d) => !isAdmin || filtrePromo === "Toutes" || d.promo === filtrePromo)
-    .filter((d) => filtreMat === "Toutes" || d.matiere === filtreMat)
-    .filter((d) => filtreProf === "Tous" || d.prof === filtreProf)
-    .filter((d) => filtreType === "Tous" || d.type === filtreType);
+    .filter((d) => matiereActive === "Toutes" || d.matiere === matiereActive)
+    .filter((d) => profActif === "Tous" || d.prof === profActif)
+    .filter((d) => typeActif === "Tous" || d.type === typeActif);
+
+  function reinitialiserFiltres() {
+    setFiltreMat("Toutes");
+    setFiltreProf("Tous");
+    setFiltreType("Tous");
+    setFiltrePromo("Toutes");
+  }
 
   async function toggleComments(docId) {
     if (expandedId === docId) {
@@ -242,10 +258,6 @@ export default function Documents() {
     }
   }
 
-  const matieres = ["Toutes", ...Array.from(new Set(docs.map((d) => d.matiere)))];
-  const profs = ["Tous", ...Array.from(new Set(docs.map((d) => d.prof).filter(Boolean)))];
-  const types = ["Tous", ...Array.from(new Set(docs.map((d) => d.type).filter(Boolean)))];
-
   return (
     <Layout>
       <div className={styles.page}>
@@ -289,8 +301,9 @@ export default function Documents() {
             <h2 className={styles.formTitle}>Nouveau document</h2>
             <div className={styles.formGrid}>
               <div className={styles.field}>
-                <label>Titre *</label>
+                <label htmlFor="ajout-titre">Titre *</label>
                 <input
+                  id="ajout-titre"
                   value={form.titre}
                   onChange={(e) => setForm((f) => ({ ...f, titre: e.target.value }))}
                   placeholder="Ex: Cours HTML/CSS — Semaine 3"
@@ -298,8 +311,9 @@ export default function Documents() {
                 />
               </div>
               <div className={styles.field}>
-                <label>Matière *</label>
+                <label htmlFor="ajout-matiere">Matière *</label>
                 <input
+                  id="ajout-matiere"
                   list="matieres-existantes"
                   value={form.matiere}
                   onChange={(e) => setForm((f) => ({ ...f, matiere: e.target.value }))}
@@ -308,24 +322,26 @@ export default function Documents() {
                 />
               </div>
               <div className={styles.field}>
-                <label>Enseignant</label>
+                <label htmlFor="ajout-enseignant">Enseignant</label>
                 <input
+                  id="ajout-enseignant"
                   value={form.prof}
                   onChange={(e) => setForm((f) => ({ ...f, prof: e.target.value }))}
                   placeholder="Ex: Talleux (optionnel)"
                 />
               </div>
               <div className={styles.field}>
-                <label>Type *</label>
-                <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
+                <label htmlFor="ajout-type">Type *</label>
+                <select id="ajout-type" value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
                   {TYPES.map((t) => (
                     <option key={t}>{t}</option>
                   ))}
                 </select>
               </div>
               <div className={styles.field}>
-                <label>Promo *</label>
+                <label htmlFor="ajout-promo">Promo *</label>
                 <select
+                  id="ajout-promo"
                   value={form.promo}
                   onChange={(e) => setForm((f) => ({ ...f, promo: e.target.value }))}
                 >
@@ -335,16 +351,18 @@ export default function Documents() {
                 </select>
               </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
-                <label>Description</label>
+                <label htmlFor="ajout-description">Description</label>
                 <input
+                  id="ajout-description"
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Brève description du contenu (optionnel)"
                 />
               </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
-                <label>Fichier PDF *</label>
+                <label htmlFor="ajout-fichier-pdf">Fichier PDF *</label>
                 <input
+                  id="ajout-fichier-pdf"
                   ref={fileRef}
                   type="file"
                   accept="application/pdf"
@@ -382,8 +400,8 @@ export default function Documents() {
           {matieres.map((m) => (
             <button
               key={m}
-              className={`${styles.filterBtn} ${filtreMat === m ? styles.filterActive : ""}`}
-              aria-pressed={filtreMat === m}
+              className={`${styles.filterBtn} ${matiereActive === m ? styles.filterActive : ""}`}
+              aria-pressed={matiereActive === m}
               onClick={() => setFiltreMat(m)}
             >
               {m}
@@ -396,8 +414,8 @@ export default function Documents() {
             {types.map((t) => (
               <button
                 key={t}
-                className={`${styles.filterBtn} ${styles.filterBtnType} ${filtreType === t ? styles.filterActive : ""}`}
-                aria-pressed={filtreType === t}
+                className={`${styles.filterBtn} ${styles.filterBtnType} ${typeActif === t ? styles.filterActive : ""}`}
+                aria-pressed={typeActif === t}
                 onClick={() => setFiltreType(t)}
               >
                 {t}
@@ -411,8 +429,8 @@ export default function Documents() {
             {profs.map((p) => (
               <button
                 key={p}
-                className={`${styles.filterBtn} ${styles.filterBtnProf} ${filtreProf === p ? styles.filterActive : ""}`}
-                aria-pressed={filtreProf === p}
+                className={`${styles.filterBtn} ${styles.filterBtnProf} ${profActif === p ? styles.filterActive : ""}`}
+                aria-pressed={profActif === p}
                 onClick={() => setFiltreProf(p)}
               >
                 {p}
@@ -430,7 +448,16 @@ export default function Documents() {
             <button onClick={fetchDocs}>Réessayer</button>
           </div>
         ) : filteredDocs.length === 0 ? (
-          <p className={styles.empty}>Aucun document disponible.</p>
+          docs.length > 0 ? (
+            <div className={styles.empty}>
+              <p>Aucun document avec ces filtres.</p>
+              <button type="button" className={styles.resetBtn} onClick={reinitialiserFiltres}>
+                Réinitialiser les filtres
+              </button>
+            </div>
+          ) : (
+            <p className={styles.empty}>Aucun document disponible.</p>
+          )
         ) : (
           <div className={styles.list}>
             {filteredDocs.map((doc) => (
@@ -576,16 +603,18 @@ export default function Documents() {
             </h2>
             <div className={styles.formGrid}>
               <div className={styles.field}>
-                <label>Titre *</label>
+                <label htmlFor="edition-titre">Titre *</label>
                 <input
+                  id="edition-titre"
                   value={editForm.titre}
                   onChange={(e) => setEditForm((f) => ({ ...f, titre: e.target.value }))}
                   required
                 />
               </div>
               <div className={styles.field}>
-                <label>Matière *</label>
+                <label htmlFor="edition-matiere">Matière *</label>
                 <input
+                  id="edition-matiere"
                   list="matieres-existantes"
                   value={editForm.matiere}
                   onChange={(e) => setEditForm((f) => ({ ...f, matiere: e.target.value }))}
@@ -594,16 +623,18 @@ export default function Documents() {
                 />
               </div>
               <div className={styles.field}>
-                <label>Enseignant</label>
+                <label htmlFor="edition-enseignant">Enseignant</label>
                 <input
+                  id="edition-enseignant"
                   value={editForm.prof}
                   onChange={(e) => setEditForm((f) => ({ ...f, prof: e.target.value }))}
                   placeholder="Ex: Talleux (optionnel)"
                 />
               </div>
               <div className={styles.field}>
-                <label>Type *</label>
+                <label htmlFor="edition-type">Type *</label>
                 <select
+                  id="edition-type"
                   value={editForm.type}
                   onChange={(e) => setEditForm((f) => ({ ...f, type: e.target.value }))}
                 >
@@ -613,8 +644,9 @@ export default function Documents() {
                 </select>
               </div>
               <div className={styles.field}>
-                <label>Promo *</label>
+                <label htmlFor="edition-promo">Promo *</label>
                 <select
+                  id="edition-promo"
                   value={editForm.promo}
                   onChange={(e) => setEditForm((f) => ({ ...f, promo: e.target.value }))}
                 >
@@ -624,8 +656,9 @@ export default function Documents() {
                 </select>
               </div>
               <div className={`${styles.field} ${styles.fieldFull}`}>
-                <label>Description</label>
+                <label htmlFor="edition-description">Description</label>
                 <input
+                  id="edition-description"
                   value={editForm.description}
                   onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Brève description du contenu (optionnel)"

@@ -572,6 +572,12 @@
   text-align: right;
 }
 
+.etatGrille {
+  color: var(--text-faint);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .loadError {
   display: flex;
   flex-direction: column;

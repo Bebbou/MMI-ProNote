@@ -256,8 +256,8 @@ export default function Devoirs() {
       setForm(FORM_VIDE);
       setShowForm(false);
       toast(data.type === "Evaluation" ? "Évaluation créée" : "Devoir créé");
-    } catch {
-      toast("Impossible de créer le devoir", "error");
+    } catch (err) {
+      toast(err.response?.data?.error ?? "Impossible de créer le devoir", "error");
     } finally {
       setEnvoi(false);
     }
@@ -277,6 +277,7 @@ export default function Devoirs() {
 
   async function handleEditSubmit(e) {
     e.preventDefault();
+    setEnvoi(true);
     try {
       const { data } = await api.patch(`/devoirs/${editingDevoir.id}`, {
         ...editForm,
@@ -290,8 +291,10 @@ export default function Devoirs() {
       );
       setEditingDevoir(null);
       toast("Devoir modifié");
-    } catch {
-      toast("Impossible de modifier le devoir", "error");
+    } catch (err) {
+      toast(err.response?.data?.error ?? "Impossible de modifier le devoir", "error");
+    } finally {
+      setEnvoi(false);
     }
   }
 
@@ -1009,7 +1012,9 @@ export default function Devoirs() {
               <button type="button" className={styles.cancelBtn} onClick={() => setEditingDevoir(null)}>
                 Annuler
               </button>
-              <button type="submit">Enregistrer</button>
+              <button type="submit" disabled={envoi}>
+                {envoi ? "Enregistrement…" : "Enregistrer"}
+              </button>
             </div>
           </form>
         </div>

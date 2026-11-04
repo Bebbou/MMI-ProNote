@@ -178,6 +178,18 @@
   padding: 3rem 0;
 }
 
+.resetBtn {
+  margin-top: 0.75rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 0.4rem 1rem;
+}
+
 .loadError {
   display: flex;
   flex-direction: column;

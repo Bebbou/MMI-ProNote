@@ -8,6 +8,7 @@ import api from "../api/index.js";
 export function useDonneesDashboard() {
   const [donnees, setDonnees] = useState({ devoirs: null, cours: null, notes: null });
   const [erreurs, setErreurs] = useState({});
+  const [essai, setEssai] = useState(0); // l'incrémenter relance le chargement
 
   useEffect(() => {
     // `actif` évite de mettre à jour l'état d'un composant déjà démonté
@@ -24,7 +25,12 @@ export function useDonneesDashboard() {
     return () => {
       actif = false;
     };
-  }, []);
+  }, [essai]);
 
-  return { ...donnees, erreurs };
+  function recharger() {
+    setErreurs({});
+    setEssai((e) => e + 1);
+  }
+
+  return { ...donnees, erreurs, recharger };
 }
