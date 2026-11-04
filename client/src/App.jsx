@@ -12,6 +12,7 @@ import Admin from "./pages/Admin";
 import Profil from "./pages/Profil";
 import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 function PrivateRoute({ children }) {
   const { token } = useAuth();
@@ -42,86 +43,88 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            }
-          />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/devoirs"
-            element={
-              <PrivateRoute>
-                <Devoirs />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/notes"
-            element={
-              <PrivateRoute>
-                <Notes />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/edt"
-            element={
-              <PrivateRoute>
-                <EDT />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <PrivateRoute>
-                <Admin />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/profil"
-            element={
-              <PrivateRoute>
-                <Profil />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/documents"
-            element={
-              <PrivateRoute>
-                <Documents />
-              </PrivateRoute>
-            }
-          />
-          {/* Les anciennes notifications d'annonce pointent encore vers /chat */}
-          <Route path="/chat" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              }
+            />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/devoirs"
+              element={
+                <PrivateRoute>
+                  <Devoirs />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/notes"
+              element={
+                <PrivateRoute>
+                  <Notes />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/edt"
+              element={
+                <PrivateRoute>
+                  <EDT />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <PrivateRoute>
+                  <Admin />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profil"
+              element={
+                <PrivateRoute>
+                  <Profil />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/documents"
+              element={
+                <PrivateRoute>
+                  <Documents />
+                </PrivateRoute>
+              }
+            />
+            {/* Les anciennes notifications d'annonce pointent encore vers /chat */}
+            <Route path="/chat" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
     </AuthProvider>
   );
