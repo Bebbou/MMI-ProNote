@@ -54,11 +54,16 @@
 .logo {
   width: 48px;
   height: 48px;
-  border-radius: 10px;
   object-fit: contain;
-  background: #fff;
-  padding: 3px;
   flex-shrink: 0;
+}
+
+/* Les lettres du logo sont noires : sur fond sombre, il lui faut une pastille claire */
+[data-theme="dark"] .logo,
+[data-theme="obsidian"] .logo {
+  background: #fff;
+  border-radius: 50%;
+  padding: 3px;
 }
 
 .userInfo {

@@ -21,7 +21,7 @@ import { Toaster } from "./Toast";
 import PwaPrompts from "./PwaPrompts";
 import NotificationsBell from "./NotificationsBell";
 import { useNotifications } from "../hooks/useNotifications";
-import logoMmi from "../assets/logo_mmi.jpg";
+import logoMmi from "../assets/logo_mmi.png";
 import styles from "./Layout.module.css";
 
 const navItems = [
