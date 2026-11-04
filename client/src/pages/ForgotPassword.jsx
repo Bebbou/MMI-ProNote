@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api/index.js";
 import styles from "./Login.module.css";
 
@@ -6,15 +7,19 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [envoi, setEnvoi] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setEnvoi(true);
     try {
       await api.post("/auth/forgot-password", { email });
       setSent(true);
     } catch {
       setError("Une erreur est survenue, réessaie.");
+    } finally {
+      setEnvoi(false);
     }
   }
 
@@ -30,22 +35,32 @@ export default function ForgotPassword() {
               Si cet email est associé à un compte, tu recevras un lien de réinitialisation dans quelques
               instants.
             </p>
-            <a href="/login">Retour à la connexion</a>
+            <Link to="/login">Retour à la connexion</Link>
           </>
         ) : (
           <>
             <form onSubmit={handleSubmit}>
-              <input
-                type="email"
-                placeholder="Ton adresse email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              {error && <p className={styles.error}>{error}</p>}
-              <button type="submit">Envoyer le lien</button>
+              <div className={styles.champ}>
+                <label htmlFor="forgot-email">Ton adresse email</label>
+                <input
+                  id="forgot-email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              {error && (
+                <p className={styles.error} role="alert">
+                  {error}
+                </p>
+              )}
+              <button type="submit" disabled={envoi}>
+                {envoi ? "Envoi…" : "Envoyer le lien"}
+              </button>
             </form>
-            <a href="/login">Retour à la connexion</a>
+            <Link to="/login">Retour à la connexion</Link>
           </>
         )}
       </div>

@@ -57,6 +57,41 @@
   width: 100%;
 }
 
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.champ label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.aide {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}
+
+.info {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.reessayer {
+  align-self: flex-start;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.9rem;
+}
+
 .card select:focus,
 .card input:focus {
   border-color: var(--accent);
@@ -78,6 +113,11 @@
 
 .card form > button:hover {
   background: var(--accent-solid-hover);
+}
+
+.card form > button:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
 .card a {

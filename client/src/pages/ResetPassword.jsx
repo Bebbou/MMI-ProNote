@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import api from "../api/index.js";
 import PasswordInput from "../components/PasswordInput";
 import styles from "./Login.module.css";
@@ -12,6 +12,7 @@ export default function ResetPassword() {
   const [form, setForm] = useState({ password: "", confirmation: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [envoi, setEnvoi] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -19,12 +20,15 @@ export default function ResetPassword() {
     if (form.password !== form.confirmation) {
       return setError("Les mots de passe ne correspondent pas.");
     }
+    setEnvoi(true);
     try {
       await api.post("/auth/reset-password", { token, password: form.password });
       setSuccess(true);
       setTimeout(() => navigate("/login"), 2500);
     } catch (err) {
       setError(err.response?.data?.error ?? "Lien invalide ou expiré.");
+    } finally {
+      setEnvoi(false);
     }
   }
 
@@ -34,7 +38,7 @@ export default function ResetPassword() {
         <div className={styles.card}>
           <h1>Pronote-MMI</h1>
           <p className={styles.error}>Lien invalide.</p>
-          <a href="/login">Retour à la connexion</a>
+          <Link to="/login">Retour à la connexion</Link>
         </div>
       </div>
     );
@@ -52,22 +56,41 @@ export default function ResetPassword() {
           </p>
         ) : (
           <form onSubmit={handleSubmit}>
-            <PasswordInput
-              name="password"
-              placeholder="Nouveau mot de passe (6 caractères min.)"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              required
-            />
-            <PasswordInput
-              name="confirmation"
-              placeholder="Confirmer le mot de passe"
-              value={form.confirmation}
-              onChange={(e) => setForm({ ...form, confirmation: e.target.value })}
-              required
-            />
-            {error && <p className={styles.error}>{error}</p>}
-            <button type="submit">Réinitialiser</button>
+            <div className={styles.champ}>
+              <label htmlFor="reset-password">Nouveau mot de passe</label>
+              <PasswordInput
+                id="reset-password"
+                name="password"
+                autoComplete="new-password"
+                minLength={6}
+                aria-describedby="reset-password-aide"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
+              />
+              <span id="reset-password-aide" className={styles.aide}>
+                6 caractères minimum
+              </span>
+            </div>
+            <div className={styles.champ}>
+              <label htmlFor="reset-confirmation">Confirmer le mot de passe</label>
+              <PasswordInput
+                id="reset-confirmation"
+                name="confirmation"
+                autoComplete="new-password"
+                value={form.confirmation}
+                onChange={(e) => setForm({ ...form, confirmation: e.target.value })}
+                required
+              />
+            </div>
+            {error && (
+              <p className={styles.error} role="alert">
+                {error}
+              </p>
+            )}
+            <button type="submit" disabled={envoi}>
+              {envoi ? "Enregistrement…" : "Réinitialiser"}
+            </button>
           </form>
         )}
       </div>

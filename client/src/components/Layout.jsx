@@ -1,4 +1,4 @@
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   Home,
@@ -51,7 +51,6 @@ const THEME_DOTS = {
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme } = useTheme();
   const notifs = useNotifications(!!user);
@@ -75,7 +74,8 @@ export default function Layout({ children }) {
 
   function handleLogout() {
     logout();
-    navigate("/login");
+    // Navigation complète : sans from dans l'URL, et rien de la session ne reste en mémoire
+    window.location.assign("/login");
   }
 
   const allNavItems = [
