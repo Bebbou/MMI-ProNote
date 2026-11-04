@@ -361,11 +361,13 @@ export default function Documents() {
         )}
 
         {isAdmin && promos.length > 1 && (
-          <div className={styles.filters}>
+          <div className={styles.filters} role="group" aria-label="Promo">
+            <span className={styles.filtreLabel}>Promo</span>
             {["Toutes", ...promos].map((p) => (
               <button
                 key={p}
                 className={`${styles.filterBtn} ${filtrePromo === p ? styles.filterActive : ""}`}
+                aria-pressed={filtrePromo === p}
                 onClick={() => setFiltrePromo(p)}
               >
                 {p === "Toutes" ? "Toutes les promos" : p}
@@ -375,11 +377,13 @@ export default function Documents() {
         )}
 
         {/* Filtres : ressource, enseignant, type (issue #37) */}
-        <div className={styles.filters}>
+        <div className={styles.filters} role="group" aria-label="Matière">
+          <span className={styles.filtreLabel}>Matière</span>
           {matieres.map((m) => (
             <button
               key={m}
               className={`${styles.filterBtn} ${filtreMat === m ? styles.filterActive : ""}`}
+              aria-pressed={filtreMat === m}
               onClick={() => setFiltreMat(m)}
             >
               {m}
@@ -387,11 +391,13 @@ export default function Documents() {
           ))}
         </div>
         {types.length > 1 && (
-          <div className={styles.filters}>
+          <div className={styles.filters} role="group" aria-label="Type">
+            <span className={styles.filtreLabel}>Type</span>
             {types.map((t) => (
               <button
                 key={t}
                 className={`${styles.filterBtn} ${styles.filterBtnType} ${filtreType === t ? styles.filterActive : ""}`}
+                aria-pressed={filtreType === t}
                 onClick={() => setFiltreType(t)}
               >
                 {t}
@@ -400,11 +406,13 @@ export default function Documents() {
           </div>
         )}
         {profs.length > 1 && (
-          <div className={styles.filters}>
+          <div className={styles.filters} role="group" aria-label="Enseignant">
+            <span className={styles.filtreLabel}>Enseignant</span>
             {profs.map((p) => (
               <button
                 key={p}
                 className={`${styles.filterBtn} ${styles.filterBtnProf} ${filtreProf === p ? styles.filterActive : ""}`}
+                aria-pressed={filtreProf === p}
                 onClick={() => setFiltreProf(p)}
               >
                 {p}

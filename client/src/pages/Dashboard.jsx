@@ -77,16 +77,17 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className={styles.page}>
-        <PageTitle>Bienvenue, {user?.nom}</PageTitle>
-        {(groupe || roleLabel) && (
-          <p className={styles.subtitle}>
-            {groupe && <span>Groupe {groupe}</span>}
-            {groupe && roleLabel && " · "}
-            {roleLabel && <span>{roleLabel}</span>}
-          </p>
-        )}
-
-        <div className={styles.toolbar}>
+        <div className={styles.entete}>
+          <div>
+            <PageTitle>Bienvenue, {user?.nom}</PageTitle>
+            {(groupe || roleLabel) && (
+              <p className={styles.subtitle}>
+                {groupe && <span>Groupe {groupe}</span>}
+                {groupe && roleLabel && " · "}
+                {roleLabel && <span>{roleLabel}</span>}
+              </p>
+            )}
+          </div>
           <button
             type="button"
             className={styles.toolbarBtn}

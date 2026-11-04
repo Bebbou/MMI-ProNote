@@ -495,12 +495,15 @@ export default function Devoirs() {
 
   function renderCarte(devoir) {
     // Une évaluation passée n'est jamais "en retard" : elle ne se rend pas
-    const urgence =
+    const etat =
       devoir.rendu || (devoir.type === "Evaluation" && new Date(devoir.dateLimite) < now)
         ? devoir.rendu
           ? "rendu"
           : "depasse"
         : urgenceEcheance(devoir.dateLimite, now);
+    // Dans "À rendre", un devoir dépassé reste à faire : il garde le marqueur de retard,
+    // même au-delà de 24 h. Dans "Historique", il reste neutre.
+    const urgence = onglet === "aRendre" && etat === "depasse" ? "retard" : etat;
     const { principal, secondaire } = libelleEcheance(devoir.dateLimite, now);
     const nbCommentaires = devoir._count?.commentaires || 0;
 

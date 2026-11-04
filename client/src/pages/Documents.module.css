@@ -118,7 +118,17 @@
 .filters {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
+}
+
+.filtreLabel {
+  min-width: 5.5rem;
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 .filterBtn {
   background: var(--bg-card);
@@ -310,19 +320,19 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  background: var(--accent-solid);
-  color: var(--on-accent-solid);
-  border: none;
+  background: none;
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.4rem 0.8rem;
   font-size: 0.775rem;
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: border-color 0.15s;
 }
 .downloadBtn:hover {
-  background: var(--accent-solid-hover);
+  border-color: var(--accent);
 }
 .editBtn {
   background: none;
