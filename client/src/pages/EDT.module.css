@@ -24,7 +24,7 @@
   align-items: center;
   gap: 0.4rem;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.45rem 1.1rem;
@@ -150,7 +150,7 @@
 
 .form button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -353,7 +353,7 @@
 
 .badgeAnnule {
   background: var(--danger);
-  color: #fff;
+  color: var(--on-danger);
   border-radius: 4px;
   padding: 0.05rem 0.35rem;
   font-size: 0.6rem;
@@ -585,7 +585,7 @@
 
 .loadError button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.45rem 1.25rem;
@@ -644,4 +644,12 @@
 @keyframes edtPopIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .detailDelete,
+  .detailClose {
+    min-height: 44px;
+  }
 }

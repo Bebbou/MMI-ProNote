@@ -452,6 +452,8 @@ export default function Documents() {
                       className={styles.commentToggle}
                       onClick={() => toggleComments(doc.id)}
                       title="Commentaires"
+                      aria-label={`Commentaires : ${doc._count?.commentaires || 0}`}
+                      aria-expanded={expandedId === doc.id}
                     >
                       <MessageSquare size={15} strokeWidth={1.5} />
                       <span>{doc._count?.commentaires || 0}</span>
@@ -470,7 +472,12 @@ export default function Documents() {
                       Télécharger
                     </button>
                     {peutGerer(doc) && (
-                      <button className={styles.editBtn} onClick={() => openEdit(doc)} title="Modifier">
+                      <button
+                        className={styles.editBtn}
+                        onClick={() => openEdit(doc)}
+                        title="Modifier"
+                        aria-label={`Modifier ${doc.titre}`}
+                      >
                         <Pencil size={14} strokeWidth={1.5} />
                       </button>
                     )}
@@ -479,6 +486,7 @@ export default function Documents() {
                         className={styles.deleteBtn}
                         onClick={() => setDocASupprimer(doc)}
                         title="Supprimer"
+                        aria-label={`Supprimer ${doc.titre}`}
                       >
                         <Trash2 size={14} strokeWidth={1.5} />
                       </button>
@@ -504,6 +512,7 @@ export default function Documents() {
                                 <button
                                   className={styles.commentDelete}
                                   onClick={() => deleteComment(doc.id, c.id)}
+                                  aria-label="Supprimer le commentaire"
                                 >
                                   <X size={11} strokeWidth={1.5} />
                                 </button>

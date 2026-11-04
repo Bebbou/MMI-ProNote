@@ -49,7 +49,7 @@
 
 .badge {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   font-size: 0.6rem;
   font-weight: 700;
   border-radius: 20px;
@@ -122,7 +122,7 @@
 }
 .newChannelForm button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 6px;
   padding: 0.35rem;
@@ -167,7 +167,7 @@
 }
 .channelBadge {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   font-size: 0.55rem;
   font-weight: 700;
   border-radius: 20px;
@@ -605,7 +605,7 @@
 }
 .sondageSubmit {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 5px;
   padding: 0.3rem 0.7rem;
@@ -623,7 +623,7 @@
 }
 .sendBtn {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.5rem 0.75rem;

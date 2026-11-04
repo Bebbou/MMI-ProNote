@@ -89,7 +89,7 @@
 
 .validateBtn:hover {
   background: var(--success);
-  color: #fff;
+  color: var(--on-success);
 }
 
 .roleSelect {
@@ -246,7 +246,7 @@
 
 .modalActions > button[type="submit"] {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.5rem 1.25rem;

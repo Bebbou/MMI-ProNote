@@ -84,7 +84,7 @@
 
 .form > button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.65rem;
@@ -285,7 +285,7 @@
 
 .notifBtn {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
 }
 

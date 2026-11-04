@@ -567,6 +567,7 @@ export default function Devoirs() {
                 className={`${styles.commentToggle} ${nbCommentaires > 0 ? styles.commentToggleActif : ""}`}
                 onClick={() => toggleComments(devoir.id)}
                 title="Commentaires"
+                aria-label={`Commentaires : ${nbCommentaires}`}
                 aria-expanded={expandedId === devoir.id}
               >
                 <MessageSquare size={15} strokeWidth={1.5} />
@@ -578,12 +579,22 @@ export default function Devoirs() {
                 )}
               </button>
               {peutGerer(devoir) && (
-                <button className={styles.editBtn} onClick={() => openEditDevoir(devoir)} title="Modifier">
+                <button
+                  className={styles.editBtn}
+                  onClick={() => openEditDevoir(devoir)}
+                  title="Modifier"
+                  aria-label={`Modifier ${devoir.titre}`}
+                >
                   <Pencil size={14} strokeWidth={1.5} />
                 </button>
               )}
               {peutGerer(devoir) && (
-                <button className={styles.deleteBtn} onClick={() => setToDelete(devoir.id)} title="Supprimer">
+                <button
+                  className={styles.deleteBtn}
+                  onClick={() => setToDelete(devoir.id)}
+                  title="Supprimer"
+                  aria-label={`Supprimer ${devoir.titre}`}
+                >
                   <Trash2 size={14} strokeWidth={1.5} />
                 </button>
               )}
@@ -615,6 +626,7 @@ export default function Devoirs() {
                             className={styles.commentDelete}
                             onClick={() => deleteComment(devoir.id, c.id)}
                             title="Supprimer le commentaire"
+                            aria-label="Supprimer le commentaire"
                           >
                             <X size={11} strokeWidth={1.5} />
                           </button>

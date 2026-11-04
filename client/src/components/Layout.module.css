@@ -227,7 +227,7 @@
 .partyBtn:hover {
   background: var(--accent-solid);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent-solid);
 }
 
 .logout {

@@ -136,7 +136,11 @@ export default function Notes() {
                 </div>
                 <div className={styles.cardRight}>
                   <span className={styles.valeur}>{note.valeur}/20</span>
-                  <button className={styles.deleteBtn} onClick={() => setToDelete(note.id)}>
+                  <button
+                    className={styles.deleteBtn}
+                    onClick={() => setToDelete(note.id)}
+                    aria-label={`Supprimer la note de ${note.matiere}`}
+                  >
                     ✕
                   </button>
                 </div>

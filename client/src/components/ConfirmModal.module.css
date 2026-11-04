@@ -61,7 +61,7 @@
 .confirmBtn {
   background: var(--danger);
   border: none;
-  color: #fff;
+  color: var(--on-danger);
   padding: 0.5rem 1.1rem;
   border-radius: 8px;
   font-size: 0.825rem;
@@ -92,5 +92,13 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .cancelBtn,
+  .confirmBtn {
+    min-height: 44px;
   }
 }

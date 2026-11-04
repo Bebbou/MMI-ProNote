@@ -35,7 +35,7 @@
   align-items: center;
   gap: 0.4rem;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.45rem 1.1rem;
@@ -78,7 +78,7 @@
 
 .form button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -198,7 +198,7 @@
 
 .loadError button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.45rem 1.25rem;
@@ -206,4 +206,12 @@
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .deleteBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }

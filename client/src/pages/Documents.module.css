@@ -23,7 +23,7 @@
   align-items: center;
   gap: 0.4rem;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.6rem 1rem;
@@ -98,7 +98,7 @@
 .submitBtn {
   align-self: flex-start;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.6rem 1.25rem;
@@ -143,18 +143,18 @@
 .filterActive {
   background: var(--tint-pink);
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--text);
   font-weight: 600;
 }
 .filterBtnType.filterActive {
   background: var(--tint-blue);
   border-color: var(--accent-blue);
-  color: var(--accent-blue);
+  color: var(--text);
 }
 .filterBtnProf.filterActive {
   background: var(--tint-orange);
   border-color: var(--accent-orange);
-  color: var(--accent-orange);
+  color: var(--text);
 }
 
 /* ── Liste ── */
@@ -182,7 +182,7 @@
 
 .loadError button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.45rem 1.25rem;
@@ -313,7 +313,7 @@
   align-items: center;
   gap: 0.35rem;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.4rem 0.8rem;
@@ -487,7 +487,7 @@
 }
 .commentSend {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.5rem 0.75rem;
@@ -530,4 +530,26 @@
 .stockageAlerte {
   color: var(--danger);
   font-weight: 600;
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .filterBtn {
+    min-height: 44px;
+  }
+
+  .editBtn,
+  .deleteBtn {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .commentDelete {
+    min-width: 44px;
+    min-height: 44px;
+    margin: -12px;
+    align-items: center;
+    justify-content: center;
+  }
 }

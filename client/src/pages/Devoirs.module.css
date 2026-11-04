@@ -18,7 +18,7 @@
   align-items: center;
   gap: 0.4rem;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.45rem 1.1rem;
@@ -80,7 +80,7 @@
 .tabActive {
   background: var(--tint-pink);
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--text);
   font-weight: 600;
 }
 
@@ -125,7 +125,7 @@
 .filterActive {
   background: var(--tint-pink);
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--text);
   font-weight: 600;
 }
 
@@ -225,7 +225,7 @@
 
 .form button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -399,7 +399,7 @@
 .checkOn:hover {
   background: var(--success);
   border-color: var(--success);
-  color: #fff;
+  color: var(--on-success);
 }
 
 .body {
@@ -435,7 +435,7 @@
 
 .evalBadge {
   background: var(--accent-orange);
-  color: #fff;
+  color: var(--on-accent-orange);
   font-size: 0.675rem;
   font-weight: 700;
   padding: 0.15rem 0.55rem;
@@ -446,7 +446,7 @@
 
 .lateBadge {
   background: var(--danger);
-  color: #fff;
+  color: var(--on-danger);
   font-size: 0.675rem;
   font-weight: 700;
   padding: 0.15rem 0.55rem;
@@ -703,7 +703,7 @@
 
 .commentSend {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.5rem 0.75rem;
@@ -810,7 +810,7 @@
 
 .editModalActions button[type="submit"] {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.6rem 1.25rem;
@@ -838,7 +838,7 @@
 
 .loadError button {
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   border: none;
   border-radius: 8px;
   padding: 0.45rem 1.25rem;
@@ -973,4 +973,40 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* Cibles de 44 px sur écran tactile. La marge négative garde la hauteur des lignes de
+   commentaires, le ::after agrandit la zone du rond sans changer son dessin. */
+@media (pointer: coarse) {
+  .tab,
+  .filterBtn,
+  .search,
+  .champFiltre select {
+    min-height: 44px;
+  }
+
+  .editBtn,
+  .deleteBtn {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .commentDelete {
+    min-width: 44px;
+    min-height: 44px;
+    margin: -12px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .check {
+    position: relative;
+  }
+
+  .check::after {
+    content: "";
+    position: absolute;
+    inset: -10px;
+  }
 }

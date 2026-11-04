@@ -85,7 +85,7 @@
   align-items: center;
   justify-content: center;
   background: var(--accent-solid);
-  color: #fff;
+  color: var(--on-accent-solid);
   font-size: 0.6rem;
   font-weight: 700;
   border-radius: 8px;
