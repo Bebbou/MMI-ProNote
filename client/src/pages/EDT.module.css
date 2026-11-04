@@ -652,3 +652,34 @@
     min-height: 44px;
   }
 }
+
+/* Mobile : le titre de la semaine au-dessus, les deux boutons côte à côte */
+@media (max-width: 768px) {
+  .weekNav > button {
+    flex: 1;
+  }
+
+  .weekLabel {
+    order: -1;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* Les onglets de jour indiquent déjà le jour affiché : l'en-tête ferait doublon */
+@media (max-width: 640px) {
+  .corner,
+  .timetable .dayHeader {
+    display: none;
+  }
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .header button,
+  .weekNav > button,
+  .groupeSelect select {
+    min-height: 44px;
+  }
+}

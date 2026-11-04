@@ -1010,3 +1010,33 @@
     inset: -10px;
   }
 }
+
+/* Mobile : types et bouton Filtres tiennent sur une ligne, les types défilent si besoin.
+   padding et marge négative : le contour de focus n'est pas rogné par le défilement. */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-wrap: nowrap;
+  }
+
+  .toolbar > .filters {
+    flex-wrap: nowrap;
+    min-width: 0;
+    margin: -3px;
+    padding: 3px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .toolbar .filterBtn {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .header > button,
+  .commentToggle {
+    min-height: 44px;
+  }
+}

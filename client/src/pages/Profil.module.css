@@ -351,3 +351,10 @@
     max-width: 100%;
   }
 }
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .form > button {
+    min-height: 44px;
+  }
+}

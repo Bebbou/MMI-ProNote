@@ -249,3 +249,11 @@
     max-height: calc(100vh - 58px - 72px);
   }
 }
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .bouton {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

@@ -449,3 +449,10 @@
   accent-color: var(--accent);
   cursor: pointer;
 }
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .toolbarBtn {
+    min-height: 44px;
+  }
+}

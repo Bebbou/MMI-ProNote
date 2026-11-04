@@ -453,3 +453,17 @@
 .info:has(.icalInput) .nom {
   white-space: nowrap;
 }
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .editBtn,
+  .deleteBtn,
+  .validateBtn,
+  .creerBtn,
+  .roleSelect,
+  .filterSearch,
+  .icalInput,
+  .filterLabel select {
+    min-height: 44px;
+  }
+}

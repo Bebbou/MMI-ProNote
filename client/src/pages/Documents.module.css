@@ -557,3 +557,12 @@
     justify-content: center;
   }
 }
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .uploadBtn,
+  .commentToggle,
+  .downloadBtn {
+    min-height: 44px;
+  }
+}

@@ -216,3 +216,10 @@
     min-height: 44px;
   }
 }
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .header button {
+    min-height: 44px;
+  }
+}

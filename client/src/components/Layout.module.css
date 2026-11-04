@@ -475,3 +475,20 @@
     color: var(--accent-text);
   }
 }
+
+/* Cibles de 44 px sur écran tactile */
+@media (pointer: coarse) {
+  .navLink,
+  .themeBtn,
+  .partyBtn,
+  .logout {
+    min-height: 44px;
+  }
+
+  .menuBtn,
+  .closeBtn,
+  .themeIconBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

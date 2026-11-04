@@ -59,3 +59,10 @@
     display: none;
   }
 }
+
+/* Sur téléphone, le grand cercle passerait derrière le titre et le sous-titre */
+@media (max-width: 768px) {
+  .circleTop {
+    display: none;
+  }
+}
