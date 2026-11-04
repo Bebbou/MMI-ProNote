@@ -367,7 +367,12 @@ export default function EDT() {
 
         {chargement && <p className={styles.etatGrille}>Chargement de l'emploi du temps…</p>}
         {!chargement && !loadError && !semaineAvecCours && (
-          <p className={styles.etatGrille}>Aucun cours cette semaine.</p>
+          <p className={styles.etatGrille}>
+            {/* Le serveur ne renvoie que les cours finis depuis moins de 7 jours */}
+            {semaineOffset < 0
+              ? "Les cours de plus d'une semaine ne sont plus affichés."
+              : "Aucun cours cette semaine."}
+          </p>
         )}
 
         <div className={styles.timetable} data-jour-mobile={jourMobile}>

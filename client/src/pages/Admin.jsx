@@ -153,14 +153,14 @@ export default function Admin() {
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete({ id, valide }) {
     setConfirmDelete(null);
     try {
       await api.delete(`/admin/users/${id}`);
       setUsers(users.filter((u) => u.id !== id));
-      toast("Compte supprimé");
+      toast(valide ? "Compte supprimé" : "Inscription refusée");
     } catch (err) {
-      toastErreur(err, "Impossible de supprimer ce compte");
+      toastErreur(err, valide ? "Impossible de supprimer ce compte" : "Impossible de refuser cette inscription");
     }
   }
 
@@ -502,9 +502,18 @@ export default function Admin() {
 
       <ConfirmModal
         open={confirmDelete !== null}
-        title={`Supprimer ${confirmDelete?.nom} ?`}
-        message="Cette action est irréversible. Toutes les notes de cet utilisateur seront supprimées."
-        onConfirm={() => handleDelete(confirmDelete.id)}
+        title={
+          confirmDelete?.valide
+            ? `Supprimer ${confirmDelete.nom} ?`
+            : `Refuser l'inscription de ${confirmDelete?.nom} ?`
+        }
+        message={
+          confirmDelete?.valide
+            ? "Cette action est irréversible. Toutes les notes de cet utilisateur seront supprimées."
+            : "Ce compte en attente sera supprimé."
+        }
+        confirmLabel={confirmDelete?.valide ? "Supprimer" : "Refuser"}
+        onConfirm={() => handleDelete(confirmDelete)}
         onCancel={() => setConfirmDelete(null)}
       />
 
