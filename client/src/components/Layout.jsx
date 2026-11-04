@@ -11,13 +11,11 @@ import {
   Sun,
   Menu,
   X,
-  MessageSquare,
   FolderOpen,
   User,
 } from "lucide-react";
 import { useTheme, THEMES } from "../hooks/useTheme";
 import { useState, useEffect, useRef } from "react";
-import ChatPanel from "./ChatPanel";
 import MmiDecor from "./MmiDecor";
 import { Toaster } from "./Toast";
 import PwaPrompts from "./PwaPrompts";
@@ -31,7 +29,6 @@ const navItems = [
   { to: "/devoirs", label: "Devoirs", icon: BookOpen },
   { to: "/notes", label: "Notes", icon: BarChart2 },
   { to: "/edt", label: "EDT", icon: Calendar },
-  { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/documents", label: "Documents", icon: FolderOpen },
   { to: "/profil", label: "Profil", icon: User },
 ];
@@ -40,8 +37,8 @@ const bottomNavItems = [
   { to: "/dashboard", label: "Accueil", icon: Home },
   { to: "/devoirs", label: "Devoirs", icon: BookOpen },
   { to: "/edt", label: "EDT", icon: Calendar },
-  { to: "/chat", label: "Chat", icon: MessageSquare },
-  { to: "/profil", label: "Profil", icon: User },
+  { to: "/notes", label: "Notes", icon: BarChart2 },
+  { to: "/documents", label: "Documents", icon: FolderOpen },
 ];
 
 const THEME_DOTS = {
@@ -61,9 +58,6 @@ export default function Layout({ children }) {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
-  // Le panel est inutile sur la page /chat (même contenu) : on ne le monte pas
-  const [chatOpen, setChatOpen] = useState(false);
-  const showChatPanel = location.pathname !== "/chat";
   const themeRef = useRef(null);
   const mobileThemeRef = useRef(null);
 
@@ -165,7 +159,7 @@ export default function Layout({ children }) {
 
       {menuOpen && <div className={styles.overlay} onClick={() => setMenuOpen(false)} />}
 
-      <div className={`${styles.content} ${showChatPanel && chatOpen ? styles.contentChatOpen : ""}`}>
+      <div className={styles.content}>
         <header className={styles.mobileHeader}>
           <button className={styles.menuBtn} onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Menu size={20} strokeWidth={1.5} />
@@ -206,7 +200,6 @@ export default function Layout({ children }) {
         <Toaster />
         <PwaPrompts />
         <main className={styles.main}>{children}</main>
-        {showChatPanel && <ChatPanel open={chatOpen} onToggle={() => setChatOpen((v) => !v)} />}
 
         <nav className={styles.bottomNav}>
           {bottomNavItems.map((item) => {

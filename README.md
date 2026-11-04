@@ -2,7 +2,7 @@
 
 Application web pour les étudiants MMI, l'idée c'est : 
 - gestion des devoirs, notes et emploi du temps
-- chat en temps réel, documents partagés, sondages et annonces
+- documents partagés et notifications
 - le tout avec mises à jour instantanées entre membres d'un même groupe
 
 ---
@@ -22,10 +22,8 @@ En bref, si vous me dites : "Aaahh, c'est de l'IA", je répondrai que, pour la m
 - **Options** — chaque élève choisit les siennes dans son Profil ; les admins créent et suppriment les options de la promo
 - **Notes** — saisie personnelle de notes avec coefficient et calcul de moyenne par matière
 - **Emploi du temps** — vrai calendrier daté, synchronisé automatiquement (toutes les heures) depuis le flux iCal ADE de chaque groupe ; vue navigable semaine par semaine, un jour à la fois sur mobile, détail d'un cours (salle, prof) au clic ; les URLs des flux se configurent par groupe dans le panel Admin
-- **Chat** — messagerie temps réel par canaux (général, groupe, filière, personnalisés), réactions aux messages, accès aux canaux vérifié côté serveur (pas seulement filtré à l'affichage)
 - **Documents** — cours (PDF) avec commentaires, **cloisonnés par promo** : une promo ne voit que ses propres cours. Publiés par les professeurs (qui gèrent les leurs) et les admins ; espace de stockage plafonné
-- **Sondages** — création par les délégués/admins, vote en temps réel
-- **Notifications** — cloche dans l'application (historique de 30 jours, même sans push), alertes push navigateur/mobile app fermée, **rappel automatique la veille d'une échéance** pour ceux qui n'ont pas rendu, préférences par catégorie (devoirs, rappels, cours, annonces)
+- **Notifications** — cloche dans l'application (historique de 30 jours, même sans push), alertes push navigateur/mobile app fermée, **rappel automatique la veille d'une échéance** pour ceux qui n'ont pas rendu, préférences par catégorie (devoirs, rappels, cours)
 - **Application installable (PWA)** — invitation à l'installation (indispensable sur iPhone pour recevoir les notifications) et à l'activation des notifications
 - **Profil** — informations du compte, options, notifications (état, test, préférences), thème, changement de mot de passe
 - **Thèmes** — 5 thèmes visuels au choix (MMI, Sombre, Bleu, Pastel, Obsidian), sauvegardés par utilisateur
@@ -154,12 +152,12 @@ Pronote-MMI/
 ├── server/                     # Backend Express
 │   ├── middlewares/             # requireAuth, requireRole
 │   ├── routes/                  # auth, admin, devoirs, options, notes, edt, profil,
-│   │                            #   chat, documents, sondages, notifications
+│   │                            #   documents, notifications
 │   ├── services/                # edtSync (flux iCal ADE), rappels (rappel la veille d'une échéance)
 │   ├── scripts/                 # seed (données de test), smoke (vérifications de bout en bout)
 │   ├── tests/                   # tests unitaires et de routes (Vitest + supertest)
-│   ├── utils/                   # notifier (envoi central), push, devoirAccess, documentAccess,
-│   │                            #   chatAccess : règles de visibilité et d'accès
+│   ├── utils/                   # notifier (envoi central), push, devoirAccess, documentAccess :
+│   │                            #   règles de visibilité et d'accès
 │   ├── prisma/
 │   │   ├── schema.prisma        # Modèles de la base de données
 │   │   └── migrations/          # Historique des migrations SQL
@@ -174,8 +172,8 @@ Pronote-MMI/
 
 | Rôle | Droits |
 |------|--------|
-| `etudiant` | Lecture des devoirs, cours de sa promo et EDT, gestion de ses propres notes, chat, vote aux sondages, choix de ses options |
-| `delegue` | + Création/modification/suppression de devoirs (pour son groupe ou une option, hors devoirs d'un professeur), sondages et annonces |
+| `etudiant` | Lecture des devoirs, cours de sa promo et EDT, gestion de ses propres notes, choix de ses options |
+| `delegue` | + Création/modification/suppression de devoirs (pour son groupe ou une option, hors devoirs d'un professeur) |
 | `professeur` | Publie des cours (pour la promo de son choix) et crée des devoirs et évaluations pour un groupe, une promo entière ou une option ; ne gère que ses propres contenus |
 | `admin` | Accès complet, gestion des comptes, des rôles, des options, des groupes et de l'EDT |
 

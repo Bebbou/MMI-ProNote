@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 
 // Préférences d'affichage du Dashboard, par appareil et par utilisateur (localStorage).
 // Ne stocke que des identifiants de widgets : aucune donnée métier.
-export const WIDGETS_PAR_DEFAUT = ["edt", "devoirs", "notes", "semaine", "chat", "documents"];
+export const WIDGETS_PAR_DEFAUT = ["edt", "devoirs", "notes", "semaine", "documents"];
 
 function lire(cle) {
   try {

@@ -10,7 +10,6 @@ import Notes from "./pages/Notes";
 import EDT from "./pages/EDT";
 import Admin from "./pages/Admin";
 import Profil from "./pages/Profil";
-import Chat from "./pages/Chat";
 import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
 
@@ -77,14 +76,6 @@ function App() {
             }
           />
           <Route
-            path="/chat"
-            element={
-              <PrivateRoute>
-                <Chat />
-              </PrivateRoute>
-            }
-          />
-          <Route
             path="/documents"
             element={
               <PrivateRoute>
@@ -92,6 +83,8 @@ function App() {
               </PrivateRoute>
             }
           />
+          {/* Les anciennes notifications d'annonce pointent encore vers /chat */}
+          <Route path="/chat" element={<Navigate to="/dashboard" replace />} />
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

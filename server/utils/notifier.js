@@ -12,7 +12,6 @@ export const PREFS = {
   devoir: "notifDevoirs", // nouveaux devoirs et évaluations
   rappel: "notifRappels", // rappel la veille d'une échéance
   cours: "notifCours", // nouveaux cours
-  annonce: "notifAnnonces", // annonces de la promo
 };
 
 // Clause Prisma `User` : à qui s'adresse un devoir (option, promo entière ou groupe)

@@ -141,7 +141,7 @@ export default function Profil() {
                 <ul className={styles.notifListe}>
                   <li>Nouveaux devoirs et évaluations</li>
                   <li>Rappel la veille d'une échéance, si tu n'as pas rendu</li>
-                  <li>Nouveaux cours et annonces</li>
+                  <li>Nouveaux cours</li>
                 </ul>
                 <div className={styles.notifActions}>
                   <button

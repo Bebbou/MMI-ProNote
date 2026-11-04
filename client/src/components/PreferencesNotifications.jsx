@@ -7,7 +7,6 @@ const CATEGORIES = [
   { cle: "devoirs", titre: "Devoirs et évaluations", detail: "Dès qu'un nouveau travail est publié" },
   { cle: "rappels", titre: "Rappels d'échéance", detail: "La veille, si tu n'as pas encore rendu" },
   { cle: "cours", titre: "Nouveaux cours", detail: "Quand un enseignant ou un admin publie un support" },
-  { cle: "annonces", titre: "Annonces", detail: "Les messages importants de ta promo" },
 ];
 
 // Choix des types de notification : valable pour le push comme pour la cloche de l'application

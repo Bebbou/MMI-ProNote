@@ -223,7 +223,6 @@ export default function Devoirs() {
     api.get("/auth/groupes").then((r) => setGroupes(r.data));
   }, [user?.role]);
 
-  // Échap ferme la modale d'édition
   // La promo entière n'est offerte au délégué que pour une évaluation : si le type repasse
   // à "Devoir", on revient à "mon groupe"
   function cibleValide(type, cible) {

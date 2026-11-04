@@ -1,4 +1,4 @@
-import { MessageSquare, FolderOpen } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import DevoirsWidget from "./DevoirsWidget";
 import NotesWidget from "./NotesWidget";
 import EdtWidget from "./EdtWidget";
@@ -13,10 +13,6 @@ export const WIDGETS = {
   devoirs: { label: "Devoirs à rendre", Composant: DevoirsWidget },
   notes: { label: "Mes notes", Composant: NotesWidget },
   semaine: { label: "Cette semaine", Composant: SemaineWidget },
-  chat: {
-    label: "Chat",
-    Composant: () => <WidgetCard to="/chat" label="Chat" icon={MessageSquare} />,
-  },
   documents: {
     label: "Documents",
     Composant: () => <WidgetCard to="/documents" label="Documents" icon={FolderOpen} />,

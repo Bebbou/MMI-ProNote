@@ -61,7 +61,7 @@ export default function NotificationsBell({ variant, items, nonLues, marquerLues
           <div className={styles.entete}>Notifications</div>
           {items.length === 0 ? (
             <p className={styles.vide}>
-              Rien pour l'instant. Les nouveaux devoirs, cours et annonces apparaîtront ici.
+              Rien pour l'instant. Les nouveaux devoirs et cours apparaîtront ici.
             </p>
           ) : (
             <ul className={styles.liste}>

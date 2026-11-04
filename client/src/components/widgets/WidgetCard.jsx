@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import styles from "../../pages/Dashboard.module.css";
 
-// Petite tuile de raccourci (Chat, Cours) : une icône et un libellé, rien à charger
+// Petite tuile de raccourci : une icône et un libellé, rien à charger
 export default function WidgetCard({ to, label, icon: Icon }) {
   return (
     <Link to={to} className={`${styles.tuile} ${styles.tuilePetite}`}>
