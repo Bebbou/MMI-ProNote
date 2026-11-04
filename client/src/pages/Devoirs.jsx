@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Plus,
+  SlidersHorizontal,
   X,
   Pencil,
   Trash2,
@@ -151,6 +152,8 @@ export default function Devoirs() {
   const [filtreMatiere, setFiltreMatiere] = useState("Toutes");
   const [recherche, setRecherche] = useState("");
   const [filtreAudience, setFiltreAudience] = useState("tous"); // "tous" | "groupe" | "promo" | id d'option
+  const [filtresOuverts, setFiltresOuverts] = useState(false);
+  const boutonFiltresRef = useRef(null);
   // Commentaires : un seul devoir déplié à la fois, chargés à la demande
   const [expandedId, setExpandedId] = useState(null);
   const [commentaires, setCommentaires] = useState({});
@@ -474,6 +477,28 @@ export default function Devoirs() {
   const filtresActifs =
     filtreType !== "Tous" || matiereActive !== "Toutes" || audienceActive !== "tous" || requete !== "";
 
+  // Le compteur ne porte que sur ce qui est caché dans le panneau, et sur les valeurs
+  // effectives : un filtre retombé sur "Toutes" en changeant d'onglet ne compte plus.
+  const nbFiltresPanneau = (matiereActive !== "Toutes" ? 1 : 0) + (audienceActive !== "tous" ? 1 : 0);
+  // Un filtre actif garde sa section, même s'il n'y a plus de choix à proposer :
+  // sinon il agirait sur la liste sans qu'on puisse le retirer.
+  const avecMatieres = matieres.length > 2 || matiereActive !== "Toutes";
+  const avecAudience = audiences.length > 0 || avecPromo || audienceActive !== "tous";
+  const avecPanneau = avecMatieres || avecAudience;
+
+  function reinitialiserFiltres() {
+    setFiltreType("Tous");
+    setFiltreMatiere("Toutes");
+    setFiltreAudience("tous");
+    setRecherche("");
+  }
+
+  function fermerFiltresAvecEchap(e) {
+    if (e.key !== "Escape" || !filtresOuverts) return;
+    setFiltresOuverts(false);
+    boutonFiltresRef.current?.focus();
+  }
+
   function renderCarte(devoir) {
     // Une évaluation passée n'est jamais "en retard" : elle ne se rend pas
     const urgence =
@@ -736,39 +761,22 @@ export default function Devoirs() {
           </form>
         )}
 
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${onglet === "aRendre" ? styles.tabActive : ""}`}
-            onClick={() => setOnglet("aRendre")}
-          >
-            À rendre
-          </button>
-          <button
-            className={`${styles.tab} ${onglet === "historique" ? styles.tabActive : ""}`}
-            onClick={() => setOnglet("historique")}
-          >
-            Historique
-          </button>
-        </div>
-
-        {/* Agenda de rendu : type, matière et recherche (issue #51) */}
-        <div className={styles.toolbar}>
-          <div className={styles.filters}>
+        <div className={styles.barre}>
+          <div className={styles.tabs}>
             <button
-              className={`${styles.filterBtn} ${filtreType === "Tous" ? styles.filterActive : ""}`}
-              onClick={() => setFiltreType("Tous")}
+              className={`${styles.tab} ${onglet === "aRendre" ? styles.tabActive : ""}`}
+              aria-pressed={onglet === "aRendre"}
+              onClick={() => setOnglet("aRendre")}
             >
-              Tout <span className={styles.filterCount}>{devoirsDeLOnglet.length}</span>
+              À rendre
             </button>
-            {TYPES.map((t) => (
-              <button
-                key={t.id}
-                className={`${styles.filterBtn} ${filtreType === t.id ? styles.filterActive : ""}`}
-                onClick={() => setFiltreType(t.id)}
-              >
-                {t.label}s <span className={styles.filterCount}>{nbParType(t.id)}</span>
-              </button>
-            ))}
+            <button
+              className={`${styles.tab} ${onglet === "historique" ? styles.tabActive : ""}`}
+              aria-pressed={onglet === "historique"}
+              onClick={() => setOnglet("historique")}
+            >
+              Historique
+            </button>
           </div>
           <label className={styles.search}>
             <Search size={14} strokeWidth={1.5} />
@@ -781,38 +789,97 @@ export default function Devoirs() {
             />
           </label>
         </div>
-        {(audiences.length > 0 || avecPromo) && (
-          <div className={styles.filters}>
-            <span className={styles.filtreLabel}>Visible par</span>
-            {[
-              { id: "tous", nom: "Tous" },
-              { id: "groupe", nom: "Groupe" },
-              ...(avecPromo ? [{ id: "promo", nom: "Toute la promo" }] : []),
-              ...audiences,
-            ].map((a) => (
+
+        {/* Agenda de rendu : le type reste visible, le reste passe dans le panneau (issue #51) */}
+        <div className={styles.zoneFiltres} onKeyDown={fermerFiltresAvecEchap}>
+          <div className={styles.toolbar}>
+            <div className={styles.filters}>
               <button
-                key={a.id}
-                className={`${styles.filterBtn} ${styles.filterBtnMatiere} ${audienceActive === a.id ? styles.filterActive : ""}`}
-                onClick={() => setFiltreAudience(a.id)}
+                className={`${styles.filterBtn} ${filtreType === "Tous" ? styles.filterActive : ""}`}
+                aria-pressed={filtreType === "Tous"}
+                onClick={() => setFiltreType("Tous")}
               >
-                {a.nom}
+                Tout <span className={styles.filterCount}>{devoirsDeLOnglet.length}</span>
               </button>
-            ))}
-          </div>
-        )}
-        {matieres.length > 2 && (
-          <div className={styles.filters}>
-            {matieres.map((m) => (
+              {TYPES.map((t) => (
+                <button
+                  key={t.id}
+                  className={`${styles.filterBtn} ${filtreType === t.id ? styles.filterActive : ""}`}
+                  aria-pressed={filtreType === t.id}
+                  onClick={() => setFiltreType(t.id)}
+                >
+                  {t.label}s <span className={styles.filterCount}>{nbParType(t.id)}</span>
+                </button>
+              ))}
+            </div>
+            {avecPanneau && (
               <button
-                key={m}
-                className={`${styles.filterBtn} ${styles.filterBtnMatiere} ${matiereActive === m ? styles.filterActive : ""}`}
-                onClick={() => setFiltreMatiere(m)}
+                ref={boutonFiltresRef}
+                className={`${styles.filterBtn} ${nbFiltresPanneau > 0 ? styles.filterActive : ""}`}
+                aria-expanded={filtresOuverts}
+                aria-controls={filtresOuverts ? "panneau-filtres" : undefined}
+                aria-label={
+                  nbFiltresPanneau > 0
+                    ? `Filtres, ${nbFiltresPanneau} actif${nbFiltresPanneau > 1 ? "s" : ""}`
+                    : "Filtres"
+                }
+                onClick={() => setFiltresOuverts((v) => !v)}
               >
-                {m}
+                <SlidersHorizontal size={14} strokeWidth={1.5} />
+                Filtres{nbFiltresPanneau > 0 && ` (${nbFiltresPanneau})`}
               </button>
-            ))}
+            )}
           </div>
-        )}
+
+          {avecPanneau && filtresOuverts && (
+            <div id="panneau-filtres" role="group" aria-label="Filtres" className={styles.panneauFiltres}>
+              {avecMatieres && (
+                <label className={styles.champFiltre}>
+                  <span className={styles.filtreLabel}>Matière</span>
+                  <select value={matiereActive} onChange={(e) => setFiltreMatiere(e.target.value)}>
+                    {matieres.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {avecAudience && (
+                <div className={styles.filters} role="group" aria-label="Visible par">
+                  <span className={styles.filtreLabel}>Visible par</span>
+                  {[
+                    { id: "tous", nom: "Tous" },
+                    { id: "groupe", nom: "Groupe" },
+                    ...(avecPromo ? [{ id: "promo", nom: "Toute la promo" }] : []),
+                    ...audiences,
+                  ].map((a) => (
+                    <button
+                      key={a.id}
+                      className={`${styles.filterBtn} ${styles.filterBtnMatiere} ${audienceActive === a.id ? styles.filterActive : ""}`}
+                      aria-pressed={audienceActive === a.id}
+                      onClick={() => setFiltreAudience(a.id)}
+                    >
+                      {a.nom}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {filtresActifs && (
+                <button className={styles.resetBtn} onClick={reinitialiserFiltres}>
+                  Réinitialiser les filtres
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Annonce le résultat du filtrage aux lecteurs d'écran */}
+        <p className={styles.srOnly} aria-live="polite">
+          {!loading &&
+            !loadError &&
+            `${devoirsAffiches.length} devoir${devoirsAffiches.length !== 1 ? "s" : ""} affiché${devoirsAffiches.length !== 1 ? "s" : ""}`}
+        </p>
 
         {loading && <SkeletonCards count={3} height={100} />}
 
@@ -830,15 +897,7 @@ export default function Devoirs() {
                 {filtresActifs && devoirsDeLOnglet.length > 0 ? (
                   <>
                     <p>Aucun résultat avec ces filtres.</p>
-                    <button
-                      className={styles.resetBtn}
-                      onClick={() => {
-                        setFiltreType("Tous");
-                        setFiltreMatiere("Toutes");
-                        setFiltreAudience("tous");
-                        setRecherche("");
-                      }}
-                    >
+                    <button className={styles.resetBtn} onClick={reinitialiserFiltres}>
                       Réinitialiser les filtres
                     </button>
                   </>

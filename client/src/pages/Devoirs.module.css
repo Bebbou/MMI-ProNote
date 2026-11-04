@@ -857,11 +857,6 @@
     grid-template-columns: 1fr;
   }
 
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
   .search input {
     width: 100%;
   }
@@ -911,4 +906,71 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-right: 0.15rem;
+}
+
+/* ── Barre de filtres : onglets et recherche, puis types et bouton Filtres ── */
+.barre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+/* Après .barre : à spécificité égale, c'est la dernière règle qui gagne */
+@media (max-width: 768px) {
+  .barre {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.zoneFiltres {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.panneauFiltres {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+}
+
+.champFiltre {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.champFiltre select {
+  min-width: 0;
+  max-width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.775rem;
+  font-family: inherit;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+/* Lu par les lecteurs d'écran, invisible à l'écran */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
