@@ -47,7 +47,7 @@
 }
 
 .resumeRetard {
-  color: var(--danger);
+  color: var(--danger-text);
   font-weight: 600;
 }
 
@@ -267,7 +267,7 @@
 }
 
 .sectionRetard {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .sectionCount {
@@ -304,7 +304,7 @@
 
 .resetBtn:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* ── Carte de devoir ── */
@@ -388,7 +388,7 @@
 
 .check:hover {
   border-color: var(--success);
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .check:active {
@@ -425,7 +425,7 @@
 }
 
 .matiere {
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 0.75rem;
   font-weight: 700;
   background: var(--tint-pink);
@@ -476,10 +476,10 @@
 }
 
 .urgence_retard .echeancePrincipal {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 .urgence_urgent .echeancePrincipal {
-  color: var(--accent-orange);
+  color: var(--orange-text);
 }
 
 .titre {
@@ -510,7 +510,7 @@
   border: none;
   padding: 0;
   margin-top: 0.2rem;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 0.75rem;
   font-family: inherit;
   font-weight: 600;
@@ -559,12 +559,12 @@
 
 .editBtn:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .deleteBtn:hover {
   border-color: var(--danger);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ── Commentaires (même rendu que la page Cours) ── */
@@ -586,13 +586,13 @@
 }
 
 .commentToggle:hover {
-  color: var(--accent);
+  color: var(--accent-text);
   border-color: var(--accent);
 }
 
 /* Des commentaires existent : on le voit sans avoir à déplier */
 .commentToggleActif {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .comments {
@@ -635,7 +635,7 @@
 .commentAuteur {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .commentRole {
@@ -643,7 +643,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--tint-pink);
   padding: 0.05rem 0.45rem;
   border-radius: 20px;
@@ -667,7 +667,7 @@
 }
 
 .commentDelete:hover {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .commentContent {
@@ -891,7 +891,7 @@
 /* Tag d'option (anglais renforcé...) : le devoir n'est visible que par ses membres */
 .optionBadge {
   background: var(--tint-blue);
-  color: var(--accent-blue);
+  color: var(--blue-text);
   font-size: 0.7rem;
   font-weight: 700;
   padding: 0.15rem 0.6rem;

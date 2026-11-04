@@ -79,7 +79,7 @@
 
 .userGroupe {
   font-size: 0.75rem;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 500;
 }
 
@@ -110,7 +110,7 @@
 
 .active {
   background: var(--tint-pink);
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
 }
 
@@ -142,7 +142,7 @@
 .themeBtn:hover,
 .themeBtnOpen {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .themeDropdown {
@@ -186,7 +186,7 @@
 }
 
 .themeItemActive {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 600;
 }
 
@@ -243,7 +243,7 @@
 
 .logout:hover {
   border-color: var(--danger);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ── Main content ── */
@@ -406,7 +406,7 @@
   .menuBtn:hover,
   .themeIconBtn:hover,
   .themeIconBtnOpen {
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   .mobileThemePicker {
@@ -432,7 +432,7 @@
   .mobileTitle {
     font-weight: 800;
     font-size: 0.95rem;
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   /* Main content sans padding en bas (géré par content) */
@@ -472,6 +472,6 @@
   }
 
   .bottomNavActive {
-    color: var(--accent);
+    color: var(--accent-text);
   }
 }

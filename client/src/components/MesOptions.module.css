@@ -96,7 +96,7 @@
 }
 
 .suppr:hover {
-  color: var(--danger);
+  color: var(--danger-text);
   border-color: var(--danger);
 }
 

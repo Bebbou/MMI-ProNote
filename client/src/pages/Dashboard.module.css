@@ -93,7 +93,7 @@
 
 /* Comme les anciennes cartes : l'icône porte l'accent, le texte reste sobre */
 .etiquette svg {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .titreHero {
@@ -279,7 +279,7 @@
 /* Petites tuiles de raccourci */
 .tuileIcone {
   display: flex;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .tuileLabel {
@@ -332,7 +332,7 @@
 
 .toolbarBtn:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .panel {
@@ -411,13 +411,13 @@
 
 .poignee:hover,
 .poignee:focus-visible {
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--bg-input);
 }
 
 .panelItemGlisse .poignee {
   cursor: grabbing;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -106,7 +106,7 @@
 .today {
   background: none;
   border: none;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
@@ -212,7 +212,7 @@
 
 .dayNum {
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .timeAxis {
@@ -321,7 +321,7 @@
 
 .blocHeure {
   font-size: 0.62rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -343,7 +343,7 @@
 
 .blocMeta {
   font-size: 0.65rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
@@ -409,7 +409,7 @@
 }
 
 .dayTabActive .dayTabNom {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .dayTabNum {
@@ -604,7 +604,7 @@
   width: 100%;
   background: none;
   border: 1px solid var(--border);
-  color: var(--danger);
+  color: var(--danger-text);
   border-radius: 8px;
   padding: 0.6rem;
   font-family: inherit;

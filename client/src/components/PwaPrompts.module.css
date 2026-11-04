@@ -36,7 +36,7 @@
   align-items: center;
   justify-content: center;
   background: var(--tint-pink);
-  color: var(--accent);
+  color: var(--accent-text);
   border-radius: 10px;
 }
 

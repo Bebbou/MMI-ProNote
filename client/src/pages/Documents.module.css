@@ -92,7 +92,7 @@
   cursor: pointer;
 }
 .error {
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 0.825rem;
 }
 .submitBtn {
@@ -211,7 +211,7 @@
   padding: 1.1rem 1.25rem;
 }
 .cardIcon {
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--tint-pink);
   border-radius: 10px;
   width: 44px;
@@ -234,7 +234,7 @@
 }
 .matiereBadge {
   background: var(--tint-pink);
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 0.7rem;
   font-weight: 700;
   border-radius: 20px;
@@ -242,7 +242,7 @@
 }
 .typeBadge {
   background: var(--tint-blue);
-  color: var(--accent-blue);
+  color: var(--blue-text);
   font-size: 0.7rem;
   font-weight: 700;
   border-radius: 20px;
@@ -250,7 +250,7 @@
 }
 .profBadge {
   background: var(--tint-orange);
-  color: var(--accent-orange);
+  color: var(--orange-text);
   font-size: 0.7rem;
   font-weight: 600;
   border-radius: 20px;
@@ -305,7 +305,7 @@
     border-color 0.15s;
 }
 .commentToggle:hover {
-  color: var(--accent);
+  color: var(--accent-text);
   border-color: var(--accent);
 }
 .downloadBtn {
@@ -340,7 +340,7 @@
     border-color 0.15s;
 }
 .editBtn:hover {
-  color: var(--accent);
+  color: var(--accent-text);
   border-color: var(--accent);
 }
 .deleteBtn {
@@ -357,7 +357,7 @@
     border-color 0.15s;
 }
 .deleteBtn:hover {
-  color: var(--danger);
+  color: var(--danger-text);
   border-color: var(--danger);
 }
 
@@ -440,7 +440,7 @@
 .commentAuteur {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .commentDate {
   font-size: 0.725rem;
@@ -458,7 +458,7 @@
   transition: color 0.15s;
 }
 .commentDelete:hover {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 .commentContent {
   font-size: 0.85rem;
@@ -528,7 +528,7 @@
 
 /* Stockage presque plein : on prévient avant que l'upload soit refusé */
 .stockageAlerte {
-  color: var(--danger);
+  color: var(--danger-text);
   font-weight: 600;
 }
 

@@ -21,7 +21,7 @@
 .card h1 {
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
   letter-spacing: -0.5px;
 }
 
@@ -88,14 +88,14 @@
 }
 
 .card a:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .error {
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 0.8rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--tint-danger);
+  border: 1px solid var(--danger);
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
 }

@@ -38,7 +38,7 @@
 }
 
 .groupe {
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 0.775rem;
   font-weight: 700;
   background: var(--tint-pink);
@@ -295,7 +295,7 @@
 
 .notifBtnOn {
   background: var(--tint-pink);
-  color: var(--accent);
+  color: var(--accent-text);
   border: 1px solid var(--accent);
 }
 
@@ -320,7 +320,7 @@
 
 .notifTest:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .notifBtn:disabled {
@@ -329,19 +329,19 @@
 }
 
 .error {
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 0.8rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--tint-danger);
+  border: 1px solid var(--danger);
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
 }
 
 .success {
-  color: var(--success);
+  color: var(--success-text);
   font-size: 0.8rem;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--tint-success);
+  border: 1px solid var(--success);
   border-radius: 6px;
   padding: 0.5rem 0.75rem;
 }
