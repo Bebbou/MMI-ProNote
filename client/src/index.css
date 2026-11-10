@@ -1,7 +1,43 @@
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap");
+/* Jetons communs à tous les thèmes : ils ne dépendent pas des couleurs */
+:root {
+  /* Typographie : 7 tailles, rien en dessous de 12 px */
+  --fs-xs: 0.75rem; /* 12 px : légendes, badges, métadonnées */
+  --fs-sm: 0.8125rem; /* 13 px : texte secondaire, boutons */
+  --fs-base: 0.875rem; /* 14 px : texte courant */
+  --fs-md: 1rem; /* 16 px : titres de carte, champs sur mobile */
+  --fs-lg: 1.25rem; /* 20 px : titres de section */
+  --fs-xl: 1.5rem; /* 24 px : titres de page */
+  --fs-2xl: 2rem; /* 32 px : grands chiffres */
+
+  /* Rayons : 3 tailles et la pilule */
+  --radius-sm: 6px; /* badges, petites puces */
+  --radius-md: 10px; /* boutons, champs */
+  --radius-lg: 16px; /* cartes, panneaux, modales */
+  --radius-full: 999px;
+
+  /* Espacement */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-8: 3rem;
+
+  /* Mouvement */
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-slow: 280ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Mise en page */
+  --content-max: 1200px;
+  --form-max: 560px;
+}
 
 :root,
 [data-theme="mmi"] {
+  color-scheme: light;
   --bg-page: #f7f6f3;
   --bg-card: #ffffff;
   --bg-input: #f2f1ee;
@@ -41,11 +77,13 @@
   --warning: #f26419;
   --shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
 [data-theme="dark"] {
   /* Rendu "mode sombre auto" de Comet : fond, cartes et barre latérale à plat,
      séparés uniquement par les bordures */
+  color-scheme: dark;
   --bg-page: #0e0e0e;
   --bg-card: #0e0e0e;
   --bg-input: #0a0a0a;
@@ -78,9 +116,11 @@
   --warning: #f59e0b;
   --shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
 }
 
 [data-theme="bleu"] {
+  color-scheme: light;
   --bg-page: #f0f6fc;
   --bg-card: #ffffff;
   --bg-input: #e4eff9;
@@ -107,9 +147,11 @@
   --warning: #f26419;
   --shadow: 0 4px 16px rgba(70, 156, 208, 0.12);
   --shadow-sm: 0 2px 8px rgba(70, 156, 208, 0.07);
+  --shadow-lg: 0 12px 32px rgba(70, 156, 208, 0.18);
 }
 
 [data-theme="pastel"] {
+  color-scheme: light;
   --bg-page: #fef0f6;
   --bg-card: #fff8fb;
   --bg-input: #ffe6f2;
@@ -136,10 +178,12 @@
   --warning: #f26419;
   --shadow: 0 4px 16px rgba(232, 96, 154, 0.1);
   --shadow-sm: 0 2px 8px rgba(232, 96, 154, 0.06);
+  --shadow-lg: 0 12px 32px rgba(232, 96, 154, 0.16);
 }
 
 [data-theme="obsidian"] {
   /* Rendu "mode sombre auto" de Comet : fond, cartes et barre latérale à plat */
+  color-scheme: dark;
   --bg-page: #161420;
   --bg-card: #161420;
   --bg-input: #14121e;
@@ -172,6 +216,7 @@
   --warning: #ffb347;
   --shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.7);
 }
 
 * {
@@ -189,9 +234,38 @@ body {
   background: var(--bg-page);
   color: var(--text);
   min-height: 100vh;
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   transition:
     background 0.2s,
     color 0.2s;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: var(--tint-pink);
+  color: var(--text);
+}
+
+/* Une seule règle pour toute l'application : les animations décoratives s'effacent
+   pour les personnes qui ont demandé moins de mouvement dans leur système. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 [data-theme="dark"] body,
@@ -213,12 +287,15 @@ a {
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-page);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--accent);
+  background: var(--border);
   border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
 }
